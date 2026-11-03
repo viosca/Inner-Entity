@@ -2,237 +2,154 @@
   <img src="https://raw.githubusercontent.com/LewdLeah/Inner-Self/main/assets/cover1.png" width="800">
 </p>
 
-# Inner Self 🎭
-### *Giving characters minds of their own~*
-Made by LewdLeah ❤️
+# Inner Entity 🎭
+### *Giving characters minds of their own with Entity Cards~*
+Originally created as **Inner Self** by **LewdLeah** ❤️  
+Optimized Context patch by **XloSky**  
+Expanded with **Entity Cards (NER)** and maintained by **Randy Viosca**  
 
 ---
 
 ## Overview
 
-Inner Self is an AI Dungeon mod that grants memory, goals, secrets, planning, and self-reflection capabilities to the characters living in your story. Simulated agents build and maintain their own minds to learn from experiences, form opinions, and adapt their behavior over time. Inner Self provides the AI with the tools it needs to truly embody characters, allowing them to feel more alive and nuanced over long adventures.
+**Inner Entity** combines the character-mind simulation of LewdLeah's **Inner Self** with the structured Named Entity Recognition (NER) and token-dense YAML world-building of Randy Viosca's **Entity Cards**, fully updated with XloSky's **Optimized Context** compatibility patch.
 
-In some ways this is the spiritual successor to [Auto-Cards](https://github.com/LewdLeah/Auto-Cards), which is already included with Inner Self and can be enabled at any time.
+Simulated NPCs build, reflect upon, and maintain their own mental state (goals, secrets, opinions, private plans) while the world around them is dynamically indexed into token-calibrated Entity Cards across 5 types: **Person**, **Location**, **Organization**, **Thing**, and **Event**.
 
 ---
 
-## Main Features
+## Key Features
 
 | Feature | Description |
-|:--------|:------------|
-| **Segmented Memory** | Each NPC maintains their own private thoughts, separate from other characters |
-| **Self-Organizing Thoughts** | Characters agentically revise, prune, and maintain their own mental state |
-| **Zero Immersion Breaks** | Absolutely NO "please select continue" messages (!!!) |
-| **Real-Time Brain Editor** | View or edit any NPC brain in the associated story card notes |
-| **Name-Based Triggers** | Different NPCs coexist seamlessly, activating when mentioned in the story |
-| **Visual Indicators** | See exactly which character is thinking at any given moment |
-| **Universal Compatibility** | General-purpose design works across diverse character archetypes and scenarios |
-| **Auto-Cards Integration** | Fully merged for comprehensive world-building (optional) |
+|:---|:---|
+| **Segmented Character Minds** | Each NPC maintains their own private mental state, separate from other characters |
+| **Optimized Context Support** | Fully compatible with AI Dungeon's *Optimized Context* prompt caching via dynamic task cards |
+| **Smart Trigger Scoring** | Narration mentions outweigh dialogue mentions (3:1), preventing absent characters from thinking |
+| **Named Entity Recognition (NER)** | Automatically generates structured, token-dense YAML cards for people, places, factions, relics, and events |
+| **100-Token Slider Calibrated** | Schemas complete reliably in a single turn (~94 tokens) under AI Dungeon's default response slider |
+| **Model-Aware Presets** | Auto-detects story model tier (DeepSeek, Gemma, Wayfarer, Muse) to select Standard, Lite, or Authoring schemas |
+| **Two-Card Configuration** | Modular configuration split between Master *Configure Auto-Cards* and Companion *Configure Entity Cards* |
+| **Zero Immersion Breaks** | Thought formation and card generation occur naturally without intrusive continue prompts |
+| **Real-Time Editors** | View or edit any NPC brain in story card notes, and customize live prompt templates in the companion card |
+| **100% Backward Compatible** | Works with legacy `InnerSelf()` hooks and allows 1-click toggling back to Classic Auto-Cards |
 
 ---
 
-## Permission
+## Scenario Script Installation Guide
 
-Inner Self is both free and open-source for anyone to use in their own scenarios or scripts, even published ones. You have my full permission to use, copy, or modify Inner Self. Please enjoy! ❤️
+1. Open the [AI Dungeon website](https://aidungeon.com/) on desktop.
+2. Edit an existing scenario or create a new one.
+3. Open the **DETAILS** tab at the top.
+4. Scroll down to **Scripting** and toggle **ON → Scripts Enabled**.
+5. Select **EDIT SCRIPTS**.
 
----
+### 1. Library Tab
+Open [`src/library.js`](src/library.js), copy the entire file, and paste it into your empty **Library** tab.
 
-## Scenario Script Install Guide
-1. Use the [AI Dungeon website](https://aidungeon.com/) on PC (or view as desktop if mobile-only)
-2. [Create a new scenario](https://help.aidungeon.com/faq/what-are-scenarios) or edit an existing scenario
-3. Open the `DETAILS` tab at the top while editing your scenario
-4. Scroll down to `Scripting` and toggle ON → `Scripts Enabled`
-5. Select `EDIT SCRIPTS`
-6. Select the `Input` tab on the left
-7. Delete all code within said tab
-8. Copy and paste the following code into your empty `Input` tab:
+### 2. Input Tab
+Paste the following into your empty **Input** tab:
 ```javascript
 // Your "Input" tab should look like this
-InnerSelf("input");
+InnerEntity("input");
 const modifier = (text) => {
   // Any other input modifier scripts can go here
   return { text };
 };
 modifier(text);
 ```
-9. Select the `Context` tab on the left
-10. Delete all code within said tab
-11. Copy and paste the following code into your empty `Context` tab:
+
+### 3. Context Tab
+Paste the following into your empty **Context** tab:
 ```javascript
 // Your "Context" tab should look like this
-InnerSelf("context");
+InnerEntity("context");
 const modifier = (text) => {
   // Any other context modifier scripts can go here
   return { text, stop };
 };
 modifier(text);
 ```
-12. Select the `Output` tab on the left
-13. Delete all code within said tab
-14. Copy and paste the following code into your empty `Output` tab:
+
+### 4. Output Tab
+Paste the following into your empty **Output** tab:
 ```javascript
 // Your "Output" tab should look like this
-InnerSelf("output");
+InnerEntity("output");
 const modifier = (text) => {
   // Any other output modifier scripts can go here
   return { text };
 };
 modifier(text);
 ```
-15. Select the `Library` tab on the left
-16. Delete all code within said tab
-17. Open the Library code (hyperlink below) in a new browser tab
-- [Library code](./src/library.js)
-18. Copy the *full* code from the page above and paste into your empty `Library` tab
-19. Click the big yellow `SAVE` button in the top right corner
 
-### *And you're done!*
+5. Click the yellow **SAVE** button in the top right.
 
-All adventures played from your scenario will now include Inner Self (even existing adventures)
-
-<sub>Remember to read the in-game config card!</sub>
+*Note: Existing scenarios referencing `InnerSelf("input")`, `InnerSelf("context")`, and `InnerSelf("output")` remain fully supported via backward-compatibility aliases.*
 
 ---
 
-## Gameplay Tips
+## Gameplay & Configuration
 
-- Read the in-game config card to learn how to easily add NPCs
-- Set response length to 200 tokens if you notice short or empty outputs
-- Enable scripts if you don't see a config card (homepage > settings > gameplay)
-- Protect your mental health: Inner Self is intended to be a narrative experience only
-- Plot components matter because the AI sees them when writing thoughts
-- Different story models also tend to manage brains differently
-- But avoid Atlas and Raven models for this one 😅
+### In-Game Story Cards
+
+When your adventure begins, the script generates:
+1. **Configure Inner Entity:**
+   - Controls NPC mind simulation, thought frequency, trigger distance, and character list.
+   - At the bottom of the card notes, list your intelligent NPCs on separate lines (e.g. `Leah\nLily\nLydia`).
+   - Toggle **`Install Entity Cards / Auto-Cards: true`** to activate automated world lore generation.
+2. **Configure Auto-Cards (Master):**
+   - Active when card automation is enabled.
+   - Switch between **`Operating Mode: Entity Cards`** (structured YAML) and **`Classic Auto-Cards`** (free-form prose).
+   - Configure cooldowns, common entity filters, and title bans.
+3. **Configure Entity Cards (Companion):**
+   - Appears when in Entity Cards mode.
+   - Displays active preset (`Standard`, `Lite`, `Authoring`, `Custom`).
+   - Allows live editing of the YAML generation templates right inside the card notes.
+
+### Slash Commands
+
+You can execute commands directly in the AID input bar:
+- `/ec on` or `/ac on`: Force-enable card automation.
+- `/ec preset lite` (or `standard`, `authoring`, `custom`): Switch schema preset on the fly.
+- `/ec header Named Entities (NER):`: Customize the context header replacing `World Lore:`.
+- `/ec manual <title>`: Instantly generate an entity card, bypassing common filters.
 
 ---
 
-## For Creators
+## For Scenario Creators
 
-### Creator Control Panel
-At the very top of the Inner Self `Library` script tab, you'll find optional settings with simple explanations. Modify these before publishing to customize your scenario's default experience.
+At the top of [`src/library.js`](src/library.js), creators can customize scenario defaults via `globalThis.MainSettings`:
 
-### Preparing Scenario NPCs
-To work on its own, provide Inner Self with the names of your scenario's most important NPCs. Inner Self will create a new brain card for each NPC you prepare, after their name appears in the story. (Kinda like story card triggers, if that makes sense!) Brains are created on-demand to avoid overwhelming players.
-
-Creators provide Inner Self with scenario NPC names in one of two ways:
-
-<details>
-<summary><b>regular method (click to expand)</b></summary>
-
-In the creator control panel near the top of your `Library` script tab:
 ```javascript
-// List the first name of every scenario NPC whose brain should be simulated by Inner Self:
-IMPORTANT_SCENARIO_CHARACTERS: ""
-// (write a comma separated list of names inside the "" like so: "Leah, Lily, Lydia")
+globalThis.MainSettings = (class MainSettings {
+    static InnerEntity = {
+        IMPORTANT_SCENARIO_CHARACTERS: "Leah, Lily, Lydia",
+        IS_INNER_SELF_ENABLED_BY_DEFAULT: true,
+        FIRST_SECOND_OR_THIRD_PERSON_POV: 2,
+        PERCENTAGE_OF_RECENT_STORY_USED_FOR_BRAINS: 30,
+        NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS: 5,
+        ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL: "🎭",
+        THOUGHT_FORMATION_CHANCE_PER_TURN: 60,
+        IS_AC_ENABLED_BY_DEFAULT: true, // Auto-start Entity Cards
+    };
+
+    static EntityCards = {
+        DEFAULT_OPERATING_MODE: "entity", // "entity" or "classic"
+        DEFAULT_EC_PRESET: "standard",    // "standard", "lite", "authoring", "custom"
+        DEFAULT_EC_AUTO_PRESET: true,     // Automatically calibrate to story model
+        DEFAULT_CARD_CREATION_COOLDOWN: 28,
+        DEFAULT_EC_GENERATED_ENTRY_LIMIT: 700,
+        DEFAULT_EC_CONTEXT_HEADER: "Named Entities (NER):",
+        DEFAULT_FILTER_COMMON_ENTITIES: true,
+    };
+});
 ```
-Simply list your NPC names inside the quotations. Then click the yellow `SAVE` button!
-
-</details>
-
-<details>
-<summary><b>alternative method for mobile creators (click to expand)</b></summary>
-  
-Prefix regular AID story card titles with the `@` symbol so Inner Self knows which characters should think:
-- Example card name: `@Leah`
-- Remember to use simple first names here!
-- This method is easier on mobile
-
-</details>
-
-### Custom NPC Brains
-Inner Self uses the full context of your scenario to form minds that follow your creative vision. No extra effort required.
-
-But if you want more advanced control:
-
-<details>
-<summary><b>initial thoughts (click to expand)</b></summary>
-  
-1. Transfer any NPC brain card from adventure to scenario
-2. Leave the card entry completely empty
-3. Replace the notes section with any valid string-valued JSON
-4. Feel free to use an AI assistant to transform your concept into valid JSON by filling out the prompt below:
-````markdown
-# You are a JSON generator:
-- Always reply with valid JSON only, no extra text
-- Base your output on the instructions provided
-- Do not include comments or explanations
-
-## Overarching setting:
-```
-[Describe the setting of your scenario here!]
-```
-
-## Fictional character concept:
-```
-[Describe your character concept here!]
-```
-
-## Task instructions:
-Your task is to transform the character concept into a JSON object
-- The object should resemble a flat collection of key-value pairs
-- All values are strings written from the character's inner 1st person PoV
-- Values should be short single-sentence thoughts that capture core aspects
-- Keys use distinct and descriptive lower snake_case syntax
-- The object represents the character's identity of self
-- Be creative when roleplaying as the character
-- Respect the overarching setting
-````
-
-</details>
 
 ---
 
-## Useful Links
+## Credits & Attributions
 
-<details>
-<summary><b>(click to expand)</b></summary>
-
-### Basic Demo Scenario
-- [Inner Self](https://play.aidungeon.com/scenario/tsu1WMJXaaAZ/inner-self)
-
-### Discussion Thread
-- [Inner Self main thread](https://discordapp.com/channels/903327676884979802/1455232694379221165)
-- [AI Dungeon official Discord server invite](https://discord.gg/MXNqpSbuZT) (required to access the first link)
-- Please remember this is a personal passion project for me, something I do because I enjoy it, not as a job. Your kindness, patience, and love mean so much to me~ ❤️
-
-</details>
-
----
-
-## Changelog
-
-<details>
-<summary><b>(click to expand)</b></summary>
-
-### 1.0.2
-- Added config "Brain card notes store brains as JSON"
-- When disabled, brain card notes use a simpler colon + newline delimited format instead of JSON
-- Makes it much easier to manually edit NPC thoughts without accidentally breaking syntax
-- Backward and forward compatible; both formats are safe during parsing
-- Pull request by [dirtymined13](https://github.com/dirtymined13)
-
-### 1.0.1
-- Added config "Half thought chance for Do/Say/Story"
-- Lets players decide if the thought formation chance should be reduced by half during Do/Say/Story turns
-- This reduction was previously mandatory in v1.0.0, to help enforce player agency when using free models
-- Pull request by [-Vinny-](https://play.aidungeon.com/profile/-Vinny-)
-
-### 1.0.0
-- Inner Self released!
-
-</details>
-
----
-
-## Contributions
-
-<details>
-<summary><b>(click to expand)</b></summary>
-
-- v1.0.1 → v1.0.2 by [dirtymined13](https://github.com/dirtymined13)
-- v1.0.0 → v1.0.1 by [-Vinny-](https://play.aidungeon.com/profile/-Vinny-)
-
-</details>
-
-<p align="center"><i>Thank you so much for your curiosity and support~</i> ❤️</p>
-<p align="center"><b>Inner Self v1.0.2</b> · Made with love by <a href="https://play.aidungeon.com/profile/LewdLeah">LewdLeah</a></p>
+- **LewdLeah:** Creator of the original **Inner Self** (January 3, 2026) and **Auto-Cards** (May 21, 2025). The architecture of segmented memories, autonomous reflection, and card synchronization is LewdLeah's foundational work.
+- **XloSky:** Creator of the **Optimized Context** patch (build 2.8.0), solving server-side prompt cache discard via dynamic task cards, dialogue-vs-narration trigger weighting, and self-referential thought filtering.
+- **Randy Viosca:** Creator of **Entity Cards**, contributing Named Entity Recognition (NER), token-density calibration for AID's 100-token slider, two-card architecture, model-aware presets, fence cleaners, and maintainer of **Inner Entity**.
+- **Community:** Pull requests and benchmark contributions by dirtymined13, -Vinny-, and testers across the AI Dungeon community.

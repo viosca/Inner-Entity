@@ -1,5 +1,5 @@
 // Your "Input" tab should look like this
-InnerSelf("input");
+InnerEntity("input");
 const modifier = (text) => {
   // Any other input modifier scripts can go here
   return { text };

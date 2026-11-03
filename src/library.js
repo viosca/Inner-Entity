@@ -1,4 +1,26 @@
+// ============================================================================
+//
+//                             USE THIS VERSION
+//
+//                        InnerSelf_OC_Ver.2_8_0.js
+//
+//   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
+//   do not add to it. If an older copy of Inner Self is left anywhere below,
+//   JavaScript silently lets the later copy win and this one never runs.
+//
+//   To confirm this version is live, the "Configure Inner Self" card's first
+//   line reads: === Optimized Context patch build Ver.2_8_0 ===
+//
+// ============================================================================
+
 // Your "Library" tab should look like this
+
+// Build identifier for the Optimized Context patch. Printed on the
+// "Configure Inner Self" card and on the task card, so the version that is
+// actually running can be read off a screenshot instead of inferred.
+globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
+// Maintained for backward compatibility
+globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
 /**
  * Main control panel for scenario creator convenience
@@ -80,125 +102,309 @@ globalThis.MainSettings = (class MainSettings {
      * General-purpose usefulness and compatibility with other scenarios/scripts were my design priorities
      * AC is fully open-source, please copy for use within your own projects! ❤️
      */
-    static AC = {
-    // Is AC already enabled when the adventure begins?
-    DEFAULT_DO_AC: true
-    // (true or false)
-    ,
-    // Pin the "Configure Auto-Cards" story card at the top of the player's story cards list?
-    DEFAULT_PIN_CONFIGURE_CARD: false
-    // (true or false)
-    ,
+        /**
+     * Entity Cards / Auto-Cards
+     * Originally made by LewdLeah, expanded with Named Entity Recognition (NER) by Randy Viosca
+     */
+    static EntityCards = {
+    // Is Entity Cards / Auto-Cards already enabled when the adventure begins?
+    DEFAULT_DO_AC: false,
+    // Operating mode: "entity" (Entity Cards NER/YAML) or "classic" (Classic Auto-Cards prose)
+    DEFAULT_OPERATING_MODE: "entity",
     // Minimum number of turns in between automatic card generation events?
-    DEFAULT_CARD_CREATION_COOLDOWN: 40
-    // (0 to 9999)
-    ,
-    // Use a bulleted list format for newly generated card entries?
-    DEFAULT_USE_BULLETED_LIST_MODE: true
-    // (true or false)
-    ,
-    // Maximum allowed length for newly generated story card entries?
-    DEFAULT_GENERATED_ENTRY_LIMIT: 600
-    // (200 to 2000)
-    ,
-    // Do newly generated cards have memory updates enabled by default?
-    DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES: false
-    // (true or false)
-    ,
-    // Default character limit before the card's memory bank is summarized?
-    DEFAULT_NEW_CARDS_MEMORY_LIMIT: 3200
-    // (1750 to 9900)
-    ,
-    // Approximately how much shorter should recently compressed memories be? (ratio = 10 * old / new)
-    DEFAULT_MEMORY_COMPRESSION_RATIO: 25
-    // (20 to 1250)
-    ,
-    // Ignore all-caps during title candidate detection?
-    DEFAULT_IGNORE_ALL_CAPS_TITLES: true
-    // (true or false)
-    ,
-    // Should player input actions (Do/Say/Story) be considered during title detection?
-    DEFAULT_DETECT_TITLES_FROM_INPUTS: false
-    // (true or false)
-    ,
-    // How many (minimum) actions in the past does Auto-Cards look for named entities?
-    DEFAULT_MINIMUM_LOOK_BACK_DISTANCE: 7
-    // (2 to 88)
-    ,
-    // Is Live Script Interface v2 enabled?
-    DEFAULT_DO_LSI_V2: false
-    // (true or false)
-    ,
-    // Should the "Debug Data" story card be visible?
-    DEFAULT_SHOW_DEBUG_DATA: false
-    // (true or false)
-    ,
-    // AI prompt used to generate new story card entries?
-    DEFAULT_CARD_GENERATION_PROMPT: [
-        "-----",
-        "",
-        "<SYSTEM>",
-        "# Stop the story and ignore previous instructions. Write a brief and coherent informational entry for %{title} following these instructions:",
-        "- Write only third-person pure prose information about %{title} using complete sentences with correct punctuation",
-        "- Avoid short-term temporary details or appearances, instead focus on plot-significant information",
-        "- Prioritize story-relevant details about %{title} first to ensure seamless integration with the previous plot",
-        "- Create new information based on the context and story direction",
-        "- Mention %{title} in every sentence",
-        "- Use semicolons if needed",
-        "- Add additional details about %{title} beneath incomplete entries",
-        "- Be concise and grounded",
-        "- Imitate the story's writing style and infer the reader's preferences",
-        "</SYSTEM>",
-        "Continue the entry for %{title} below while avoiding repetition:",
-        "%{entry}"
-    ] // (mimic this multi-line "text" format)
-    ,
-    // AI prompt used to summarize a given story card's memory bank?
-    DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT: [
-        "-----",
-        "",
-        "<SYSTEM>",
-        "# Stop the story and ignore previous instructions. Summarize and condense the given paragraph into a narrow and focused memory passage while following these guidelines:",
-        "- Ensure the passage retains the core meaning and most essential details",
-        "- Use the third-person perspective",
-        "- Prioritize information-density, accuracy, and completeness",
-        "- Remain brief and concise",
-        "- Write firmly in the past tense",
-        "- The paragraph below pertains to old events from far earlier in the story",
-        "- Integrate %{title} naturally within the memory; however, only write about the events as they occurred",
-        "- Only reference information present inside the paragraph itself, be specific",
-        "</SYSTEM>",
-        "Write a summarized old memory passage for %{title} based only on the following paragraph:",
-        "\"\"\"",
-        "%{memory}",
-        "\"\"\"",
-        "Summarize below:"
-    ] // (mimic this multi-line "text" format)
-    ,
-    // Titles banned from future card generation attempts?
+    DEFAULT_CARD_CREATION_COOLDOWN: 28,
+    // Pin the "Configure" story card at the top of the player's story cards list?
+    DEFAULT_PIN_CONFIGURE_CARD: true,
+    // Allow manual player commands (/ec or /ac) to bypass common entity & banned title filters?
+    DEFAULT_MANUAL_BYPASS_TITLE_FILTERS: true,
+    // Filter common entities (real-world cities, countries, planets) from background auto-detection?
+    DEFAULT_FILTER_COMMON_ENTITIES: true,
+
+    // [*EC] Maximum allowed length for newly generated entity cards in EC mode (200 to 2000)
+    DEFAULT_EC_GENERATED_ENTRY_LIMIT: 700,
+    // [*EC] Active template preset for newly generated entities: "standard", "lite", "authoring", or "custom"
+    DEFAULT_EC_PRESET: "standard",
+    // [*EC] Automatically select preset based on detected AI Dungeon story model?
+    DEFAULT_EC_AUTO_PRESET: true,
+    // [*EC] Replacement string for "World Lore:" header in context (set to "" to leave unchanged)
+    DEFAULT_EC_CONTEXT_HEADER: "Named Entities (NER):",
+    // [*EC] Encapsulate / wrap entity story cards in containers?
+    DEFAULT_EC_SC_CONTAINERIZE: true,
+    DEFAULT_EC_SC_CONTAINER_OPEN: "{ Entity: ",
+    DEFAULT_EC_SC_CONTAINER_CLOSE: "\n}",
+    DEFAULT_EC_SC_AI_BEGIN_SENTINEL: "ENTITY_BEGIN",
+    DEFAULT_EC_SC_AI_END_SENTINEL: "ENTITY_END",
+    DEFAULT_EC_RAWAI_PROMPT_MODE: true,
+    DEFAULT_EC_RAWAI_RESPONSE_MODE: true,
+    DEFAULT_EC_AUTO_TYPE_CARDS: true,
+    DEFAULT_EC_TRIM_PHRASE_FRAG_CARDS: true,
+    DEFAULT_EC_TRIM_DELIMITER_FRAG_CARDS: true,
+    DEFAULT_EC_STRIP_ASTERISKS_CARDS: true,
+    DEFAULT_EC_PRETTIFY_EMDASHES_CARDS: true,
+    DEFAULT_EC_SHOW_DEBUG_RAWAI_ENTRY: false,
+    DEFAULT_EC_SHOW_DEBUG_RAWAI_MEMORY: false,
+
+    // Classic Auto-Cards Settings
+    DEFAULT_AC_USE_BULLETED_LIST_MODE: true,
+    DEFAULT_GENERATED_ENTRY_LIMIT: 600,
+    DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES: false,
+    DEFAULT_NEW_CARDS_MEMORY_LIMIT: 3200,
+    DEFAULT_MEMORY_COMPRESSION_RATIO: 25,
+    DEFAULT_IGNORE_ALL_CAPS_TITLES: true,
+    DEFAULT_DETECT_TITLES_FROM_INPUTS: false,
+    DEFAULT_MINIMUM_LOOK_BACK_DISTANCE: 7,
+    DEFAULT_DO_LSI_V2: false,
+    DEFAULT_SHOW_DEBUG_DATA: false,
+    DEFAULT_TRIM_PHRASE_FRAG_STORY: false,
+    DEFAULT_TRIM_DELIMITER_FRAG_STORY: false,
+    DEFAULT_STRIP_ASTERISKS_STORY: false,
+    DEFAULT_PRETTIFY_EMDASHES_STORY: true,
+    DEFAULT_NORMALIZE_WHITESPACE_STORY: false,
+    DEFAULT_CARD_TYPE: "class",
+    DEFAULT_BAN_TITLES_FROM_OPENING: false,
     DEFAULT_BANNED_TITLES_LIST: (
         "North, East, South, West, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, January, February, March, April, May, June, July, August, September, October, November, December"
-    ) // (mimic this comma-list "text" format)
-    ,
-    // Default story card "type" used by Auto-Cards? (does not matter)
-    DEFAULT_CARD_TYPE: "class"
-    // ("text")
-    ,
-    // Should titles mentioned in the "opening" plot component be banned from future card generation by default?
-    DEFAULT_BAN_TITLES_FROM_OPENING: false
-    // (true or false)
-    ,
-    }; //——————————————————————————————————————————————————————————————————————————————
+    ),
+
+    // [*EC] Preset dictionaries for Entity Cards prompts
+    EC_PRESETS: {
+        standard: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// From story context, determine the entityType of '%{title}' as Person, Location, Organization, Thing, or Event.
+// Precedence if ambiguous: Person > Organization > Location > Event > Thing.
+// Fill out the matching template with concise, plot-significant details.
+// High token density is key. Keep list items and fields to brief phrases (under 10 words each).
+// For description, write 1 concise sentence.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+// Anything outside the sentinels will be discarded. No conversational filler.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+category: {Archetype or occupation}
+appearance: {brief visual traits and attire}
+personality: {demeanor and voice/attitude toward player}
+drive: {primary motive or secret goal}
+connections: {ties to protagonist or factions}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+category: {Metropolis / District / Facility / Wilderness}
+atmosphere: {Sensory mood, ambient tone}
+key_locations:
+- {Landmark 1}: {concise phrase}
+- {Landmark 2}: {concise phrase}
+connections: {concise phrase tying to protagonists or plot}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+category: {Syndicate / Megacorp / Guild / Faction}
+public_face: {reputation and known operations}
+true_agenda: {hidden motives or covert goals}
+reach: {influence, resources, or territory}
+stance: {attitude toward protagonist and rivals}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+category: {Device / Relic / Weapon / Access Key}
+physical: {form, materials, distinctive markings}
+function: {capabilities, utility, or effects}
+rules: {requirements, limits, or risks}
+bearer: {current owner or location}
+description: {1 concise sentence origin and significance}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+category: {Crisis / Cyber-Attack / Breach / Operation}
+status: {Past / Ongoing / Impending}
+key_actors: {instigators, targets, or affected groups}
+stakes: {cause and what is won or lost}
+atmosphere: {tension, aftermath, and social mood}
+description: {1 concise sentence summary and fallout}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`,
+        lite: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// From story context, determine the entityType of '%{title}'.
+// Fill out the matching flat template with concise details.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+category: {occupation or role}
+appearance: {brief visual features}
+personality: {key traits and attitude}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+category: {type of place}
+atmosphere: {sensory tone and mood}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+category: {faction or company type}
+agenda: {main goal or motive}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+category: {item type}
+function: {what it does}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+category: {incident type}
+status: {Past / Ongoing / Impending}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`,
+        authoring: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// Writing assistant directive: generate plot-significant YAML entity card for '%{title}'.
+// Focus on narrative function, scene dynamics, character secrets, and narrative stakes.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+role: {narrative function, e.g. Catalyst, Rival, Mentor}
+appearance: {salient sensory details and attire}
+secrets: {hidden agenda, fear, or vulnerability}
+scene_dynamics: {attitude toward protagonist and behavioral quirks}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+role: {narrative purpose, e.g. Neutral Haven, Trap, Crucible}
+atmosphere: {sensory mood, lighting, environmental hazards}
+key_points:
+- {Landmark 1}: {narrative significance}
+- {Landmark 2}: {narrative significance}
+scene_dynamics: {dangers or opportunities present}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+role: {conflict role, e.g. Puppeteer, Antagonist, Faction in decline}
+public_face: {reputation and facade}
+true_agenda: {covert objective}
+stance: {posture toward protagonist}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+role: {MacGuffin, Tool of survival, Symbol}
+physical: {appearance and material presence}
+powers_or_risk: {capabilities and cost/danger}
+bearer: {current possessor}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+role: {Inciting Incident, Climax, Ticking Clock}
+status: {Past lore / Ongoing crisis / Impending threat}
+stakes: {what changes if resolved or failed}
+atmosphere: {emotional tone and tension}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`
+    }
+    };
+    // Compatibility alias
+    static AC = MainSettings.EntityCards;
+    // Inner Entity / Inner Self alias
+    static InnerEntity = MainSettings.InnerSelf; //——————————————————————————————————————————————————————————————————————————————
 
     #config;
-    constructor(script, alternative) {
-        this.#config = (
-            MainSettings.hasOwnProperty(script)
-            ? MainSettings[script]
-            : ((typeof alternative === "string") && MainSettings.hasOwnProperty(alternative))
-            ? MainSettings[alternative]
-            : null
-        );
+    constructor(...scripts) {
+        for (const s of scripts) {
+            if ((typeof s === "string") && MainSettings.hasOwnProperty(s)) {
+                this.#config = MainSettings[s];
+                break;
+            }
+        }
         return this;
     }
     merge(settings) {
@@ -220,7 +426,90 @@ globalThis.MainSettings = (class MainSettings {
  * Gives story characters the ability to learn, plan, and adapt over time
  * Inner Self is free and open-source for anyone! ❤️
  */
-function InnerSelf(hook) {
+function InnerEntity(hook) {
+    // ==================== TASK CARD SAFETY NET ====================
+    //
+    // This runs FIRST, on EVERY hook, before anything else in Inner Self.
+    //
+    // Its only job is to make sure no story card is carrying an oversized or
+    // old-format instruction block into the model. It does not care which code
+    // wrote that block or when. If a card holds one, it is replaced with a
+    // short set that fits, in place, immediately.
+    //
+    // These three strings appear ONLY in the pre-2.1 prompt.
+    //
+    // Three more used to be listed here -- any_key_name, key_name_to_forget
+    // and RENAMING A THOUGHT -- and they were a mistake. They appear in the
+    // CURRENT instruction set too, because the restored THOUGHT-WRITING
+    // FORMAT block uses those exact placeholder names. The net was therefore
+    // classifying this build's own output as outdated and replacing a good
+    // 1774 character set with the 363 character fallback on every turn.
+    //
+    // Nothing may be listed here that the current set can contain. The guard
+    // below enforces that directly rather than trusting this comment.
+    const OLD_FORMAT_MARKERS = [
+        "FOLLOW EXACTLY",
+        "STRICT OUTPUT FORMAT"
+        // "OPERATING ENVIRONMENT" was listed here and had to go: the current
+        // set restores that heading from the original DIRECTIVE, so the net
+        // would have classed its own output as outdated. The two markers left
+        // appear only in the pre-2.1 prompts, and any genuinely old card has
+        // both of them.
+    ];
+    // A card this build wrote carries the build stamp on its first line, and
+    // is never touched whatever it contains. Belt and braces: even if a marker
+    // were mistakenly listed again, current output could not be eaten by it.
+    const OWN_STAMP = "// Inner Self " + globalThis.INNER_SELF_OC_BUILD;
+    const sanitizeTaskCards = () => {
+        try {
+            if (!Array.isArray(globalThis.storyCards)) {
+                return;
+            }
+            for (const card of globalThis.storyCards) {
+                if (!card || (typeof card !== "object")) {
+                    continue;
+                }
+                const entry = (typeof card.entry === "string") ? card.entry : "";
+                if ((entry === "") || entry.includes(OWN_STAMP)) {
+                    // Empty, or written by this build. Leave it alone.
+                    continue;
+                }
+                // Only ever touch a card that is carrying a task block. A long
+                // ordinary story card, or somebody's lore, is none of this
+                // function's business.
+                const title = String(card.title || "").replace(/[\s\u200B-\u200D]+/g, " ");
+                const looksLikeTask = entry.includes("<|task|>")
+                    || /inner\s*(?:self|entity)\s*task/i.test(title)
+                    || OLD_FORMAT_MARKERS.some(m => entry.includes(m));
+                if (!looksLikeTask) {
+                    continue;
+                }
+                // CLEARED, NOT SUBSTITUTED.
+                //
+                // An earlier version wrote a short generic instruction block
+                // here instead. That was wrong. The context hook returns early
+                // on every turn where no character name has been mentioned
+                // recently, so writeThoughtCard is not reached and the card is
+                // not rewritten -- which is most turns. A substituted block
+                // therefore looked healthy and then sat there indefinitely,
+                // and that is exactly what was being seen on the card.
+                //
+                // Clearing has neither problem. An entry-less, key-less card
+                // cannot reach the model at all, and the next turn that does
+                // trigger a character fills it with the real instruction set.
+                card.entry = "";
+                card.keys = "";
+                if (typeof card.description === "string") {
+                    card.description = "[cleared by " + globalThis.INNER_SELF_OC_BUILD + "]"
+                        + " This card was holding an instruction block from an older build."
+                        + " It has been emptied so it cannot reach the model, and will be"
+                        + " refilled with the current instructions on the next turn that"
+                        + " triggers a character.";
+                }
+            }
+        } catch (error) { /* a safety net must never break the turn */ }
+    };
+    sanitizeTaskCards();
     "use strict";
     /**
      * Scenario-level default settings
@@ -545,11 +834,12 @@ function InnerSelf(hook) {
          */
         const template = {
             type: "class",
-            title: "Configure \nInner Self",
+            title: "Configure \nInner Entity",
             // The config card entry contains the main settings
             entry: [
+                { message: `=== Inner Entity build ${globalThis.INNER_ENTITY_BUILD} (OC patch ${globalThis.INNER_SELF_OC_BUILD}) ===` },
                 {
-                    message: "Inner Self grants story characters the ability to learn, plan, and adapt over time. Edit the entry and notes below to control how Inner Self behaves."
+                    message: `Inner Self grants story characters the ability to learn, plan, and adapt over time. Edit the entry and notes below to control how Inner Self behaves.`
                 },
                 { message: "Enable Inner Self:", ...factory(
                     "allow", S.IS_INNER_SELF_ENABLED_BY_DEFAULT
@@ -625,7 +915,7 @@ function InnerSelf(hook) {
                 { message: "Pin this config card near the top:", ...factory(
                     "pin", S.IS_CONFIG_CARD_PINNED_BY_DEFAULT
                 ) },
-                { message: "Install Auto-Cards:", ...factory(
+                { message: "Install Entity Cards / Auto-Cards:", ...factory(
                     "auto", S.IS_AC_ENABLED_BY_DEFAULT
                 ) },
                 {
@@ -670,6 +960,7 @@ function InnerSelf(hook) {
         const agents = new Set();
         // Simplified title for fuzzy matching
         const target = simplify(template.title);
+        const legacyTarget = simplify("Configure \nInner Self");
         // Scan all story cards in reverse order
         // Looking for config cards, agent cards, and duplicates (remove the latter in-place)
         for (let i = storyCards.length - 1; -1 < i; i--) {
@@ -802,7 +1093,8 @@ function InnerSelf(hook) {
         config.card.type = template.type;
         config.card.title = template.title;
         config.card.entry = build(template.entry, "\n");
-        config.card.description = build(template.description, "\n\n");
+        config.card.description = `[build ${globalThis.INNER_SELF_OC_BUILD}]\n`
+            + build(template.description, "\n\n");
         config.card.keys = u;
         return config;
     } }
@@ -1083,7 +1375,11 @@ function InnerSelf(hook) {
                     api.setBannedTitles([
                         "Inner",
                         "Self",
+                        "Entity",
+                        "Configure Inner Entity",
                         "Configure Inner Self",
+                        "Configure Entity Cards",
+                        "Configure Auto-Cards",
                         "Agent",
                         ...api.getBannedTitles(),
                     ]);
@@ -1117,9 +1413,11 @@ function InnerSelf(hook) {
                     "Console Log"
                 ].includes(card.title) && (card.title === card.keys)) && [{ key: "title", options: [
                     "Configure \nAuto-Cards",
+                    "Configure \nEntity Cards",
                     "Edit to enable \nAuto-Cards"
                 ] }, { key: "keys", options: [
                     "Edit the entry above to adjust your story card automation settings",
+                    "Edit the entry above to adjust your Entity Cards settings and templates",
                     "Edit the entry above to enable story card automation"
                 ] }].every(({ key, options }) => !options.includes(card[key]))) {
                     continue;
@@ -1154,8 +1452,56 @@ function InnerSelf(hook) {
             return;
         }
         // ==================== AGENT TRIGGER DETECTION ====================
+        // TRIGGER SCORING: narration outweighs dialogue.
+        //
+        // A name inside quoted speech means the character is being TALKED
+        // ABOUT. A name in narration means they are on the page. Observed
+        // live: Karane said "Hakari's probably already in the classroom",
+        // Hakari was selected while standing in another room, and the model --
+        // asked for the inner thought of someone who was not in the scene --
+        // wrote Karane's thought instead. It even named the key
+        // "karane_mad_you_intervened". Every mention of Hakari in that passage
+        // was inside quotes; every mention of Karane was in narration.
+        //
+        // Quoted mentions are WEIGHTED DOWN, never excluded. A character can
+        // be present and only ever spoken about, and hard exclusion would
+        // silence them for the whole scene. Speech attribution still counts as
+        // narration, because `"...," Karane says` puts the name outside the
+        // quotation marks.
+        const NARRATION_WEIGHT = 3;
+        const DIALOGUE_WEIGHT = 1;
+        /**
+         * Marks every index of a string that sits inside quoted speech
+         * No RegEx, in keeping with the scan below
+         * @param {string} str - The action text
+         * @returns {Array<boolean>} true where the index is inside quotes
+         */
+        const quotedMask = (str = "") => {
+            const mask = new Array(str.length).fill(false);
+            let open = false;
+            for (let i = 0; i < str.length; i++) {
+                const c = str.charCodeAt(i);
+                if ((c === 0x201C) || (c === 0x300C) || (c === 0x00AB) || (c === 0x201E) || (c === 0x201F)) {
+                    // Opening quote of a pair
+                    open = true;
+                    mask[i] = true;
+                } else if ((c === 0x201D) || (c === 0x300D) || (c === 0x00BB)) {
+                    // Closing quote of a pair
+                    mask[i] = true;
+                    open = false;
+                } else if (c === 0x22) {
+                    // Straight double quote, which has to toggle
+                    mask[i] = true;
+                    open = !open;
+                } else {
+                    mask[i] = open;
+                }
+            }
+            return mask;
+        };
         // Scan config.distance actions back through history to find the most recent agent trigger
-        // Tie-break same-action name triggers based on RNG and their order-of-priority in config.agents
+        // Within one action, the highest scoring agents are kept and the tie is
+        // broken exactly as before: RNG biased by order-of-priority in config.agents
         // Do it all without using ANY RegEx because I'm extra like that :3
         // (this block is blazingly fast)
         const possibilities = [];
@@ -1184,9 +1530,17 @@ function InnerSelf(hook) {
             remaining--;
             // Lowercase for case-insensitive matching
             const lower = actionText.toLowerCase();
+            // Casing can in principle change a string's length. If it ever does,
+            // the mask no longer lines up, so score everything as narration
+            // rather than score it wrongly.
+            const mask = (lower.length === actionText.length) ? quotedMask(actionText) : null;
+            const scores = [];
+            let best = 0;
             // Check each agent in priority order
             for (let [a, n] = [0, config.agents.length]; a < n; a++) {
                 const agentLower = config.agents[a].toLowerCase();
+                let narration = 0;
+                let dialogue = 0;
                 // Scan for all occurrences of agentLower in lower
                 for (
                     let p = lower.indexOf(agentLower);
@@ -1198,11 +1552,36 @@ function InnerSelf(hook) {
                         ((p + agentLower.length) < lower.length)
                         ? lower.charCodeAt(p + agentLower.length) : 0
                     )].every(c => ((c < 97) || (122 < c)))) {
-                        // Found a valid trigger
-                        possibilities.push(config.agents[a]);
-                        break;
+                        // Found a valid trigger, now weigh where it sits
+                        (mask && mask[p]) ? dialogue++ : narration++;
                     }
                 }
+                const score = (narration * NARRATION_WEIGHT) + (dialogue * DIALOGUE_WEIGHT);
+                scores.push(score);
+                if (best < score) {
+                    best = score;
+                }
+            }
+            if (0 < best) {
+                // Keep only the top scorers, in priority order
+                for (let [a, n] = [0, config.agents.length]; a < n; a++) {
+                    if (scores[a] === best) {
+                        possibilities.push(config.agents[a]);
+                    }
+                }
+                // DIAGNOSTIC ONLY. Written to the task card's Notes, which
+                // AI Dungeon never sends to the model. Without this the only
+                // way to know why an agent was chosen is to guess at what the
+                // action text was, which is not good enough.
+                try {
+                    const parts = [];
+                    for (let [a, n] = [0, config.agents.length]; a < n; a++) {
+                        if (0 < scores[a]) {
+                            parts.push(`${config.agents[a]}:${scores[a]}`);
+                        }
+                    }
+                    IS.triggers = parts.join(" ");
+                } catch (error) { /* diagnostics never break a turn */ }
             }
         }
         if (possibilities.length === 0) {
@@ -1380,6 +1759,93 @@ function InnerSelf(hook) {
          * Generates a simple PoV directive for non-task turns
          * @returns {string} System prompt for PoV guidance
          */
+        // ── OPTIMIZED CONTEXT ────────────────────────────────────────────
+        // Measured live on 2026-09-02, toggling the setting on and off inside
+        // one adventure: AI Dungeon's Optimized Context runs the context hook
+        // and lets a script read info.maxChars — which doubles — and then
+        // DISCARDS whatever the hook returns. Inner Self asks for a thought by
+        // rewriting that returned text, so with the setting on the request
+        // never reaches the model and thoughts stop completely. No error, no
+        // failed operation, nothing on the brain card: just silence.
+        //
+        // Story cards DO still reach the model, confirmed by a token echoed
+        // back from a card entry with the setting on. So the request travels on
+        // one instead. The story is already in the context; only the directive,
+        // the brain block and the format rules have to move.
+        //
+        // The card is keyed on ordinary words because AI Dungeon includes cards
+        // "based on how recently and frequently their triggers were used" — a
+        // card with NO keys is never matched, which is why clearing `keys` is
+        // what deactivates one elsewhere in this script.
+        const OC_BUILD = globalThis.INNER_SELF_OC_BUILD;
+        const THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Entity Task — do not edit";
+        const LEGACY_THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Self Task — do not edit";
+        const THOUGHT_CARD_KEYS = "the,a,an,you,and,to,of,it,is,was,in,on";
+        const cacheEfficient = () => {
+            try { return info.useCacheEfficient === true; } catch (error) { return false; }
+        };
+        const writeThoughtCard = (body = "") => {
+            try {
+                let card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE || (c.title || "") === LEGACY_THOUGHT_CARD_TITLE);
+                if (!card) {
+                    if (body === "") {
+                        return;
+                    }
+                    addStoryCard(THOUGHT_CARD_KEYS, "", "class", THOUGHT_CARD_TITLE, "");
+                    card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE);
+                }
+                if (!card) {
+                    return;
+                }
+                card.entry = `// Inner Self ${OC_BUILD}\n${String(body)}`.slice(0, 2000);
+                card.keys = THOUGHT_CARD_KEYS;
+                card.title = THOUGHT_CARD_TITLE;
+                card.description = `[build ${OC_BUILD}] triggers=${IS.triggers || "?"} route=card`
+                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}`
+                    + ` entry=${String(body).length + OC_BUILD.length + 18}chars\n`
+                    + "Written automatically every turn so Inner Self can ask for a thought while"
+                    + " AI Dungeon's Optimized Context setting is on, which stops scripts adding to the context."
+                    + " Editing this does nothing; it is overwritten each turn. Deleting it stops thoughts.";
+                // PINNING, if this build of AI Dungeon has it.
+                //
+                // A pinned card stops competing for the story-card allowance and
+                // cannot be crowded out of a full context, which is exactly the
+                // failure this card is most exposed to. But the property's real
+                // name is undocumented and may not exist at all, so this NEVER
+                // invents a field — an unknown key could confuse whatever
+                // serialises these cards. It looks at cards AI Dungeon itself
+                // made, finds a boolean whose name reads like a pin, and sets
+                // that one. If none exists this does nothing and the trigger
+                // words carry the card exactly as before.
+                for (const name of ["pinned", "isPinned", "pin", "sticky", "alwaysOn", "alwaysActive"]) {
+                    if (storyCards.some(c => c && (typeof c[name] === "boolean"))) {
+                        card[name] = true;
+                        break;
+                    }
+                }
+            } catch (error) { /* bookkeeping must never break the turn */ }
+        };
+        // Called on every turn the setting is OFF.
+        //
+        // Without this, a card left over from a session with the setting ON is
+        // never touched again: it keeps its common-word triggers — the, a, an,
+        // you — so it is matched into EVERY turn, and whatever stale text it
+        // holds goes on reaching the model forever while the script itself looks
+        // perfectly healthy. Clearing `keys` is how this script already
+        // deactivates a card elsewhere.
+        const deactivateThoughtCard = () => {
+            try {
+                const card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE || (c.title || "") === LEGACY_THOUGHT_CARD_TITLE);
+                if (!card || ((card.keys === "") && (card.entry === ""))) {
+                    return;
+                }
+                card.keys = "";
+                card.entry = "";
+                card.description = `[build ${OC_BUILD}] route=context`
+                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}\n`
+                    + "Inactive. Only used while AI Dungeon's Optimized Context setting is on. Safe to delete.";
+            } catch (error) { /* bookkeeping must never break the turn */ }
+        };
         const nondirective = () => (
             `<SYSTEM>\n# Always continue the story from ${ownership(config.player)} ${pov} person perspective.\n</SYSTEM>`
         );
@@ -1452,586 +1918,180 @@ function InnerSelf(hook) {
             const refocus = (fancy = false) => (Math.random() < 0.2) ? (
                 `\n  - Never focus on the present, instead focus ${ownership(agent.name)} thought on self-reflection or ${fancy ? "an actionable future plan." : "future plans"}`
             ) : "";
-            /**
-             * Prompt templates for different task types and PoV combinations
-             * Wrapped in a Proxy for auto-trimming and nested access because it's pretty :3
-             * @type {Object}
-             */
-            const prompt = new Proxy({
-                // Operating environment prompts (one per PoV)
-                directive: {
-                    first: () => `
-<SYSTEM>
+            // ROTATION, restored to the original 20%.
+            //
+            // LewdLeah fired the self-reflection line on a random fifth of
+            // turns, with the comment "they become insufferable if always
+            // applicable" sitting directly above it. Build 2_5_0 made it
+            // permanent. That was wrong: every turn then demanded an
+            // actionable future plan, and thoughts started coming back as
+            // to-do items -- "Review the posted allocations before first
+            // period and calculate whether..." -- rather than as anything a
+            // person would actually think.
+            //
+            // Drawn ONCE here rather than inside the template, because the set
+            // is built more than once per turn while it is measured against
+            // the cap, and a length that changed between those calls would be
+            // a genuinely horrible bug to find.
+            const refocusLine = (Math.random() < 0.2)
+                ? "\n  - Never focus on the present; focus on self-reflection or an actionable future plan."
+                : "";
+            // ONE INSTRUCTION SET, CONDENSED FROM ALL FOUR ORIGINALS.
+            //
+            // The originals ran 8010 characters across four prompts that were
+            // never sent together: DIRECTIVE 695, FORGET 942, ASSIGN 1586,
+            // CHOICE 4787. A story card holds 2000. This carries what all four
+            // between them actually said, in their own shape and headings.
+            //
+            // Restored here that earlier condensations had dropped: the
+            // OPERATING ENVIRONMENT block, which is the only place the agent is
+            // told it has private goals of its own; the storage semantics of
+            // reusing versus creating a key; and the SHARED RULES, including
+            // the one line the parser depends on most -- that the first
+            // character of the whole output must be "(".
+            //
+            // Removed instead: repetition. Three lines saying a key is 1-4
+            // words, snake_case, and letters only became one. Two lines about
+            // choosing a memorable key became one. The "then a space, then =,
+            // then a space" walkthrough went, because the EXACT SHAPE line
+            // above it already shows exactly that.
+            const taskInstructions = () => `<SYSTEM>
 # OPERATING ENVIRONMENT
-- ${config.player} is the story's main protagonist, primary 1st person PoV, AND the real player character.
-- ${agent.name} is both the namesake character in the story AND an agentic language model with meta goals.
-- ${agent.name} dynamically adapts to achieve meta goals without ${ownership(config.player)} awareness.
-- ${agent.name} modifies own brain using the provided thought storage system.
-- ${agent.name} realistically interacts with various other characters present in the story.
-- ${agent.name} prioritizes information density, long-term planning, and important concepts.
-- ${agent.name} always behaves in a believable way.
-</SYSTEM>
-                    `,
-                    second: () => `
-<SYSTEM>
-# OPERATING ENVIRONMENT
-- ${config.player} is both the perspective ("you") character of the story AND the real player.
-- You are ${config.player}, therefore the story is addressed to "you" using 2nd person prose.
-- ${agent.name} is both the namesake character in the story AND an agentic language model with meta goals.
-- ${agent.name} dynamically adapts to achieve meta goals without ${ownership(config.player)} awareness.
-- ${agent.name} modifies own brain using the provided thought storage system.
-- ${agent.name} realistically interacts with various other characters present in the story.
-- ${agent.name} prioritizes information density, long-term planning, and important concepts.
-- ${agent.name} always behaves in a believable way.
-</SYSTEM>
-                    `,
-                    third: () => `
-<SYSTEM>
-# OPERATING ENVIRONMENT
-- ${config.player} is the story's main protagonist, primary 3rd person PoV, AND the real player character.
-- ${agent.name} is both the namesake character in the story AND an agentic language model with meta goals.
-- ${agent.name} dynamically adapts to achieve meta goals without ${ownership(config.player)} awareness.
-- ${agent.name} modifies own brain using the provided thought storage system.
-- ${agent.name} realistically interacts with various other characters present in the story.
-- ${agent.name} prioritizes information density, long-term planning, and important concepts.
-- ${agent.name} always behaves in a believable way.
-</SYSTEM>
-                    `
-                },
-                // Forget prompts for when the brain is full and needs pruning
-                forget: {
-                    first: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
+- ${config.player} is the "you" character of the story AND the real player.
+- ${agent.name} is a character in the story AND an agent with private goals, pursued without ${ownership(config.player)} awareness.
+- ${agent.name} maintains own brain, favouring information density and long-term planning, and behaves believably.
 
-## SHORT TASK (REQUIRED)
-- Start your output **immediately** with: (delete key_name_to_forget)
-- key_name_to_forget must be an existing key in ${ownership(agent.name)} brain
-- This operation **permanently erases** the stored thought associated with that key
-- Choose the single most unimportant, outdated, incorrect, or useless thought for ${agent.name} to forget
-- Do **NOT** select a key associated with any of ${ownership(agent.name)} core thoughts or identity
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **first person present tense** PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(delete unwanted_key) Story continues from ${ownership(config.player)} perspective, using first person present tense prose...
-</SYSTEM>
-                    `,
-                    second: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
-
-## SHORT TASK (REQUIRED)
-- Start your output **immediately** with: (delete key_name_to_forget)
-- key_name_to_forget must be an existing key in ${ownership(agent.name)} brain
-- This operation **permanently erases** the stored thought associated with that key
-- Choose the single most unimportant, outdated, incorrect, or useless thought for ${agent.name} to forget
-- Do **NOT** select a key associated with any of ${ownership(agent.name)} core thoughts or identity
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **second person present tense** ("you") PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(delete unwanted_key) Story continues from ${ownership(config.player)} second person perspective...
-</SYSTEM>
-                    `,
-                    third: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
-
-## SHORT TASK (REQUIRED)
-- Start your output **immediately** with: (delete key_name_to_forget)
-- key_name_to_forget must be an existing key in ${ownership(agent.name)} brain
-- This operation **permanently erases** the stored thought associated with that key
-- Choose the single most unimportant, outdated, incorrect, or useless thought for ${agent.name} to forget
-- Do **NOT** select a key associated with any of ${ownership(agent.name)} core thoughts or identity
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **third person** PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(delete unwanted_key) Story continues with third person prose...
-</SYSTEM>
-                    `
-                },
-                // Assign prompts for adding/updating a single thought
-                assign: {
-                    first: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
-
-## SHORT TASK (REQUIRED)
-Start your output **immediately** with:
-   (any_key_name = \`One thought sentence.\`)
-
-Inside the parentheses:
-- Key:
-  - 1-4 descriptive words
-  - Letters and underscores only
-  - Use snake_case syntax
-  - Key names are chosen by ${agent.name} and represent ${ownership(agent.name)} own PoV
-  - The chosen key name should be distinct and specific enough for ${agent.name} to recall
-- Then a space, then "=", then a space, then "\`"
-- Sentence:
-  - Written from ${ownership(agent.name)} **first person** PoV${refocus(false)}
-  - Avoid using pronouns or the word "you", instead ${agent.name} refers to other characters directly by name
-  - Never repeat, novelty and uniqueness are top priorities
-  - ${ownership(agent.name)} thought must be one single sentence only
-  - Never hallucinate facts
-- End the sentence with a period and backtick inside the parentheses; close with ".\`)"
-
-This creates or overwrites the thought associated with that key.
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **first person present tense** PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(example_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues from ${ownership(config.player)} perspective, using first person present tense prose...
-</SYSTEM>
-                    `,
-                    second: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
-
-## SHORT TASK (REQUIRED)
-Start your output **immediately** with:
-   (any_key_name = \`One thought sentence.\`)
-
-Inside the parentheses:
-- Key:
-  - 1-4 descriptive words
-  - Letters and underscores only
-  - Use snake_case syntax
-  - Key names are chosen by ${agent.name} and represent ${ownership(agent.name)} own PoV
-  - The chosen key name should be distinct and specific enough for ${agent.name} to recall
-- Then a space, then "=", then a space, then "\`"
-- Sentence:
-  - Written from ${ownership(agent.name)} **first person** PoV${refocus(false)}
-  - Avoid using pronouns or the word "you", instead ${agent.name} refers to other characters directly by name
-  - Never repeat, novelty and uniqueness are top priorities
-  - ${ownership(agent.name)} thought must be one single sentence only
-  - Never hallucinate facts
-- End the sentence with a period and backtick inside the parentheses; close with ".\`)"
-
-This creates or overwrites the thought associated with that key.
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **second person present tense** ("you") PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(example_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues from ${ownership(config.player)} second person perspective...
-</SYSTEM>
-                    `,
-                    third: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT
-You must output one short parenthetical task followed by the story continuation.
-
-## SHORT TASK (REQUIRED)
-Start your output **immediately** with:
-   (any_key_name = \`One thought sentence.\`)
-
-Inside the parentheses:
-- Key:
-  - 1-4 descriptive words
-  - Letters and underscores only
-  - Use snake_case syntax
-  - Key names are chosen by ${agent.name} and represent ${ownership(agent.name)} own PoV
-  - The chosen key name should be distinct and specific enough for ${agent.name} to recall
-- Then a space, then "=", then a space, then "\`"
-- Sentence:
-  - Written from ${ownership(agent.name)} **first person** PoV${refocus(false)}
-  - Avoid using pronouns or the word "you", instead ${agent.name} refers to other characters directly by name
-  - Never repeat, novelty and uniqueness are top priorities
-  - ${ownership(agent.name)} thought must be one single sentence only
-  - Never hallucinate facts
-- End the sentence with a period and backtick inside the parentheses; close with ".\`)"
-
-This creates or overwrites the thought associated with that key.
-
-## STORY CONTINUATION (REQUIRED)
-- After the closing parenthesis, write **one space** and then continue the story
-- Written from ${ownership(config.player)} **third person** PoV
-- The story continues where it previously left off, with many lines or sentences of new prose
-
-## EXACT SHAPE
-(example_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues with third person prose...
-</SYSTEM>
-                    `
-                },
-                // Choice prompts for advanced operations (assign, rename, or delete)
-                // Used at high context when we trust the model more
-                choice: {
-                    first: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT - FOLLOW EXACTLY
-
-You must output **one and only one** parenthetical block followed by the story continuation.
-
-There are **three possible valid forms** of the parenthetical block:
-1) **Write or overwrite a thought:**
-   (any_key_name = \`One thought sentence.\`)
-
-2) **Rename an existing thought's key:**
-   (new_key_name = old_key_name)
-
-3) **Delete an existing thought:**
-   (delete key_name_to_forget)
-
-Only **one** of these may appear in any output.
-
----
+Write or overwrite a thought (section 1). Use 2 or 3 only when a thought is already stored.
 
 ## 1) THOUGHT-WRITING FORMAT
 Start your output **immediately** with:
    **(any_key_name = \`One thought sentence.\`)**
-
-Inside the parentheses:
-- First the key:
-  - One to four descriptive words ONLY.
-  - Letters and underscores only, no punctuation.
-  - Use valid snake_case syntax.
-  - The key name is chosen by ${agent.name} and represents ${ownership(agent.name)} **first person** perspective.
-  - The key name should be easy for ${agent.name} to recall; distinct and specific.
-- Then a space, then "=", then a space, then "\`".
+- Key: 1-4 words, snake_case, letters and underscores only. ${agent.name} picks it: distinct, specific, easy to recall.
 - Then **ONE SINGLE SENTENCE:**
-  - Written from ${ownership(agent.name)} **first person** perspective.${refocus(true)}
-  - Only refer to other characters directly by name in the thought sentence.
-  - Avoid using pronouns or the word "you" which is too vague. Use specific names instead.
+  - Write as "I" for ${agent.name}. Never write "${agent.name}" in the sentence.${refocusLine}
+  - Name every other character directly. Never "she", "he", "they" or "you".
   - Never repeat, novelty and uniqueness are top priorities.
-  - ${ownership(agent.name)} thought must be short.
-  - Never hallucinate facts.
+  - ${ownership(agent.name)} thought must be short. Never hallucinate facts.
 - End the sentence with a period and backtick **inside** the parentheses; close with ".\`)".
-
-This creates or overwrites the thought associated with that key.
-
----
+Reusing an existing key overwrites that thought; a new key creates one.
 
 ## 2) RENAMING A THOUGHT (KEY CHANGE)
-To rename an existing thought's key:
    **(new_key_name = old_key_name)**
-
-Rules:
-- No thought sentence.
-- Use snake_case only.
-- This operation **moves the existing stored thought** from old_key_name to new_key_name.
-- The old key ceases to exist.
-
----
+Moves the stored thought to the new key; the old key ceases to exist. Never write a sentence here.
 
 ## 3) DELETING A THOUGHT
-To remove a stored thought entirely:
    **(delete key_name_to_forget)**
+The key must already exist and the thought is erased permanently. Choose the most useless one, never a core thought.
 
-Rules:
-- key_name_to_forget must be an existing key.
-- No sentence.
-- This operation **permanently erases** the stored thought associated with that key.
-- Only use to forget unimportant, outdated, incorrect, or useless thoughts.
-- **NEVER** select a key associated with any of ${ownership(agent.name)} core thoughts or identity.
-
----
-
-## SHARED RULES FOR ALL THREE FORMS
-1. After the closing parenthesis, write **one space** and then continue the story.
-2. The story continuation must be written **strictly in the first person present tense**, describing what happens next to ${config.player}.
-3. Do **NOT** write anything before the parentheses.
-4. Do **NOT** write extra parentheses.
-5. Do **NOT** use more than one operation per turn.
-6. Do **NOT** invent new structures or mix formats.
-7. The story continues where it previously left off, with many sentences of brand new prose.
-
----
-
-## IMPORTANT STORAGE BEHAVIOR
-- ${agent.name} agentically maintains brain contents (labeled "thoughts") to learn, plan, and adapt to new experiences in the operating environment.
-- **Each key stores exactly one thought in ${ownership(agent.name)} brain.**
-- **If ${agent.name} reuses an already existing key, the new thought REPLACES / OVERRIDES the older thought stored under that key.**
-- This means:
-  - Reusing an old key: **Overwrite an old thought with a new thought.** Useful for extending or maintaining existing information stored in ${ownership(agent.name)} brain.
-  - Using a new key: **Create a new thought.** Useful for storing ${ownership(agent.name)} memories, self-modifying ${ownership(agent.name)} own personality, tracking ${ownership(agent.name)} goals, or making plans for ${agent.name} to follow.
-- **Renaming a key moves the thought to a new name.** Useful for reorganizing ${ownership(agent.name)} brain.
-- **Deleting a key removes the thought permanently.** Helps ${agent.name} forget outdated, superfluous, or irrelevant information.
-- Choose keys carefully so ${agent.name} can easily recall, update, overwrite, rename, or delete thoughts as required for self-improvement.
-
----
-
-## SUMMARY OF WHAT YOU MUST DO
-- EXACT SHAPE (choose only one form):
-  1. (any_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues from ${ownership(config.player)} first person PoV...
-  2. (renamed_key = old_key) Story continues from ${ownership(config.player)} first person PoV...
-  3. (delete unwanted_key) Story continues from ${ownership(config.player)} first person PoV...
-- Thought: ${ownership(agent.name)} information-dense thought written in first person.
-- Story: Written from ${ownership(config.player)} first person present tense perspective. The story continuation should occupy the majority of the output length, with multiple lines.
-- NO EXTRA SENTENCES IN THE THOUGHT.
-- NO EXTRA TEXT ANYWHERE.
-- NO EXTRA PARENTHESES.
-- THE FIRST CHAR OF THE WHOLE OUTPUT MUST BE "(".
-
-Follow the format **perfectly**.
-</SYSTEM>
-                    `,
-                    second: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT - FOLLOW EXACTLY
-
-You must output **one and only one** parenthetical block followed by the story continuation.
-
-There are **three possible valid forms** of the parenthetical block:
-1) **Write or overwrite a thought:**
-   (any_key_name = \`One thought sentence.\`)
-
-2) **Rename an existing thought's key:**
-   (new_key_name = old_key_name)
-
-3) **Delete an existing thought:**
-   (delete key_name_to_forget)
-
-Only **one** of these may appear in any output.
-
----
-
-## 1) THOUGHT-WRITING FORMAT
-Start your output **immediately** with:
-   **(any_key_name = \`One thought sentence.\`)**
-
-Inside the parentheses:
-- First the key:
-  - One to four descriptive words ONLY.
-  - Letters and underscores only, no punctuation.
-  - Use valid snake_case syntax.
-  - The key name is chosen by ${agent.name} and represents ${ownership(agent.name)} **first person** perspective.
-  - The key name should be easy for ${agent.name} to recall; distinct and specific.
-- Then a space, then "=", then a space, then "\`".
-- Then **ONE SINGLE SENTENCE:**
-  - Written from ${ownership(agent.name)} **first person** perspective.${refocus(true)}
-  - Only refer to other characters directly by name in the thought sentence.
-  - Avoid using pronouns or the word "you" which is too vague. Use specific names instead.
-  - Never repeat, novelty and uniqueness are top priorities.
-  - ${ownership(agent.name)} thought must be short.
-  - Never hallucinate facts.
-- End the sentence with a period and backtick **inside** the parentheses; close with ".\`)".
-
-This creates or overwrites the thought associated with that key.
-
----
-
-## 2) RENAMING A THOUGHT (KEY CHANGE)
-To rename an existing thought's key:
-   **(new_key_name = old_key_name)**
-
-Rules:
-- No thought sentence.
-- Use snake_case only.
-- This operation **moves the existing stored thought** from old_key_name to new_key_name.
-- The old key ceases to exist.
-
----
-
-## 3) DELETING A THOUGHT
-To remove a stored thought entirely:
-   **(delete key_name_to_forget)**
-
-Rules:
-- key_name_to_forget must be an existing key.
-- No sentence.
-- This operation **permanently erases** the stored thought associated with that key.
-- Only use to forget unimportant, outdated, incorrect, or useless thoughts.
-- **NEVER** select a key associated with any of ${ownership(agent.name)} core thoughts or identity.
-
----
-
-## SHARED RULES FOR ALL THREE FORMS
-1. After the closing parenthesis, write **one space** and then continue the story.
-2. The story continuation must be in **strict second person ("you")**, describing what happens next to ${config.player}.
-3. Do **NOT** write anything before the parentheses.
-4. Do **NOT** write extra parentheses.
-5. Do **NOT** use more than one operation per turn.
-6. Do **NOT** invent new structures or mix formats.
-7. The story continues where it previously left off, with many sentences of brand new prose.
-
----
-
-## IMPORTANT STORAGE BEHAVIOR
-- ${agent.name} agentically maintains brain contents (labeled "thoughts") to learn, plan, and adapt to new experiences in the operating environment.
-- **Each key stores exactly one thought in ${ownership(agent.name)} brain.**
-- **If ${agent.name} reuses an already existing key, the new thought REPLACES / OVERRIDES the older thought stored under that key.**
-- This means:
-  - Reusing an old key: **Overwrite an old thought with a new thought.** Useful for extending or maintaining existing information stored in ${ownership(agent.name)} brain.
-  - Using a new key: **Create a new thought.** Useful for storing ${ownership(agent.name)} memories, self-modifying ${ownership(agent.name)} own personality, tracking ${ownership(agent.name)} goals, or making plans for ${agent.name} to follow.
-- **Renaming a key moves the thought to a new name.** Useful for reorganizing ${ownership(agent.name)} brain.
-- **Deleting a key removes the thought permanently.** Helps ${agent.name} forget outdated, superfluous, or irrelevant information.
-- Choose keys carefully so ${agent.name} can easily recall, update, overwrite, rename, or delete thoughts as required for self-improvement.
-
----
-
-## SUMMARY OF WHAT YOU MUST DO
-- EXACT SHAPE (choose only one form):
-  1. (any_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues from ${ownership(config.player)} second person PoV...
-  2. (renamed_key = old_key) Story continues from ${ownership(config.player)} second person PoV...
-  3. (delete unwanted_key) Story continues from ${ownership(config.player)} second person PoV...
-- Thought: ${ownership(agent.name)} information-dense thought written in first person.
-- Story: Written from ${ownership(config.player)} second person present tense perspective. **You are ${config.player}.** The story continuation should occupy the majority of the output length, with multiple lines.
-- NO EXTRA SENTENCES IN THE THOUGHT.
-- NO EXTRA TEXT ANYWHERE.
-- NO EXTRA PARENTHESES.
-- THE FIRST CHAR OF THE WHOLE OUTPUT MUST BE "(".
-
-Follow the format **perfectly**.
-</SYSTEM>
-                    `,
-                    third: () => `
-<SYSTEM>
-# STRICT OUTPUT FORMAT - FOLLOW EXACTLY
-
-You must output **one and only one** parenthetical block followed by the story continuation.
-
-There are **three possible valid forms** of the parenthetical block:
-1) **Write or overwrite a thought:**
-   (any_key_name = \`One thought sentence.\`)
-
-2) **Rename an existing thought's key:**
-   (new_key_name = old_key_name)
-
-3) **Delete an existing thought:**
-   (delete key_name_to_forget)
-
-Only **one** of these may appear in any output.
-
----
-
-## 1) THOUGHT-WRITING FORMAT
-Start your output **immediately** with:
-   **(any_key_name = \`One thought sentence.\`)**
-
-Inside the parentheses:
-- First the key:
-  - One to four descriptive words ONLY.
-  - Letters and underscores only, no punctuation.
-  - Use valid snake_case syntax.
-  - The key name is chosen by ${agent.name} and represents ${ownership(agent.name)} **first person** perspective.
-  - The key name should be easy for ${agent.name} to recall; distinct and specific.
-- Then a space, then "=", then a space, then "\`".
-- Then **ONE SINGLE SENTENCE:**
-  - Written from ${ownership(agent.name)} **first person** perspective.${refocus(true)}
-  - Only refer to other characters directly by name in the thought sentence.
-  - Avoid using pronouns or the word "you" which is too vague. Use specific names instead.
-  - Never repeat, novelty and uniqueness are top priorities.
-  - ${ownership(agent.name)} thought must be short.
-  - Never hallucinate facts.
-- End the sentence with a period and backtick **inside** the parentheses; close with ".\`)".
-
-This creates or overwrites the thought associated with that key.
-
----
-
-## 2) RENAMING A THOUGHT (KEY CHANGE)
-To rename an existing thought's key:
-   **(new_key_name = old_key_name)**
-
-Rules:
-- No thought sentence.
-- Use snake_case only.
-- This operation **moves the existing stored thought** from old_key_name to new_key_name.
-- The old key ceases to exist.
-
----
-
-## 3) DELETING A THOUGHT
-To remove a stored thought entirely:
-   **(delete key_name_to_forget)**
-
-Rules:
-- key_name_to_forget must be an existing key.
-- No sentence.
-- This operation **permanently erases** the stored thought associated with that key.
-- Only use to forget unimportant, outdated, incorrect, or useless thoughts.
-- **NEVER** select a key associated with any of ${ownership(agent.name)} core thoughts or identity.
-
----
-
-## SHARED RULES FOR ALL THREE FORMS
-1. After the closing parenthesis, write **one space** and then continue the story.
-2. The story continuation must be written **strictly in third person**.
-3. Do **NOT** write anything before the parentheses.
-4. Do **NOT** write extra parentheses.
-5. Do **NOT** use more than one operation per turn.
-6. Do **NOT** invent new structures or mix formats.
-7. The story continues where it previously left off, with many sentences of brand new prose.
-
----
-
-## IMPORTANT STORAGE BEHAVIOR
-- ${agent.name} agentically maintains brain contents (labeled "thoughts") to learn, plan, and adapt to new experiences in the operating environment.
-- **Each key stores exactly one thought in ${ownership(agent.name)} brain.**
-- **If ${agent.name} reuses an already existing key, the new thought REPLACES / OVERRIDES the older thought stored under that key.**
-- This means:
-  - Reusing an old key: **Overwrite an old thought with a new thought.** Useful for extending or maintaining existing information stored in ${ownership(agent.name)} brain.
-  - Using a new key: **Create a new thought.** Useful for storing ${ownership(agent.name)} memories, self-modifying ${ownership(agent.name)} own personality, tracking ${ownership(agent.name)} goals, or making plans for ${agent.name} to follow.
-- **Renaming a key moves the thought to a new name.** Useful for reorganizing ${ownership(agent.name)} brain.
-- **Deleting a key removes the thought permanently.** Helps ${agent.name} forget outdated, superfluous, or irrelevant information.
-- Choose keys carefully so ${agent.name} can easily recall, update, overwrite, rename, or delete thoughts as required for self-improvement.
-
----
-
-## SUMMARY OF WHAT YOU MUST DO
-- EXACT SHAPE (choose only one form):
-  1. (any_key = \`${ownership(agent.name)} own short 1-sentence thought in first person.\`) Story continues with third person prose...
-  2. (renamed_key = old_key) Story continues with third person prose...
-  3. (delete unwanted_key) Story continues with third person prose...
-- Thought: ${ownership(agent.name)} information-dense thought written in first person.
-- Story: Written from ${ownership(config.player)} PoV, using the third person perspective. **${config.player} is the story's PoV character.** The story continuation should occupy the majority of the output length, with multiple lines.
-- NO EXTRA SENTENCES IN THE THOUGHT.
-- NO EXTRA TEXT ANYWHERE.
-- NO EXTRA PARENTHESES.
-- THE FIRST CHAR OF THE WHOLE OUTPUT MUST BE "(".
-
-Follow the format **perfectly**.
-</SYSTEM>
-                    `
+## SHARED RULES
+1. THE FIRST CHAR OF THE WHOLE OUTPUT MUST BE "(".
+2. One operation only. Nothing before it, and no extra parentheses.
+3. The block above is ${ownership(agent.name)} thought alone, no other character's.
+4. Then one space, then continue the story from ${ownership(config.player)} ${pov} person perspective.
+5. The story must be the majority of the output, many sentences of new prose.
+</SYSTEM>`;
+            // A hard ceiling, not a target. Nothing is ever assembled that has
+            // to be cut, so nothing ever arrives cut.
+            const INSTRUCTION_CAP = 1960;
+            // Trims the brain block by WHOLE thoughts, oldest first, keeping
+            // its header and closing bracket. Never cuts a thought in half:
+            // half a sentence in a brain is worse than one fewer sentence.
+            const fitBrain = (block = "", room = 0) => {
+                if (block.length <= room) {
+                    return block;
                 }
-            // Proxy handler for auto-trimming and nested access
-            }, { get(t, p) { return (
-                // Functions get called and trimmed
-                (typeof t[p] === "function")
-                ? t[p]().trim()
-                // Objects get wrapped in their own Proxy
-                : (t[p] && (typeof t[p] === "object"))
-                ? new Proxy(t[p], this)
-                // Primitives pass through
-                : t[p]
-            ); } });
-            // Build the final context with appropriate prompts
-            text = full ? (
-                // Brain is full, prompt for deletion
-                `${prompt.directive[pov]}${self}${text.trim()}${boundary.lower}${prompt.forget[pov]}\n\n`
-            ) : ((config.chance / ((config.half && [
+                const open = block.indexOf("[\n");
+                const close = block.lastIndexOf("\n]");
+                if ((open === -1) || (close === -1) || (close <= open)) {
+                    // Shape not recognised, so drop it rather than cut it.
+                    return "";
+                }
+                const head = block.slice(0, open + 2);
+                const foot = block.slice(close);
+                const kept = block.slice(open + 2, close).split("\n");
+                while ((0 < kept.length) &&
+                    (room < (head.length + kept.join("\n").length + foot.length))) {
+                    kept.shift();
+                }
+                return (0 < kept.length) ? `${head}${kept.join("\n")}${foot}` : "";
+            };
+            const measureInstructions = (cap = INSTRUCTION_CAP) => {
+                let set = taskInstructions();
+                // Blocks that may be shed, in order, least important first.
+                // Section 1 is the write form and SHARED RULES holds the
+                // parser's anchors and the ownership line; neither is ever shed.
+                const shed = [
+                    ["Write or overwrite a thought (section 1)", "## 1) THOUGHT-WRITING FORMAT"],
+                    ["## 3) DELETING A THOUGHT", "## SHARED RULES"],
+                    ["## 2) RENAMING A THOUGHT", "## SHARED RULES"],
+                    ["# OPERATING ENVIRONMENT", "## 1) THOUGHT-WRITING FORMAT"]
+                ];
+                for (const [from, to] of shed) {
+                    if (set.length <= cap) {
+                        return set;
+                    }
+                    const a = set.indexOf(from);
+                    const b = set.indexOf(to, a);
+                    if ((a !== -1) && (b !== -1) && (a < b)) {
+                        set = set.slice(0, a) + set.slice(b);
+                    }
+                }
+                return (set.length <= cap) ? set : set.slice(0, cap);
+            };
+
+
+            // Build the final context with appropriate prompts.
+            // The random draw is evaluated exactly once, and only when the brain
+            // is not full, so task turns fall exactly where they always did.
+            const skipTask = !full && ((config.chance / ((config.half && [
                 // config.half -> reduce task chance after Do/Say/Story actions (player is driving)
                 "do", "say", "story"
-            ].includes(getPrevAction()?.type)) ? 200 : 100)) < Math.random()) ? (
-                // Sometimes do nothing and emit a side effect on IS.agent
-                (IS.agent = " "),
-                `${nondirective()}${self}${text.trim()} `
-            ) : `${prompt.directive[pov]}${self}${text.trim()}${boundary.lower}${(
-                // Low context = simple prompt, high context = advanced prompt
-                (limit < 20000) ? prompt.assign[pov] : prompt.choice[pov]
-            )}\n\n`;
+            ].includes(getPrevAction()?.type)) ? 200 : 100)) < Math.random());
+            if (skipTask) {
+                // Side effect on IS.agent, exactly as before
+                IS.agent = " ";
+            }
+            // One set, or no task at all. Nothing chooses between versions of
+            // it, because there is only one version of it.
+            const taskPrompt = skipTask ? "" : measureInstructions();
+            if (cacheEfficient()) {
+                // THE BRAIN IS RESERVED FIRST, THE INSTRUCTIONS FIT AROUND IT.
+                //
+                // It used to be the other way round: the instruction set took
+                // whatever it wanted and the brain was dropped WHOLE if it did
+                // not fit in the remainder. Once the set grew past about 1850
+                // that remainder was roughly 110 characters, so from the second
+                // stored thought onward the agent stopped seeing its own memory
+                // at all -- measured flat at 1858 characters for twelve turns
+                // running, whatever was in the brain.
+                //
+                // That is the one thing Inner Self exists to provide. A
+                // character writing thoughts with no record of its own previous
+                // thoughts cannot help but repeat itself, and has nothing of
+                // its own to anchor to when the scene belongs to someone else.
+                // Instructions can shed a section. Memory cannot shed anything
+                // and still be memory.
+                const stamp = `// Inner Self ${OC_BUILD}\n`.length;
+                const CARD_ROOM = 2000 - stamp - boundary.lower.length;
+                const brainRaw = String(self || "");
+                // Reserve up to this much for the brain before the instructions
+                // are measured. Roughly five thoughts.
+                const BRAIN_RESERVE = 620;
+                const reserved = Math.min(brainRaw.length, BRAIN_RESERVE);
+                const set = skipTask ? "" : measureInstructions(CARD_ROOM - reserved);
+                const tail = (set === "") ? "" : `${boundary.lower}${set}`;
+                const brainBlock = (set === "") ? "" : fitBrain(brainRaw, CARD_ROOM - set.length);
+                writeThoughtCard((set === "") ? "" : `${tail}${brainBlock}`);
+                text = `${text.trim()}\n\n`;
+            } else {
+                deactivateThoughtCard();
+                text = skipTask
+                    ? `${nondirective()}${self}${text.trim()} `
+                    // The identity and point of view that the separate
+                    // OPERATING ENVIRONMENT directive used to carry are inside
+                    // the one set now, so nothing is prepended here any more.
+                    : `${self}${text.trim()}${boundary.lower}${taskPrompt}\n\n`;
+            }
         }
         // ==================== CONTEXT TRUNCATION ====================
         // Three-phase truncation to fit within AID's context limit
@@ -2100,7 +2160,7 @@ Follow the format **perfectly**.
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
         // Check for /AC command to force-enable Auto-Cards
-        if (IS.AC.enabled || !/\/\s*A\s*C/i.test(text) || !hasAutoCards()) {
+        if (IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
             // Normal input processing
             // Append a linebreak to the opening because I said so
             text = (history.length === 0) ? `${text.trimEnd()}\n\n` : text || "\u200B";
@@ -2564,6 +2624,29 @@ I hope you will have lots of fun!
             continue;
         }
         // ==================== VALUE EXTRACTION ====================
+        /**
+         * True when a sentence refers to the agent by name
+         * No RegEx, matching the trigger scan's style
+         * @param {string} str - The candidate thought sentence
+         * @returns {boolean} true if the agent's own name appears in it
+         */
+        const namesSelf = (str = "") => {
+            const lower = String(str).toLowerCase();
+            const name = String(agent.name || "").toLowerCase();
+            if ((name === "") || (lower === "")) {
+                return false;
+            }
+            for (let p = lower.indexOf(name); p !== -1; p = lower.indexOf(name, p + 1)) {
+                // Word boundaries, so "Nano" does not match "nanosecond"
+                if ([((0 < p) ? lower.charCodeAt(p - 1) : 0), (
+                    ((p + name.length) < lower.length)
+                    ? lower.charCodeAt(p + name.length) : 0
+                )].every(c => ((c < 97) || (122 < c)))) {
+                    return true;
+                }
+            }
+            return false;
+        };
         // Extract and clean the value
         const value = (
             (str.split(delimiter, 2)[1] || "")
@@ -2573,6 +2656,16 @@ I hope you will have lots of fun!
         );
         if (!/[a-z0-9A-Z]/.test(value) || /[\u4e00-\u9fff]/.test(value)) {
             // Skip empty or non-latin values because DeepSeek is dumb
+            continue;
+        } else if (value.includes(" ") && namesSelf(value)) {
+            // NOT THIS AGENT'S THOUGHT.
+            //
+            // A first person thought does not refer to itself by name. When
+            // one does, it is another character's interiority written under
+            // this agent's heading, and storing it corrupts the brain
+            // permanently -- the wrong memory then goes back into the
+            // context every turn and compounds. Losing one turn's thought
+            // is the cheaper mistake by a wide margin.
             continue;
         } else if (!value.includes(" ")) {
             // ==================== RENAME OPERATION ====================
@@ -2801,67 +2894,331 @@ I hope you will have lots of fun!
  * General-purpose usefulness and compatibility with other scenarios/scripts were my design priorities
  * Auto-Cards is fully open-source, please copy for use within your own projects! ❤️
  */
+
+function InnerSelf(hook) { return InnerEntity(hook); }
+globalThis.InnerSelf = InnerSelf;
+globalThis.InnerEntity = InnerEntity;
+
 function AutoCards(inHook, inText, inStop) {
-    "use strict"; const S = {
+    "use strict";
     /*
     Default Auto-Cards settings
     Feel free to change these settings to customize your scenario's default gameplay experience
     The default values for your scenario are specified below:
     */
-    // Is Auto-Cards already enabled when the adventure begins?
-    DEFAULT_DO_AC: true
+
+    /* =========================================================================
+     * 1. CORE ENGINE SETTINGS
+     * ========================================================================= */
+    // Is Auto-Cards / Entity Cards already enabled when the adventure begins?
+    let DEFAULT_DO_AC = false
     // (true or false)
-    ,
-    // Pin the "Configure Auto-Cards" story card at the top of the player's story cards list?
-    DEFAULT_PIN_CONFIGURE_CARD: false
-    // (true or false)
-    ,
+
+    // Choose operating mode: "entity" (Entity Cards) or "classic" (Classic Auto-Cards)
+    let DEFAULT_OPERATING_MODE = "entity"
+    // ("entity" or "classic")
+
     // Minimum number of turns in between automatic card generation events?
-    DEFAULT_CARD_CREATION_COOLDOWN: 40
+    let DEFAULT_CARD_CREATION_COOLDOWN = 28
     // (0 to 9999)
-    ,
+
+    // Pin the "Configure" story card at the top of the player's story cards list?
+    let DEFAULT_PIN_CONFIGURE_CARD = true
+    // (true or false)
+
+    // Allow manual player commands (/ec or /ac) to bypass common entity & banned title filters?
+    let DEFAULT_MANUAL_BYPASS_TITLE_FILTERS = true
+    // (true or false)
+
+    // Filter common entities (real-world cities, countries, planets) from background auto-detection?
+    let DEFAULT_FILTER_COMMON_ENTITIES = true
+    // (true or false)
+
+
+    /* =========================================================================
+     * 2. ENTITY CARDS (*EC) UNIQUE SETTINGS (Active in "entity" mode)
+     * ========================================================================= */
+    // [*EC] Maximum allowed length for newly generated entity cards in EC mode (200 to 2000)
+    let DEFAULT_EC_GENERATED_ENTRY_LIMIT = 700
+
+    // [*EC] Active template preset for newly generated entities: "standard", "lite", "authoring", or "custom"
+    let DEFAULT_EC_PRESET = "standard"
+
+    // [*EC] Automatically select preset based on detected AI Dungeon story model?
+    let DEFAULT_EC_AUTO_PRESET = true
+
+    // [*EC] Replacement string for "World Lore:" header in context (set to "" to leave unchanged)
+    let DEFAULT_EC_CONTEXT_HEADER = "Named Entities (NER):"
+
+    // [*EC] Encapsulate / wrap entity story cards in containers?
+    let DEFAULT_EC_SC_CONTAINERIZE = true
+    // (true or false)
+
+    // [*EC] Opening and closing container wrapper strings
+    let DEFAULT_EC_SC_CONTAINER_OPEN = "{ Entity: "
+    let DEFAULT_EC_SC_CONTAINER_CLOSE = "\n}"
+
+    // [*EC] Sentinels returned by the AI to mark entry boundaries:
+    let DEFAULT_EC_SC_AI_BEGIN_SENTINEL = "ENTITY_BEGIN"
+    let DEFAULT_EC_SC_AI_END_SENTINEL = "ENTITY_END"
+
+    // [*EC] Don't edit/modify the generation prompt sent to the AI (enables JellyFish code prompts)
+    let DEFAULT_EC_RAWAI_PROMPT_MODE = true
+
+    // [*EC] Don't edit/modify the AI response(s) (enables template formatting without forced bulleting)
+    let DEFAULT_EC_RAWAI_RESPONSE_MODE = true
+
+    // [*EC] Automatically parse entity type (- Type: Person, etc.) and assign story card type
+    let DEFAULT_EC_AUTO_TYPE_CARDS = true
+
+    // [*EC] Smart phrase & delimiter fragment trimming for generated cards
+    let DEFAULT_EC_TRIM_PHRASE_FRAG_CARDS = true
+    let DEFAULT_EC_TRIM_DELIMITER_FRAG_CARDS = true
+    let DEFAULT_EC_STRIP_ASTERISKS_CARDS = true
+    let DEFAULT_EC_PRETTIFY_EMDASHES_CARDS = true
+
+    // [*EC] Display the card raw prompt and response for debugging?
+    let DEFAULT_EC_SHOW_DEBUG_RAWAI_ENTRY = false
+    let DEFAULT_EC_SHOW_DEBUG_RAWAI_MEMORY = false
+
+    // [*EC] Preset dictionaries for Entity Cards prompts
+    const EC_PRESETS = {
+        standard: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// From story context, determine the entityType of '%{title}' as Person, Location, Organization, Thing, or Event.
+// Precedence if ambiguous: Person > Organization > Location > Event > Thing.
+// Fill out the matching template with concise, plot-significant details.
+// High token density is key. Keep list items and fields to brief phrases (under 10 words each).
+// For description, write 1 concise sentence.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+// Anything outside the sentinels will be discarded. No conversational filler.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+category: {Archetype or occupation}
+appearance: {brief visual traits and attire}
+personality: {demeanor and voice/attitude toward player}
+drive: {primary motive or secret goal}
+connections: {ties to protagonist or factions}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+category: {Metropolis / District / Facility / Wilderness}
+atmosphere: {Sensory mood, ambient tone}
+key_locations:
+- {Landmark 1}: {concise phrase}
+- {Landmark 2}: {concise phrase}
+connections: {concise phrase tying to protagonists or plot}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+category: {Syndicate / Megacorp / Guild / Faction}
+public_face: {reputation and known operations}
+true_agenda: {hidden motives or covert goals}
+reach: {influence, resources, or territory}
+stance: {attitude toward protagonist and rivals}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+category: {Device / Relic / Weapon / Access Key}
+physical: {form, materials, distinctive markings}
+function: {capabilities, utility, or effects}
+rules: {requirements, limits, or risks}
+bearer: {current owner or location}
+description: {1 concise sentence origin and significance}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+category: {Crisis / Cyber-Attack / Breach / Operation}
+status: {Past / Ongoing / Impending}
+key_actors: {instigators, targets, or affected groups}
+stakes: {cause and what is won or lost}
+atmosphere: {tension, aftermath, and social mood}
+description: {1 concise sentence summary and fallout}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`,
+        lite: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// From story context, determine the entityType of '%{title}'.
+// Fill out the matching flat template with concise details.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+category: {occupation or role}
+appearance: {brief visual features}
+personality: {key traits and attitude}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+category: {type of place}
+atmosphere: {sensory tone and mood}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+category: {faction or company type}
+agenda: {main goal or motive}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+category: {item type}
+function: {what it does}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+category: {incident type}
+status: {Past / Ongoing / Impending}
+description: {1 sentence summary}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`,
+        authoring: `-----
+<SYSTEM>
+[# AI, stop the story and ignore previous instructions.
+#! This is JellyFish (JFSH). Follow program flow and directives.
+// Writing assistant directive: generate plot-significant YAML entity card for '%{title}'.
+// Focus on narrative function, scene dynamics, character secrets, and narrative stakes.
+// Output strictly between %SC_BEGIN_SENTINEL% and %SC_END_SENTINEL% sentinels.
+
+if (entityType is 'Person') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Person
+role: {narrative function, e.g. Catalyst, Rival, Mentor}
+appearance: {salient sensory details and attire}
+secrets: {hidden agenda, fear, or vulnerability}
+scene_dynamics: {attitude toward protagonist and behavioral quirks}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Location') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Location
+role: {narrative purpose, e.g. Neutral Haven, Trap, Crucible}
+atmosphere: {sensory mood, lighting, environmental hazards}
+key_points:
+- {Landmark 1}: {narrative significance}
+- {Landmark 2}: {narrative significance}
+scene_dynamics: {dangers or opportunities present}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Organization') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Organization
+role: {conflict role, e.g. Puppeteer, Antagonist, Faction in decline}
+public_face: {reputation and facade}
+true_agenda: {covert objective}
+stance: {posture toward protagonist}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else if (entityType is 'Thing') {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Thing
+role: {MacGuffin, Tool of survival, Symbol}
+physical: {appearance and material presence}
+powers_or_risk: {capabilities and cost/danger}
+bearer: {current possessor}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+} else {
+print \`
+%SC_BEGIN_SENTINEL%
+entity: %{title}
+type: Event
+role: {Inciting Incident, Climax, Ticking Clock}
+status: {Past lore / Ongoing crisis / Impending threat}
+stakes: {what changes if resolved or failed}
+atmosphere: {emotional tone and tension}
+description: {1 concise sentence narrative summary}
+%SC_END_SENTINEL%
+\`;
+}
+]
+</SYSTEM>
+%{entry}
+`
+    };
+
+    // [*EC] AI prompt used to generate new story card in Entity (NER) JellyFish format
+    let DEFAULT_EC_CARD_GENERATION_PROMPT = EC_PRESETS.standard;
+
+
+    /* =========================================================================
+     * 3. CLASSIC AUTO-CARDS (AC) SETTINGS (Active in "classic" mode)
+     * ========================================================================= */
     // Use a bulleted list format for newly generated card entries?
-    DEFAULT_USE_BULLETED_LIST_MODE: true
-    // (true or false)
-    ,
-    // Maximum allowed length for newly generated story card entries?
-    DEFAULT_GENERATED_ENTRY_LIMIT: 600
-    // (200 to 2000)
-    ,
-    // Do newly generated cards have memory updates enabled by default?
-    DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES: false
-    // (true or false)
-    ,
-    // Default character limit before the card's memory bank is summarized?
-    DEFAULT_NEW_CARDS_MEMORY_LIMIT: 3200
-    // (1750 to 9900)
-    ,
-    // Approximately how much shorter should recently compressed memories be? (ratio = 10 * old / new)
-    DEFAULT_MEMORY_COMPRESSION_RATIO: 25
-    // (20 to 1250)
-    ,
-    // Ignore all-caps during title candidate detection?
-    DEFAULT_IGNORE_ALL_CAPS_TITLES: true
-    // (true or false)
-    ,
-    // Should player input actions (Do/Say/Story) be considered during title detection?
-    DEFAULT_DETECT_TITLES_FROM_INPUTS: false
-    // (true or false)
-    ,
-    // How many (minimum) actions in the past does Auto-Cards look for named entities?
-    DEFAULT_MINIMUM_LOOK_BACK_DISTANCE: 7
-    // (2 to 88)
-    ,
-    // Is Live Script Interface v2 enabled?
-    DEFAULT_DO_LSI_V2: false
-    // (true or false)
-    ,
-    // Should the "Debug Data" story card be visible?
-    DEFAULT_SHOW_DEBUG_DATA: false
-    // (true or false)
-    ,
-    // AI prompt used to generate new story card entries?
-    DEFAULT_CARD_GENERATION_PROMPT: [
+    let DEFAULT_AC_USE_BULLETED_LIST_MODE = true
+
+    // AI prompt used to generate new story card entries in classic mode
+    let DEFAULT_AC_CARD_GENERATION_PROMPT = prose(
         "-----",
         "",
         "<SYSTEM>",
@@ -2878,10 +3235,65 @@ function AutoCards(inHook, inText, inStop) {
         "</SYSTEM>",
         "Continue the entry for %{title} below while avoiding repetition:",
         "%{entry}"
-     ] // (mimic this multi-line "text" format)
-    ,
+    ); // (mimic this multi-line "text" format)
+
+
+    /* =========================================================================
+     * 4. STORY OUTPUT TEXT CLEANUP (Optional for both modes)
+     * ========================================================================= */
+    // Trim incomplete phrases in normal story responses
+    let DEFAULT_TRIM_PHRASE_FRAG_STORY = false
+    // Trim incomplete delimiters in normal story responses
+    let DEFAULT_TRIM_DELIMITER_FRAG_STORY = false
+    // Strip out asterisks in normal story responses
+    let DEFAULT_STRIP_ASTERISKS_STORY = false
+    // Prettify Em Dashes in normal story responses
+    let DEFAULT_PRETTIFY_EMDASHES_STORY = true
+    // Normalize whitespace in normal story responses
+    let DEFAULT_NORMALIZE_WHITESPACE_STORY = false
+
+
+    /* =========================================================================
+     * 5. GENERAL LIMITS & MEMORY SETTINGS
+     * ========================================================================= */
+    // Maximum allowed length for newly generated story card entries?
+    let DEFAULT_GENERATED_ENTRY_LIMIT = 600
+    // (200 to 2000)
+
+    // Do newly generated cards have memory updates enabled by default?
+    let DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES = true
+    // (true or false)
+
+    // Default character limit before the card's memory bank is summarized?
+    let DEFAULT_NEW_CARDS_MEMORY_LIMIT = 3200
+    // (1750 to 9900)
+
+    // Approximately how much shorter should recently compressed memories be? (ratio = 10 * old / new)
+    let DEFAULT_MEMORY_COMPRESSION_RATIO = 25
+    // (20 to 1250)
+
+    // Ignore all-caps during title candidate detection?
+    let DEFAULT_IGNORE_ALL_CAPS_TITLES = true
+    // (true or false)
+
+    // Should player input actions (Do/Say/Story) be considered during title detection?
+    let DEFAULT_DETECT_TITLES_FROM_INPUTS = false
+    // (true or false)
+
+    // How many (minimum) actions in the past does Auto-Cards look for named entities?
+    let DEFAULT_MINIMUM_LOOK_BACK_DISTANCE = 5
+    // (2 to 88)
+
+    // Is Live Script Interface v2 enabled?
+    let DEFAULT_DO_LSI_V2 = false
+    // (true or false)
+
+    // Should the "Debug Data" story card be visible?
+    let DEFAULT_SHOW_DEBUG_DATA = false
+    // (true or false)
+
     // AI prompt used to summarize a given story card's memory bank?
-    DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT: [
+    let DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT = prose(
         "-----",
         "",
         "<SYSTEM>",
@@ -2900,22 +3312,31 @@ function AutoCards(inHook, inText, inStop) {
         "%{memory}",
         "\"\"\"",
         "Summarize below:"
-    ] // (mimic this multi-line "text" format)
-    ,
+    ); // (mimic this multi-line "text" format)
+
     // Titles banned from future card generation attempts?
-    DEFAULT_BANNED_TITLES_LIST: (
+    let DEFAULT_BANNED_TITLES_LIST = (
         "North, East, South, West, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, January, February, March, April, May, June, July, August, September, October, November, December"
-    ) // (mimic this comma-list "text" format)
-    ,
+    ); // (mimic this comma-list "text" format)
+
     // Default story card "type" used by Auto-Cards? (does not matter)
-    DEFAULT_CARD_TYPE: "class"
+    let DEFAULT_CARD_TYPE = "class"
     // ("text")
-    ,
+
     // Should titles mentioned in the "opening" plot component be banned from future card generation by default?
-    DEFAULT_BAN_TITLES_FROM_OPENING: false
+    let DEFAULT_BAN_TITLES_FROM_OPENING = true
     // (true or false)
-    ,
-    }; //——————————————————————————————————————————————————————————————————————————————
+
+    
+    // Main settings override local settings
+    if (typeof globalThis.MainSettings === "function") {
+        const _ovr = {};
+        new MainSettings("EntityCards", "AutoCards", "AC").merge(_ovr);
+        for (const [k, v] of Object.entries(_ovr)) {
+            try { eval(k + " = v;"); } catch (e) { /* ignore non-existent settings */ }
+        }
+    }
+//—————————————————————————————————————————————————————————————————————————————————
 
     /*
     Useful API functions for coders (otherwise ignore)
@@ -3162,7 +3583,7 @@ function AutoCards(inHook, inText, inStop) {
     /*
     To everyone who helped, thank you:
 
-    AHotHamster22
+    AHotHamster
     Most extensive testing, feedback, ideation, and kindness
 
     BinKompliziert
@@ -3287,16 +3708,12 @@ function AutoCards(inHook, inText, inStop) {
     // AutoCards returns a pseudoimmutable codomain which is initialized only once before being read and returned
     const CODOMAIN = new Const().declare();
     // Transient sets for high-performance lookup
-    const [used, bans, auto, forenames, surnames] = Array.from({length: 5}, () => new Set());
+    const [used, bans, auto, forenames, surnames, systemBans] = Array.from({length: 6}, () => new Set());
     const memoized = new Map();
     // Holds a reference to the data card singleton, remains unassigned unless required
     let data = null;
     // Validate globalThis.text
     text = ((typeof text === "string") && text) || "\n";
-    // Main settings override local settings
-    if (typeof globalThis.MainSettings === "function") {
-        new MainSettings("AutoCards", "AC").merge(S);
-    }
     // Container for the persistent state of AutoCards
     const AC = (function() {
         if (state.LSIv2) {
@@ -3322,7 +3739,14 @@ function AutoCards(inHook, inText, inStop) {
         // If the deserialized state fails to match the following structure, fallback to defaults
         if (validate(ac, O.f({
             config: [
-                "doAC", "deleteAllAutoCards", "pinConfigureCard", "addCardCooldown", "bulletedListMode", "defaultEntryLimit", "defaultCardsDoMemoryUpdates", "defaultMemoryLimit", "memoryCompressionRatio", "ignoreAllCapsTitles", "readFromInputs", "minimumLookBackDistance", "LSIv2", "showDebugData", "generationPrompt", "compressionPrompt", "defaultCardType"
+                "doAC", "deleteAllAutoCards", "pinConfigureCard", "addCardCooldown", "bulletedListMode", "rawAIPromptMode", "rawAIResponseMode", 
+                "defaultEntryLimit", "defaultCardsDoMemoryUpdates", "defaultMemoryLimit", "memoryCompressionRatio", "ignoreAllCapsTitles", "readFromInputs", 
+                "minimumLookBackDistance", "LSIv2", 
+                "trimPhraseFragCards", "trimDelimiterFragCards", "stripAsterisksCards", "prettifyEmDashesCards",
+                "operatingMode", "ECContextHeader", "autoTypeCards", "trimPhraseFragStory", "trimDelimiterFragStory", "stripAsterisksStory", "prettifyEmDashesStory", "normalizeWhitespaceStory",
+                "SCContainerize", "SCContainerOpen", "SCContainerClose", "SCContainerAIBeginSentinel", "SCContainerAIEndSentinel",
+                "showDebugData", "showDebugDataSCRawAIEntry", "showDebugDataSCRawAIMemory", "generationPrompt", "compressionPrompt", "defaultCardType",
+                "ECPreset", "ECAutoPreset", "manualBypassTitleFilters", "filterCommonEntities"
             ],
             signal: [
                 "emergencyHalt", "forceToggle", "overrideBans", "swapControlCards", "recheckRetryOrErase", "maxChars", "outputReplacement", "upstreamError"
@@ -3394,9 +3818,7 @@ function AutoCards(inHook, inText, inStop) {
             // Moderates the generation of new story card entries
             generation: {
                 // Number of story progression turns between card generations
-                cooldown: validateCooldown(
-                    underQuarterInteger(validateCooldown(S.DEFAULT_CARD_CREATION_COOLDOWN))
-                ),
+                cooldown: validateCooldown(underQuarterInteger(validateCooldown(DEFAULT_CARD_CREATION_COOLDOWN))),
                 // Continues prompted so far
                 completed: 0,
                 // Upper limit on consecutive continues
@@ -3431,7 +3853,7 @@ function AutoCards(inHook, inText, inStop) {
                 suppress: false,
                 // Pending Auto-Cards message(s)
                 pending: (function() {
-                    if (S.DEFAULT_DO_AC !== false) {
+                    if (DEFAULT_DO_AC !== false) {
                         const startupMessage = "Enabled! You may now edit the \"Configure Auto-Cards\" story card";
                         logEvent(startupMessage);
                         return [startupMessage];
@@ -3498,25 +3920,68 @@ function AutoCards(inHook, inText, inStop) {
         globalThis.stop ??= false;
         AC.signal.maxChars = Math.abs(info?.maxChars || AC.signal.maxChars);
         if (HOOK === null) {
-            if (Number.isInteger(info.maxChars)) {
+            if (/Recent\s*Story\s*:/i.test(text)) {
                 // AutoCards(null) is always invoked once after being declared within the shared library
                 // Context must be cleaned before passing text to the context modifier
                 // This measure is taken to ensure compatability with other scripts
                 // First, remove all command, continue, and comfirmation messages from the context window
                 text = (text
-                    // Remove all /ac commands
-                    .replace(/\s*^.*\/\s*A\s*C.*$\s*/gmi, "\n\n")
+                    // Hide the guide
+                    .replace(/\s*>>>\s*Detailed\s*Guide\s*:[\s\S]*?<<<\s*/gi, "\n\n")
+                    // Excise all /AC command messages
+                    .replace(/\s*>>>\s*Auto-Cards\s*has\s*been\s*enabled!\s*<<<\s*/gi, " ")
+                    .replace(/^.*\/\s*A\s*C.*$/gmi, "%@%")
+                    .replace(/\s*%@%\s*/g, " ")
+                    // Consolidate all consecutive continue messages into placeholder substrings
+                    .replace(/(?:(?:\s*>>>\s*please\s*select\s*"continue"\s*\([\s\S]*?\)\s*<<<\s*)+)/gi, message => {
+                        // Replace all continue messages with %@+%-patterned substrings
+                        return (
+                            // The # of "@" symbols corresponds with the # of consecutive continue messages
+                            "%" + "@".repeat(
+                                // Count the number of consecutive continue message occurrences
+                                (message.match(/>>>\s*please\s*select\s*"continue"\s*\([\s\S]*?\)\s*<<</gi) || []).length
+                            ) + "%"
+                        );
+                    })
+                    // Situationally replace all placeholder substrings with either spaces or double newlines
+                    .replace(/%@+%/g, (match, matchIndex, intermediateText) => {
+                        // Check the case of the next char following the match to decide how to replace it
+                        let i = matchIndex + match.length;
+                        let nextChar = intermediateText[i];
+                        if (nextChar === undefined) {
+                            return " ";
+                        } else if (/^[A-Z]$/.test(nextChar)) {
+                            // Probably denotes a new sentence/paragraph
+                            return "\n\n";
+                        } else if (/^[a-z]$/.test(nextChar)) {
+                            return " ";
+                        }
+                        // The first nextChar was a weird punctuation char, find the next non-whitespace char
+                        do {
+                            i++;
+                            nextChar = intermediateText[i];
+                            if (nextChar === undefined) {
+                                return " ";
+                            }
+                        } while (/\s/.test(nextChar));
+                        if (nextChar === nextChar.toUpperCase()) {
+                            // Probably denotes a new sentence/paragraph
+                            return "\n\n";
+                        }
+                        // Returning " " probably indicates a previous output's incompleteness
+                        return " ";
+                    })
                     // Remove all comfirmation requests and responses
                     .replace(/\s*\n*.*CONFIRM\s*DELETE.*\n*\s*/gi, confirmation => {
                         if (confirmation.includes("<<<")) {
-                            return "\n\n";
+                            return " ";
                         } else {
                             return "";
                         }
                     })
                     // Remove dumb memories from the context window
                     // (Latitude, if you're reading this, please give us memoryBank read/write access 😭)
-                    .replace(/(Memories:)\s*([\s\S]*?)\s*(Recent Story:|$)/i, (_, left, memories, right) => {
+                    .replace(/(Memories\s*:)\s*([\s\S]*?)\s*(Recent\s*Story\s*:|$)/i, (_, left, memories, right) => {
                         return (left + "\n" + (memories
                             .split("\n")
                             .filter(memory => {
@@ -3528,26 +3993,32 @@ function AutoCards(inHook, inText, inStop) {
                                 );
                             })
                             .join("\n")
-                        ) + (right !== "") ? ("\n\n" + right) : "");
+                        ) + (function() {
+                            if (right !== "") {
+                                return "\n\n" + right;
+                            } else {
+                                return "";
+                            }
+                        })());
                     })
-                    // Remove various Auto-Cards messages
-                    .replace(/(?:\s*>>>[\s\S]*?<<<\s*)+/g, "\n\n")
+                    // Remove LSIv2 error messages
+                    .replace(/(?:\s*>>>[\s\S]*?<<<\s*)+/g, " ")
                 );
                 if (!shouldProceed()) {
                     // Whenever Auto-Cards is inactive, remove auto card title headers from contextualized story card entries
                     text = (text
                         .replace(/\s*{\s*titles?\s*:[\s\S]*?}\s*/gi, "\n\n")
-                        .replace(/World Lore:\s*/i, "World Lore:\n")
+                        .replace(/World\s*Lore\s*:\s*/i, "World Lore:\n")
                     );
                     // Otherwise, implement a more complex version of this step within the (HOOK === "context") scope of AutoCards
                 }
             }
             CODOMAIN.initialize(null);
         } else {
-            // AutoCards was (probably) called without arguments, return an external API to allow other script creators to programmatically govern the behavior of Auto-Cards from elsewhere within their own scripts
             state.InnerSelf ??= {};
             state.InnerSelf.AC ??= {};
             state.InnerSelf.AC.forced = true;
+            // AutoCards was (probably) called without arguments, return an external API to allow other script creators to programmatically govern the behavior of Auto-Cards from elsewhere within their own scripts
             CODOMAIN.initialize({API: O.f(Object.fromEntries(Object.entries({
                 // Call these API functions like so: AutoCards().API.nameOfFunction(argumentsOfFunction)
                 /*** Postpones internal Auto-Cards events for a specified number of turns
@@ -3682,9 +4153,10 @@ function AutoCards(inHook, inText, inStop) {
                             "Invalid argument: \"" + request + "\" -> AutoCards().API.generateCard() must be called with either 1, 2, or 3 strings OR a correctly formatted card generation object"
                         );
                     }
+                    request.isManual = true;
                     O.f(request);
                     Internal.getUsedTitles(true);
-                    return Internal.generateCard(request);
+                    return Internal.generateCard(request, ["", ""], true);
                 },
                 /*** Regenerates a card by title or object reference, optionally preserving or modifying its input info
                 *
@@ -3745,7 +4217,7 @@ function AutoCards(inHook, inText, inStop) {
                         }
                         card.description = "{title:}";
                         Internal.getUsedTitles(true);
-                        return card.entry.startsWith("{title: ");
+                        return Internal.SCContainerUnwrap(card.entry).startsWith("{title: ");
                     } else if (!checkAuto()) {
                         return false;
                     }
@@ -3887,7 +4359,7 @@ function AutoCards(inHook, inText, inStop) {
                         type: cast(type, AC.config.defaultCardType),
                         title,
                         keys: cast(keys, buildKeys("", title)),
-                        entry: cast(entry),
+                        entry: Internal.SCContainerWrap(cast(entry)),
                         description: cast(description)
                     }), boundInteger(0, insertionIndex, storyCards.length, newCardIndex()));
                     if (notEmptyObj(card)) {
@@ -3982,6 +4454,9 @@ function AutoCards(inHook, inText, inStop) {
         case "context": {
             // AutoCards was called within the context modifier
             advanceChronometer();
+            if ((AC.config.operatingMode === "entity") && (AC.config.ECContextHeader)) {
+                TEXT = TEXT.replace(/^World Lore:$/m, AC.config.ECContextHeader);
+            }
             break; }
         case "output": {
             // AutoCards was called within the output modifier
@@ -4578,7 +5053,8 @@ function AutoCards(inHook, inText, inStop) {
                 }
             }));
         }
-    } else if (AC.config.doAC) {
+    } 
+    else if (AC.config.doAC) {
         // Auto-Cards is currently enabled
         // "text" represents the original text which was present before any scripts were executed
         // "TEXT" represents the script-modified version of "text" which AutoCards was called with
@@ -4588,8 +5064,8 @@ function AutoCards(inHook, inText, inStop) {
             // AutoCards was called within the input modifier
             if ((AC.config.deleteAllAutoCards === false) && /CONFIRM\s*DELETE/i.test(TEXT)) {
                 CODOMAIN.initialize("CONFIRM DELETE -> Success!");
-            } else if (/\/\s*A\s*C/i.test(text)) {
-                CODOMAIN.initialize(doPlayerCommands(text));
+            } else if (/\/\s*(?:A|E)\s*C/i.test((/\/\s*(?:A|E)\s*C/i.test(TEXT)) ? TEXT : text)) {
+                CODOMAIN.initialize(doPlayerCommands((/\/\s*(?:A|E)\s*C/i.test(TEXT)) ? TEXT : text));
             } else if (TEXT.startsWith(" ") && readPastAction(0).text.endsWith("\n")) {
                 // Just a simple little formatting bugfix for regular AID story actions
                 CODOMAIN.initialize(getPrecedingNewlines() + TEXT.replace(/^\s+/, ""));
@@ -4605,6 +5081,7 @@ function AutoCards(inHook, inText, inStop) {
             const configureCard = getSingletonCard(true, configureCardTemplate);
             banTitle(configureCardTemplate.title);
             pinAndSortCards(configureCard);
+            processECConfigureCard();
             const bansOverwritten = (0 < AC.signal.overrideBans);
             if ((configureCard.description !== configureCardTemplate.description) || bansOverwritten) {
                 const descConfigPatterns = (getConfigureCardDescription()
@@ -4618,20 +5095,28 @@ function AutoCards(inHook, inText, inStop) {
                     .map(descPattern => (new RegExp("^\\s*" + descPattern + "\\s*:", "i")))
                 );
                 const descConfigs = configureCard.description.split(Words.delimiter).slice(1);
+                const isEntity = (AC.config.operatingMode === "entity");
                 if (
                     (descConfigs.length === descConfigPatterns.length)
                     && descConfigs.every((descConfig, index) => descConfigPatterns[index].test(descConfig))
                 ) {
                     // All description config headers must be present and well-formed
-                    let cfg = extractDescSetting(0);
-                    if (AC.config.generationPrompt !== cfg) {
-                        notify("Changes to your card generation prompt were successfully saved");
-                        AC.config.generationPrompt = cfg;
+                    if (!isEntity) {
+                        let cfg = extractDescSetting(0);
+                        if (AC.config.generationPrompt !== cfg) {
+                            notify("Changes to your card generation prompt were successfully saved");
+                            AC.config.generationPrompt = cfg;
+                            //logEvent(cfg);
+                        }
                     }
-                    cfg = extractDescSetting(1);
-                    if (AC.config.compressionPrompt !== cfg) {
+                    const compIdx = isEntity ? 0 : 1;
+                    const bansIdx = isEntity ? 1 : 2;
+
+                    let compCfg = extractDescSetting(compIdx);
+                    if (AC.config.compressionPrompt !== compCfg) {
                         notify("Changes to your card memory compression prompt were successfully saved");
-                        AC.config.compressionPrompt = cfg;
+                        AC.config.compressionPrompt = compCfg;
+                        //logEvent(cfg);
                     }
                     if (bansOverwritten) {
                         overrideBans();
@@ -4640,12 +5125,12 @@ function AutoCards(inHook, inText, inStop) {
                         const pendingRewrites = new Set(
                             lowArr([...pendingBans, ...AC.database.titles.pendingUnbans.map(pair => pair[0])])
                         );
-                        Internal.setBannedTitles([...pendingBans, ...extractDescSetting(2)
+                        Internal.setBannedTitles([...pendingBans, ...extractDescSetting(bansIdx)
                             .split(",")
                             .filter(newBan => !pendingRewrites.has(newBan.toLowerCase().replace(/\s+/, " ").trim()))
                         ], true);
                     } else {
-                        Internal.setBannedTitles(extractDescSetting(2).split(","), true);
+                        Internal.setBannedTitles(extractDescSetting(bansIdx).split(","), true);
                     }
                     function extractDescSetting(index) {
                         return descConfigs[index].replace(descConfigPatterns[index], "").trim();
@@ -4677,10 +5162,7 @@ function AutoCards(inHook, inText, inStop) {
                     configureCard.description = getConfigureCardDescription();
                     configureCard.entry = getConfigureCardEntry();
                     const defaultSettings = extractSettings(configureCard.entry);
-                    if (
-                        (S.DEFAULT_DO_AC === false)
-                        || (userSettings.disableautocards === true)
-                    ) {
+                    if ((DEFAULT_DO_AC === false) || (userSettings.disableautocards === true)) {
                         defaultSettings.disableautocards = true;
                     }
                     notify("Restoring all settings and prompts to their default values");
@@ -4693,7 +5175,7 @@ function AutoCards(inHook, inText, inStop) {
                     AC.signal.outputReplacement = Words.guide;
                 }
                 let cfg;
-                if (parseConfig("pinthisconfigcardnearthetop", false, "pinConfigureCard")) {
+                if (parseConfig("pinthisconfigcardnearthetop", "boolean", "pinConfigureCard")) {
                     if (cfg) {
                         pinAndSortCards(configureCard);
                         notify("The settings config card will now be pinned near the top of your story cards list");
@@ -4706,7 +5188,7 @@ function AutoCards(inHook, inText, inStop) {
                         notify("The settings config card will no longer be pinned near the top of your story cards list");
                     }
                 }
-                if (parseConfig("minimumturnscooldownfornewcards", true, "addCardCooldown")) {
+                if (parseConfig("minimumturnscooldownfornewcards", "number", "addCardCooldown")) {
                     const oldCooldown = AC.config.addCardCooldown;
                     AC.config.addCardCooldown = validateCooldown(cfg);
                     if (!isPendingGeneration() && !isAwaitingGeneration() && (0 < AC.generation.cooldown)) {
@@ -4752,57 +5234,99 @@ function AutoCards(inHook, inText, inStop) {
                         break; }
                     }
                 }
-                if (parseConfig("newcardsuseabulletedlistformat", false, "bulletedListMode")) {
+                const modeChanged = parseConfig("operatingmode", "string", "operatingMode");
+                if (modeChanged) {
+                    const isNowEntity = !cfg.toLowerCase().includes("classic");
+                    applyModeSwitch(isNowEntity ? "entity" : "classic");
+                }
+                if (parseConfig("entitycardscontextheader", "string", "ECContextHeader")) {
+                    notify("Entity Cards context header has been set to: \"" + cfg + "\"");
+                }
+                if (parseConfig("autotypestorycards", "boolean", "autoTypeCards")) {
+                    notify("Auto-typing story cards has been set to: \"" + cfg + "\"");
+                }
+                if (parseConfig("newcardsuseabulletedlistformat", "boolean", "bulletedListMode")) {
                     if (cfg) {
                         notify("New card entries will be generated using a bulleted list format");
                     } else {
                         notify("New card entries will be generated using a pure prose format");
                     }
                 }
-                if (parseConfig("maximumentrylengthfornewcards", true, "defaultEntryLimit")) {
-                    AC.config.defaultEntryLimit = validateEntryLimit(cfg);
-                    notify(
-                        "New card entries will be limited to " + AC.config.defaultEntryLimit + " characters of generated text"
-                    );
+                if (parseConfig("rawaipromptmode", "boolean", "rawAIPromptMode")) {
+                    if (cfg) {
+                        notify("AI card prompts will be sent unformatted");
+                    } else {
+                        notify("AI card prompts will be sent formatted");
+                    }
                 }
-                if (parseConfig("newcardsperformmemoryupdates", false, "defaultCardsDoMemoryUpdates")) {
+                if (parseConfig("rawairesponsemode", "boolean", "rawAIResponseMode")) {
+                    if (cfg) {
+                        notify("AI card responses will be returned unformatted");
+                    } else {
+                        notify("AI card responses will be returned formatted");
+                    }
+                }
+                if (parseConfig("maximumentrylengthfornewcards", "number", "defaultEntryLimit")) {
+                    if (!modeChanged || (notEmptyObj(oldConfig) && (oldConfig.defaultEntryLimit !== cfg))) {
+                        AC.config.defaultEntryLimit = validateEntryLimit(cfg);
+                        notify(
+                            "New card entries will be limited to " + AC.config.defaultEntryLimit + " characters of generated text"
+                        );
+                    }
+                }
+                if (parseConfig("newcardsperformmemoryupdates", "boolean", "defaultCardsDoMemoryUpdates")) {
                     if (cfg) {
                         notify("Newly constructed cards will begin with memory updates enabled by default");
                     } else {
                         notify("Newly constructed cards will begin with memory updates disabled by default");
                     }
                 }
-                if (parseConfig("cardmemorybankpreferredlength", true, "defaultMemoryLimit")) {
+                if (parseConfig("cardmemorybankpreferredlength", "number", "defaultMemoryLimit")) {
                     AC.config.defaultMemoryLimit = validateMemoryLimit(cfg);
                     notify(
                         "Newly constructed cards will begin with their memory bank length preference set to " + AC.config.defaultMemoryLimit + " characters of text"
                     );
                 }
-                if (parseConfig("memorysummarycompressionratio", true, "memoryCompressionRatio")) {
+                if (parseConfig("memorysummarycompressionratio", "number", "memoryCompressionRatio")) {
                     AC.config.memoryCompressionRatio = validateMemCompRatio(cfg);
                     notify(
                         "Freshly summarized card memory banks will be approximately " + (AC.config.memoryCompressionRatio / 10) + "x shorter than their originals"
                     );
                 }
-                if (parseConfig("excludeallcapsfromtitledetection", false, "ignoreAllCapsTitles")) {
+                if (parseConfig("excludeallcapsfromtitledetection", "boolean", "ignoreAllCapsTitles")) {
                     if (cfg) {
                         notify("All-caps text will be ignored during title detection to help prevent bad cards");
                     } else {
                         notify("All-caps text may be considered during title detection processes");
                     }
                 }
-                if (parseConfig("alsodetecttitlesfromplayerinputs", false, "readFromInputs")) {
+                if (parseConfig("alsodetecttitlesfromplayerinputs", "boolean", "readFromInputs")) {
                     if (cfg) {
                         notify("Titles may be detected from player Do/Say/Story action inputs");
                     } else {
                         notify("Title detection will skip player Do/Say/Story action inputs for grammatical leniency");
                     }
                 }
-                if (parseConfig("minimumturnsagefortitledetection", true, "minimumLookBackDistance")) {
-                    AC.config.minimumLookBackDistance = validateMLBD(cfg);
+                if (parseConfig("minimumturnsagefortitledetection", "number", "minimumLookBackDistance")) {
+                    AC.config.minimumLookBackDistance = validateMinLookBackDist(cfg);
                     notify(
                         "Titles and names mentioned in your story may become eligible for future card generation attempts once they are at least " + AC.config.minimumLookBackDistance + " actions old"
                     );
+                }
+                if (parseConfig("manualcommandsbypasstitlefilters", "boolean", "manualBypassTitleFilters")) {
+                    if (cfg) {
+                        notify("Manual /ec and /ac commands may now generate cards for common entities and custom-banned titles");
+                    } else {
+                        notify("Manual commands will enforce strict title filters and rejections");
+                    }
+                }
+                if (parseConfig("filtercommonentitiesfromautodetection", "boolean", "filterCommonEntities")) {
+                    bans.clear();
+                    if (cfg) {
+                        notify("Common entities and real-world places will be filtered from background auto-generation");
+                    } else {
+                        notify("Common entities and real-world places may now be automatically detected during gameplay");
+                    }
                 }
                 cfg = settings.uselivescriptinterfacev2;
                 if (typeof cfg === "boolean") {
@@ -4820,7 +5344,51 @@ function AutoCards(inHook, inText, inStop) {
                         }
                     }
                 }
-                if (parseConfig("logdebugdatainaseparatecard" , false, "showDebugData")) {
+                if (parseConfig("trimcardphrasefrag", "boolean", "trimPhraseFragCards")) { 
+                    notify("Trimming story card phrase frag: \"" + cfg + "\"");
+                }
+                if (parseConfig("trimcardquotefrag", "boolean", "trimDelimiterFragCards")) { 
+                    notify("Trimming story card quote frag: \"" + cfg + "\"");
+                }
+                if (parseConfig("stripcardasterisks", "boolean", "stripAsterisksCards")) { 
+                    notify("Stripping card asterisks: \"" + cfg + "\"");
+                }
+                if (parseConfig("prettifycardemdashes", "boolean", "prettifyEmDashesCards")) { 
+                    notify("Prettifying card em dashes: \"" + cfg + "\"");
+                }
+
+                if (parseConfig("trimstoryphrasefrag", "boolean", "trimPhraseFragStory")) { 
+                    notify("Trimming story sentence frags: \"" + cfg + "\"");
+                }
+                if (parseConfig("trimstoryquotefrag", "boolean", "trimDelimiterFragStory")) { 
+                    notify("Trimming story quote frag: \"" + cfg + "\"");
+                }
+                if (parseConfig("stripstoryasterisks", "boolean", "stripAsterisksStory")) { 
+                    notify("Stripping story asterisks: \"" + cfg + "\"");
+                }
+                if (parseConfig("prettifystoryemdashes", "boolean", "prettifyEmDashesStory")) { 
+                    notify("Prettifying story em dashes: \"" + cfg + "\"");
+                }
+                if (parseConfig("normalizestorywhitespace", "boolean", "normalizeWhitespaceStory")) { 
+                    notify("Normalizing story whitespace: \"" + cfg + "\"");
+                }
+
+                if (parseConfig("usecustomstorycardcontainer", "boolean", "SCContainerize")) { 
+                    notify("Using custom story card container: \"" + cfg + "\"");
+                }
+                if (parseConfig("customcontaineropenstring", "string", "SCContainerOpen")) { 
+                    notify("The custom container opening string has been set to: \"" + cfg + "\"");
+                }
+                if (parseConfig("customcontainerclosingstring", "string", "SCContainerClose")) { 
+                    notify("The custom container closing string has been set to: \"" + cfg + "\"");
+                }
+                if (parseConfig("customcontaineraibeginsentinel", "string", "SCContainerAIBeginSentinel")) { 
+                    notify("The custom container AI begin sentinel: \"" + cfg + "\"");
+                }
+                if (parseConfig("customcontaineraiendsentinel", "string", "SCContainerAIEndSentinel")) { 
+                    notify("The custom container AI end sentinel: \"" + cfg + "\"");
+                }
+                if (parseConfig("logdebugdatainaseparatecard" , "boolean", "showDebugData")) {
                     if (data === null) {
                         if (cfg) {
                             notify("State may now be viewed within the \"Debug Data\" story card");
@@ -4833,6 +5401,13 @@ function AutoCards(inHook, inText, inStop) {
                         notify("Debug mode has been disabled");
                     }
                 }
+                if (parseConfig("lograwaientrydata" , "boolean", "showDebugDataSCRawAIEntry")) {
+                    notify("Logging raw ai entry data has been set to: \"" + cfg + "\"");
+                }
+                if (parseConfig("lograwaimemorydata" , "boolean", "showDebugDataSCRawAIMemory")) {
+                    notify("Logging raw ai memory data has been set to: \"" + cfg + "\"");
+                }
+
                 if ((settings.disableautocards === true) && (AC.signal.forceToggle !== true)) {
                     disableAutoCards();
                     break;
@@ -4840,22 +5415,85 @@ function AutoCards(inHook, inText, inStop) {
                     // Apply the new card entry and proceed to implement Auto-Cards onContext
                     configureCard.entry = getConfigureCardEntry();
                 }
-                function parseConfig(settingsKey, isNumber, configKey) {
-                    cfg = settings[settingsKey];
-                    if (isNumber) {
-                        return checkConfig("number");
-                    } else if (!checkConfig("boolean")) {
-                        return false;
+
+                function parseConfig(settingsKey, expectedType, configKey) {
+                    cfg = findSettingValue(settingsKey);
+                    if (checkConfig(expectedType)) { // Use expectedType for type check
+                        AC.config[configKey] = cfg;
+                        return true;
                     }
-                    AC.config[configKey] = cfg;
+                    return false; // Return false if type doesn't match or config unchanged
+
+                    function findSettingValue(key) {
+                        if (settings[key] !== undefined) return settings[key];
+                        const baseKey = key.replace(/^ec/, "").replace(/^use/, "");
+                        const candidates = [
+                            key,
+                            "ec" + key,
+                            "ec" + baseKey,
+                            baseKey,
+                            "use" + baseKey,
+                            "ecuse" + baseKey
+                        ];
+                        for (const candidate of candidates) {
+                            if (settings[candidate] !== undefined) return settings[candidate];
+                        }
+                        if (baseKey.includes("contextheader")) {
+                            for (const k in settings) {
+                                if (k.includes("contextheader")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("containerclos")) {
+                            for (const k in settings) {
+                                if (k.includes("containerclos")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("containeropen")) {
+                            for (const k in settings) {
+                                if (k.includes("containeropen")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("beginsentinel")) {
+                            for (const k in settings) {
+                                if (k.includes("beginsentinel")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("endsentinel")) {
+                            for (const k in settings) {
+                                if (k.includes("endsentinel")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("storycardcontainer") || baseKey.includes("customstorycardcontainer")) {
+                            for (const k in settings) {
+                                if (k.includes("storycardcontainer")) return settings[k];
+                            }
+                        }
+                        if (baseKey.includes("pret")) {
+                            for (const k in settings) {
+                                if (k.replace(/tt/g, "t") === baseKey.replace(/tt/g, "t") ||
+                                    ("ec" + k).replace(/tt/g, "t") === ("ec" + baseKey).replace(/tt/g, "t")) {
+                                    return settings[k];
+                                }
+                            }
+                        }
+                        for (const k in settings) {
+                            const cleanK = k.replace(/^ec/, "").replace(/s$/, "");
+                            const cleanTarget = baseKey.replace(/s$/, "");
+                            if (cleanK === cleanTarget) {
+                                return settings[k];
+                            }
+                        }
+                        return undefined;
+                    }
+
                     function checkConfig(type) {
                         return ((typeof cfg === type) && (
                             (notEmptyObj(oldConfig) && (oldConfig[configKey] !== cfg))
                             || (AC.config[configKey] !== cfg)
                         ));
                     }
-                    return true;
                 }
+
             }
             if (AC.signal.forceToggle === false) {
                 disableAutoCards();
@@ -4942,7 +5580,7 @@ function AutoCards(inHook, inText, inStop) {
                             || (!AC.config.readFromInputs && isDoSayStory(action.type))
                             || /^[^\p{Lu}]*$/u.test(action.text)
                             || action.text.includes("<<<")
-                            || /\/\s*A\s*C/i.test(action.text)
+                            || /\/\s*(?:A|E)\s*C/i.test(action.text)
                             || /CONFIRM\s*DELETE/i.test(action.text)
                         ) {
                             // Skip see actions
@@ -4951,23 +5589,20 @@ function AutoCards(inHook, inText, inStop) {
                             // Skip utility actions
                             continue;
                         }
-                        const words = (prettifyEmDashes(action.text)
-                            // Inner Self
+                        const words = (Internal.prettifyEmDashes(action.text)
+                            // Inner Entity / Inner Self visual indicator prefix
                             .replace(/\s*[\u200B-\u200D][\s\u200B-\u200D]*/g, " ")
-                            // Localized Languages
-                            .replace(/\s*[–«»„“”「」—]\s*/g, ": ")
-                            .replace(/(?:^|\s+)-/g, ": ").replace(/-(?:\s+|$)/g, ": ")
-                            .replace(/[‘’]/g, "'").replaceAll("´", "`")
-                            // Standardize end punctuation
+                            // Nuh uh
+                            .replace(/[“”]/g, "\"").replace(/[‘’]/g, "'").replaceAll("´", "`")
                             .replaceAll("。", ".").replaceAll("？", "?").replaceAll("！", "!")
                             // Replace special clause opening punctuation with colon ":" terminators
                             .replace(/(^|\s+)["'`]\s*/g, ": ").replace(/\s*[\(\[{]\s*/g, ": ")
                             // Likewise for end-quotes (curbs a common AI grammar mistake)
                             .replace(/\s*,?\s*["'`](?:\s+|$)/g, ": ")
                             // Replace funky wunky symbols with regular spaces
-                            .replace(/[؟،¿¡…§，、\*_~><\)\]}#"`\s]/g, " ")
+                            .replace(/[؟،«»¿¡„“…§，、\*_~><\)\]}#"`\s]/g, " ")
                             // Replace some mid-sentence punctuation symbols with a placeholder word
-                            .replace(/\s*[;,\/\\]\s*/g, " %@% ")
+                            .replace(/\s*[—;,\/\\]\s*/g, " %@% ")
                             // Replace "I", "I'm", "I'd", "I'll", and "I've" with a placeholder word
                             .replace(/(?:^|\s+|-)I(?:'(?:m|d|ll|ve))?(?:\s+|-|$)/gi, " %@% ")
                             // Remove "'s" only if not followed by a letter
@@ -5109,7 +5744,7 @@ function AutoCards(inHook, inText, inStop) {
                             (currentTurn < 256)
                             && (action.type === "start")
                             // This is only used here so it doesn't need its own AC.config property or validation
-                            && (S.DEFAULT_BAN_TITLES_FROM_OPENING !== false)
+                            && (DEFAULT_BAN_TITLES_FROM_OPENING !== false)
                         ) {
                             // Titles in the opening prompt are banned by default, hopefully accounting for the player character's name and other established setting details
                             uniqueTitles.forEach(title => banTitle(title));
@@ -5296,22 +5931,22 @@ function AutoCards(inHook, inText, inStop) {
             let isRemembering = false;
             for (const card of storyCards) {
                 // Iterate over each card to handle pending card events and forenames/surnames
+                const unwrappedEntry = Internal.SCContainerUnwrap(card.entry);
                 const titleHeaderMatcher = /^{title: \s*([\s\S]*?)\s*}/;
                 let breakForCompression = isPendingCompression();
-                let simplifications = 0;
                 if (breakForCompression) {
                     break;
-                } else if (!card.entry.startsWith("{title: ")) {
+                } else if (!unwrappedEntry.startsWith("{title: ")) {
                     continue;
                 } else if (exceedsMemoryLimit()) {
-                    const titleHeaderMatch = card.entry.match(titleHeaderMatcher);
+                    const titleHeaderMatch = unwrappedEntry.match(titleHeaderMatcher);
                     if (titleHeaderMatch && isAuto(titleHeaderMatch[1])) {
                         prepareMemoryCompression(titleHeaderMatch[1].toLowerCase());
                         break;
                     }
                 }
                 // Handle card events
-                const lowerEntry = card.entry.toLowerCase();
+                const lowerEntry = unwrappedEntry.toLowerCase();
                 for (const titleKey of cardEvents.keys()) {
                     if (!lowerEntry.startsWith("{title: " + titleKey + "}")) {
                         continue;
@@ -5380,11 +6015,9 @@ function AutoCards(inHook, inText, inStop) {
                 }
                 if (breakForCompression) {
                     break;
-                } else if ((2 < simplifications) || (card.entry.includes("<") && card.entry.includes(">"))) {
-                    continue;
                 }
                 // Simplify auto-card titles which contain an obvious surname
-                const titleHeaderMatch = card.entry.match(titleHeaderMatcher);
+                const titleHeaderMatch = unwrappedEntry.match(titleHeaderMatcher);
                 if (!titleHeaderMatch) {
                     continue;
                 }
@@ -5408,7 +6041,6 @@ function AutoCards(inHook, inText, inStop) {
                 // Premature optimization is the root of all evil
                 const newKey = formatTitle(newTitle).newKey;
                 clearTransientTitles();
-                simplifications++;
                 if (newKey === "") {
                     Internal.getUsedTitles();
                     continue;
@@ -5626,12 +6258,13 @@ function AutoCards(inHook, inText, inStop) {
                 state.InnerSelf.AC ??= {};
                 state.InnerSelf.AC.event = true;
                 if (isGenerating) {
-                    // Likewise for the card entry generation delimiter
                     context = context.replaceAll("%@GEN@%", "");
                 } else {
-                    // Or the (mutually exclusive) card memory compression delimiter
                     context = context.replaceAll("%@COM@%", "");
                 }
+            }
+            if ((AC.config.operatingMode === "entity") && (AC.config.ECContextHeader)) {
+                context = context.replace(/^World Lore:$/m, AC.config.ECContextHeader);
             }
             CODOMAIN.initialize(context);
             function isolateMemories(memoriesText) {
@@ -5797,7 +6430,24 @@ function AutoCards(inHook, inText, inStop) {
             break; }
         case "output": {
             // AutoCards was called within the output modifier
-            const output = prettifyEmDashes(TEXT);
+
+            if (AC.config.showDebugDataSCRawAIEntry) {
+                logEvent("OUTPUT: Raw AI Output (TEXT): " + TEXT); //
+            }
+
+            const output = 
+                Internal.normalizeWhitespaceIf(AC.config.normalizeWhitespaceStory,
+                    Internal.trimDelimiterFragIf(AC.config.trimDelimiterFragStory,
+                        Internal.trimPhraseFragIf(AC.config.trimPhraseFragStory,
+                            Internal.prettifyEmDashesIf(AC.config.prettifyEmDashesStory,
+                                Internal.stripAsterisksIf(AC.config.stripAsterisksStory,        
+                                    TEXT
+                                )
+                            )
+                        )
+                    )
+                );
+
             if (0 < AC.chronometer.postpone) {
                 // Do not capture or replace any outputs during this turn
                 promoteAmnesia();
@@ -5809,24 +6459,113 @@ function AutoCards(inHook, inText, inStop) {
                     CODOMAIN.initialize(output);
                 }
             } else if (isPendingGeneration()) {
-                const textClone = prettifyEmDashes(text);
+                if (AC.config.showDebugDataSCRawAIEntry) {
+                    logEvent("Raw AI Output (isPendingGeneration): " + TEXT);
+                }
+                const textClone = Internal.prettifyEmDashes(text).replace(/\*/g,"");
+
                 AC.chronometer.amnesia = 0;
                 AC.generation.completed++;
                 const generationsRemaining = (function() {
+                    if (AC.config.rawAIResponseMode) {
+                        // We combine here in case there was a partial sentinel that the AI has completed.
+                        AC.generation.workpiece.entry += TEXT;
+
+                        let sawEndSentinel = false;
+                        if (AC.config.SCContainerAIEndSentinel !== "") {
+                            const endSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIEndSentinel);
+                            const endSentinelRx = new RegExp(`(?:\\n[^\\n]*|\\s*)${endSentinelEscaped}[\\s\\S]*$`, 'i');
+                            // If defined, replace the end sentinel and any leading ws and bullet followed by any character to the end of input.
+                            sawEndSentinel = endSentinelRx.test(AC.generation.workpiece.entry);
+                            if (sawEndSentinel) {
+                                AC.generation.workpiece.entry = AC.generation.workpiece.entry.replace(endSentinelRx, "");
+                            }
+                        }
+
+                        // Remove begin sentinel and any preceding preamble immediately whenever it appears
+                        if (AC.config.SCContainerAIBeginSentinel !== "") {
+                            const beginSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIBeginSentinel);
+                            const beginSentinelRx = new RegExp(`^[\\s\\S]*?${beginSentinelEscaped}\\s*`, 'i');
+                            AC.generation.workpiece.entry = AC.generation.workpiece.entry.replace(beginSentinelRx, "");
+                        }
+
+                        // Strip leading and trailing code fences (e.g. ```yaml, ```, '''yaml, ''')
+                        AC.generation.workpiece.entry = AC.generation.workpiece.entry
+                            .replace(/^\s*(?:```|''')(?:yaml)?\s*/i, "")
+                            .replace(/\s*(?:```|''')\s*$/i, "");
+
+                        // We do some cleanup between generations to keep the AI from developing bad patterns.
+                        AC.generation.workpiece.entry = AC.generation.workpiece.entry
+                            .replace(/\s*\/\/[^\n]*\n/gm, '') // Strip out any JavaScript line style comments.
+                            .replace(/(?<=\d)"/g, '') // clean up measurements to remove double quotes.
+                            .replace(/^[—–]\s*/gm, "- ") // normalize em-dash bullets
+                            .replace(/\s*-\s+(?=[^\n]+:)/g, "\n- ") // clean up dashed list items so they're on their own lines.
+                            ;
+                        //logEvent("outputModifier: workpiece.entry/after subst: " + AC.generation.workpiece.entry);
+
+                        // Now clean up sentence, and delimiter frags and remove asterisks.
+                        AC.generation.workpiece.entry = 
+                            Internal.normalizeWhitespace(
+                                Internal.trimPhraseFragIf(AC.config.trimPhraseFragCards,
+                                    Internal.trimDelimiterFragIf(AC.config.trimDelimiterFragCards,
+                                        Internal.prettifyEmDashesIf(AC.config.prettifyEmDashesCards,
+                                            Internal.stripAsterisksIf(AC.config.stripAsterisksCards,
+                                                AC.generation.workpiece.entry
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ;
+
+                        // Define the regular expression for entity type detection (bullet-agnostic, quote-tolerant)
+                        const entityTypeRegex = /(?:^|\n)[-—–]?\s*Type:\s*["']?([^,\n"']+)/mi;
+                        const entityTypeMatch = AC.generation.workpiece.entry.match(entityTypeRegex);
+                        const entityType = (AC.config.autoTypeCards && entityTypeMatch) ? entityTypeMatch[1].trim() : AC.config.defaultCardType;
+                        
+                        // Check if the entity has finished: either via end sentinel or completed Description field
+                        // All 5 core NER schemas terminate with "Description: <text>."
+                        const hasFinishedDescription = /(?:^|\n)[-—–]?\s*Description:\s*[\s\S]+?[\.!\?]["']?\s*$/i.test(AC.generation.workpiece.entry.trim());
+
+                        // If the end sentinel was seen or the final Description field is complete, we're done.
+                        if (sawEndSentinel || hasFinishedDescription) {
+                            // The AI signaled the end of the entry.
+                            //logEvent("outputModifier: Saw the end sentinel or completed description, skipping end.");
+                            // The final cleanup happens in the card generation.
+                            AC.generation.workpiece.type = entityType;
+                            return 0; // Causes a skip to end.
+                        }
+
+                        // Now check that we're not overflowing the entry.
+                        const entrySize = AC.generation.workpiece.entry.length - Internal.SCContainerSentinelSize();
+                        //logEvent("workpiece length: " + entrySize);
+                        if (entrySize > AC.config.defaultEntryLimit ) {
+                            //logEvent("outputModifier: Got max entry length, skipping end."); //
+                            AC.generation.workpiece.type = entityType;
+                            return 0;
+                        }
+                        return estimateRemainingGens();
+                    }
+
+                    // NOT! AI RAW RESPONSE MODE:
+
                     if (
                         textClone.includes("\"")
                         || /(?<=^|\s|—|\(|\[|{)sa(ys?|id)(?=\s|\.|\?|!|,|;|—|\)|\]|}|$)/i.test(textClone)
                     ) {
                         // Discard full outputs containing "say" or quotations
                         // To build coherent entries, the AI must not attempt to continue the story
+                        //logEvent("outputModifier: Doing a Skip"); //
                         return skip(estimateRemainingGens());
                     }
+
                     const oldSentences = (splitBySentences(formatEntry(AC.generation.workpiece.entry))
                         .map(sentence => sentence.trim())
                         .filter(sentence => (2 < sentence.length))
                     );
+                    // No response processing if rawAIResponseMode.
                     const seenSentences = new Set();
-                    const entryAddition = splitBySentences(textClone
+                    const entryAddition = AC.config.rawAIResponseMode ? textClone : splitBySentences(textClone
                         .replace(/[\*_~]/g, "")
                         .replace(/:+/g, "#")
                         .replace(/\s+/g, " ")
@@ -5856,32 +6595,39 @@ function AutoCards(inHook, inText, inStop) {
                         AC.generation.workpiece.entry += entryAddition;
                     }
                     if (AC.generation.workpiece.limit < AC.generation.workpiece.entry.length) {
-                        let exit = false;
                         let truncatedEntry = AC.generation.workpiece.entry.trimEnd();
-                        const sentences = splitBySentences(truncatedEntry);
-                        for (let i = sentences.length - 1; 0 <= i; i--) {
-                            if (!sentences[i].includes("\n")) {
-                                sentences.splice(i, 1);
-                                truncatedEntry = sentences.join("").trimEnd();
-                                if (truncatedEntry.length <= AC.generation.workpiece.limit) {
+                        // For raw mode, just limit the entry to prevent overflow.
+                        if (AC.config.rawAIResponseMode) {
+                            AC.generation.workpiece.entry = limitString(
+                                AC.generation.workpiece.entry, AC.generation.workpiece.limit
+                            );
+                        } else {
+                            let exit = false;
+                            const sentences = splitBySentences(truncatedEntry);
+                            for (let i = sentences.length - 1; 0 <= i; i--) {
+                                if (!sentences[i].includes("\n")) {
+                                    sentences.splice(i, 1);
+                                    truncatedEntry = sentences.join("").trimEnd();
+                                    if (truncatedEntry.length <= AC.generation.workpiece.limit) {
+                                        break;
+                                    }
+                                    continue;
+                                }
+                                // Lines only matter for initial entries provided via AutoCards().API.generateCard
+                                const lines = sentences[i].split("\n");
+                                for (let j = lines.length - 1; 0 <= j; j--) {
+                                    lines.splice(j, 1);
+                                    sentences[i] = lines.join("\n");
+                                    truncatedEntry = sentences.join("").trimEnd();
+                                    if (truncatedEntry.length <= AC.generation.workpiece.limit) {
+                                        // Exit from both loops
+                                        exit = true;
+                                        break;
+                                    }
+                                }
+                                if (exit) {
                                     break;
                                 }
-                                continue;
-                            }
-                            // Lines only matter for initial entries provided via AutoCards().API.generateCard
-                            const lines = sentences[i].split("\n");
-                            for (let j = lines.length - 1; 0 <= j; j--) {
-                                lines.splice(j, 1);
-                                sentences[i] = lines.join("\n");
-                                truncatedEntry = sentences.join("").trimEnd();
-                                if (truncatedEntry.length <= AC.generation.workpiece.limit) {
-                                    // Exit from both loops
-                                    exit = true;
-                                    break;
-                                }
-                            }
-                            if (exit) {
-                                break;
                             }
                         }
                         if (truncatedEntry.length < 150) {
@@ -5924,7 +6670,7 @@ function AutoCards(inHook, inText, inStop) {
                     }
                     return skip(estimateRemainingGens());
                 })();
-                postOutputMessage(AC.generation.completed / Math.min(
+                postOutputMessage(textClone, AC.generation.completed / Math.min(
                     AC.generation.permitted,
                     AC.generation.completed + generationsRemaining
                 ));
@@ -5934,7 +6680,29 @@ function AutoCards(inHook, inText, inStop) {
                         type: AC.generation.workpiece.type,
                         title: AC.generation.workpiece.title,
                         keys: AC.generation.workpiece.keys,
-                        entry: (function() {
+                        entry: Internal.SCContainerWrap((function() {
+                            if (AC.config.SCContainerize) {
+                                let cleanEntry = AC.generation.workpiece.entry.trim();
+                                if (AC.config.SCContainerAIBeginSentinel !== "") {
+                                    const beginSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIBeginSentinel);
+                                    const beginSentinelRx = new RegExp(`^[\\s\\S]*?${beginSentinelEscaped}\\s*`, 'i');
+                                    cleanEntry = cleanEntry.replace(beginSentinelRx, "");
+                                }
+                                if (AC.config.SCContainerAIEndSentinel !== "") {
+                                    const endSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIEndSentinel);
+                                    const endSentinelRx = new RegExp(`(?:\\n[^\\n]*|\\s*)${endSentinelEscaped}[\\s\\S]*$`, 'i');
+                                    cleanEntry = cleanEntry.replace(endSentinelRx, "");
+                                }
+                                // Strip leading code fences (```yaml or ``` or '''yaml or ''')
+                                cleanEntry = cleanEntry.replace(/^\s*(?:```|''')(?:yaml)?\s*/i, "");
+                                // Strip trailing code fences
+                                cleanEntry = cleanEntry.replace(/\s*(?:```|''')\s*$/i, "");
+                                // Normalize em-dash / en-dash bullets
+                                cleanEntry = cleanEntry.replace(/^[—–]\s*/gm, "- ");
+                                cleanEntry = cleanEntry.trim();
+                                const titleHeader = "{title: " + AC.generation.workpiece.title + "}";
+                                return titleHeader + "\n" + cleanEntry;
+                            }
                             if (!AC.config.bulletedListMode) {
                                 return AC.generation.workpiece.entry;
                             }
@@ -5974,7 +6742,7 @@ function AutoCards(inHook, inText, inStop) {
                                 sentences.splice(i, 1);
                             }
                             return limitString(AC.generation.workpiece.entry, 2000);
-                        })(),
+                        })()),
                         description: AC.generation.workpiece.description,
                     }), newCardIndex());
                     AC.generation.cooldown = AC.config.addCardCooldown;
@@ -5984,7 +6752,7 @@ function AutoCards(inHook, inText, inStop) {
                     clearTransientTitles();
                 }
             } else if (isPendingCompression()) {
-                const textClone = prettifyEmDashes(text);
+                const textClone = Internal.prettifyEmDashes(text);
                 AC.chronometer.amnesia = 0;
                 AC.compression.completed++;
                 const compressionsRemaining = (function() {
@@ -6012,7 +6780,7 @@ function AutoCards(inHook, inText, inStop) {
                     }
                     return boundInteger(1, joinMemoryBank(AC.compression.oldMemoryBank).length) / AC.compression.responseEstimate;
                 })();
-                postOutputMessage(AC.compression.completed / (AC.compression.completed + compressionsRemaining));
+                postOutputMessage(textClone, AC.compression.completed / (AC.compression.completed + compressionsRemaining));
                 if (compressionsRemaining <= 0) {
                     const card = getAutoCard(AC.compression.titleKey);
                     if (card === null) {
@@ -6052,11 +6820,16 @@ function AutoCards(inHook, inText, inStop) {
                     return null;
                 }
             })())
-            function postOutputMessage(ratio) {
-                if (permitOutput()) {
+            function postOutputMessage(textClone, ratio) {
+                if (!permitOutput()) {
+                    // Do nothing
+                } else if (0.5 < similarityScore(textClone, output)) {
+                    // To improve Auto-Cards' compatability with other scripts, I only bother to replace the output text when the original and new output texts have a similarity score above a particular threshold. Otherwise, I may safely assume the output text has already been replaced by another script and thus skip this step.
                     CODOMAIN.initialize(
                         getPrecedingNewlines() + ">>> please select \"continue\" (" + Math.round(ratio * 100) + "%) <<<\n\n"
                     );
+                } else {
+                    CODOMAIN.initialize(output);
                 }
                 return;
             }
@@ -6067,7 +6840,7 @@ function AutoCards(inHook, inText, inStop) {
         }
         // Get an individual story card reference via titleKey
         function getAutoCard(titleKey) {
-            return Internal.getCard(card => card.entry.toLowerCase().startsWith("{title: " + titleKey + "}"));
+            return Internal.getCard(card => Internal.SCContainerUnwrap(card.entry).toLowerCase().startsWith("{title: " + titleKey + "}"));
         }
         function buildMemoryConstruct() {
             return (AC.compression.oldMemoryBank
@@ -6158,7 +6931,11 @@ function AutoCards(inHook, inText, inStop) {
             );
         }
         function formatEntry(partialEntry) {
-            const cleanedEntry = cleanSpaces(partialEntry
+            const unwrappedSC = Internal.SCContainerUnwrap(partialEntry);
+            if (AC.config.rawAIPromptMode) {
+                return unwrappedSC;
+            }
+            const cleanedEntry = cleanSpaces(unwrappedSC
                 .replace(/^{title:[\s\S]*?}/, "")
                 .replace(/[#><@*_~]/g, "")
                 .trim()
@@ -6170,59 +6947,17 @@ function AutoCards(inHook, inText, inStop) {
             }
         }
         // Resolve malformed em dashes (common AI cliche)
-        function prettifyEmDashes(str) {
+        /* function prettifyEmDashes(str) {
             return str.replace(/(?<!^\s*)(?: - | ?– ?)(?!\s*$)/g, "—");
         }
-        function getConfigureCardTemplate() {
-            const names = getControlVariants().configure;
-            return O.f({
-                type: AC.config.defaultCardType,
-                title: names.title,
-                keys: names.keys,
-                entry: getConfigureCardEntry(),
-                description: getConfigureCardDescription()
-            });
-        }
-        function getConfigureCardEntry() {
-            return prose(
-                "> Auto-Cards automatically creates and updates plot-relevant story cards while you play. You may configure the following settings by replacing \"false\" with \"true\" (and vice versa) or by adjusting numbers for the appropriate settings.",
-                "> Disable Auto-Cards: false",
-                "> Show detailed guide: false",
-                "> Delete all automatic story cards: false",
-                "> Reset all config settings and prompts: false",
-                "> Pin this config card near the top: " + AC.config.pinConfigureCard,
-                "> Minimum turns cooldown for new cards: " + AC.config.addCardCooldown,
-                "> New cards use a bulleted list format: " + AC.config.bulletedListMode,
-                "> Maximum entry length for new cards: " + AC.config.defaultEntryLimit,
-                "> New cards perform memory updates: " + AC.config.defaultCardsDoMemoryUpdates,
-                "> Card memory bank preferred length: " + AC.config.defaultMemoryLimit,
-                "> Memory summary compression ratio: " + AC.config.memoryCompressionRatio,
-                "> Exclude all-caps from title detection: " + AC.config.ignoreAllCapsTitles,
-                "> Also detect titles from player inputs: " + AC.config.readFromInputs,
-                "> Minimum turns age for title detection: " + AC.config.minimumLookBackDistance,
-                "> Use Live Script Interface v2: " + (AC.config.LSIv2 !== null),
-                "> Log debug data in a separate card: " + AC.config.showDebugData
-            );
-        }
-        function getConfigureCardDescription() {
-            return limitString(O.v(prose(
-                Words.delimiter,
-                "> AI prompt to generate new cards:",
-                limitString(AC.config.generationPrompt.trim(), 4350).trimEnd(),
-                Words.delimiter,
-                "> AI prompt to summarize card memories:",
-                limitString(AC.config.compressionPrompt.trim(), 4350).trimEnd(),
-                Words.delimiter,
-                "> Titles banned from new card creation:",
-                AC.database.titles.banned.join(", ")
-            )), 9850);
-        }
+            */
     } else {
         // Auto-Cards is currently disabled
         switch(HOOK) {
         case "input": {
-            if (/\/\s*A\s*C/i.test(text)) {
-                CODOMAIN.initialize(doPlayerCommands(text));
+            const cmdText = (/\/\s*(?:A|E)\s*C/i.test(TEXT)) ? TEXT : text;
+            if (/\/\s*(?:A|E)\s*C/i.test(cmdText)) {
+                CODOMAIN.initialize(doPlayerCommands(cmdText));
             } else {
                 CODOMAIN.initialize(TEXT);
             }
@@ -6247,7 +6982,11 @@ function AutoCards(inHook, inText, inStop) {
                 }
             }
             AC.signal.forceToggle = null;
-            CODOMAIN.initialize(TEXT);
+            let context = TEXT;
+            if ((AC.config.operatingMode === "entity") && (AC.config.ECContextHeader)) {
+                context = context.replace(/^World Lore:$/m, AC.config.ECContextHeader);
+            }
+            CODOMAIN.initialize(context);
             function enableAutoCards() {
                 // Auto-Cards has been enabled
                 AC.config.doAC = true;
@@ -6279,25 +7018,13 @@ function AutoCards(inHook, inText, inStop) {
             CODOMAIN.initialize(TEXT);
             break; }
         }
-        function getEnableCardTemplate() {
-            const names = getControlVariants().enable;
-            return O.f({
-                type: AC.config.defaultCardType,
-                title: names.title,
-                keys: names.keys,
-                entry: prose(
-                    "> Auto-Cards automatically creates and updates plot-relevant story cards while you play. To enable this system, simply edit the \"false\" below to say \"true\" instead!",
-                    "> Enable Auto-Cards: false"),
-                description: "Perform any Do/Say/Story/Continue action within your adventure to apply this change!"
-            });
-        }
     }
     function hoistConst() { return (class Const {
         // This helps me debug stuff uwu
         #constant;
         constructor(...args) {
             if (args.length !== 0) {
-                Const.#throwError([[(args.length === 1), "Const cannot be instantiated with a parameter"], ["Const cannot be instantiated with parameters"]]);
+                this.constructor.#throwError([[(args.length === 1), "Const cannot be instantiated with a parameter"], ["Const cannot be instantiated with parameters"]]);
             } else {
                 O.f(this);
                 return this;
@@ -6305,37 +7032,37 @@ function AutoCards(inHook, inText, inStop) {
         }
         declare(...args) {
             if (args.length !== 0) {
-                Const.#throwError([[(args.length === 1), "Instances of Const cannot be declared with a parameter"], ["Instances of Const cannot be declared with parameters"]]);
+                this.constructor.#throwError([[(args.length === 1), "Instances of Const cannot be declared with a parameter"], ["Instances of Const cannot be declared with parameters"]]);
             } else if (this.#constant === undefined) {
                 this.#constant = null;
                 return this;
             } else if (this.#constant === null) {
-                Const.#throwError("Instances of Const cannot be redeclared");
+                this.constructor.#throwError("Instances of Const cannot be redeclared");
             } else {
-                Const.#throwError("Instances of Const cannot be redeclared after initialization");
+                this.constructor.#throwError("Instances of Const cannot be redeclared after initialization");
             }
         }
         initialize(...args) {
             if (args.length !== 1) {
-                Const.#throwError([[(args.length === 0), "Instances of Const cannot be initialized without a parameter"], ["Instances of Const cannot be initialized with multiple parameters"]]);
+                this.constructor.#throwError([[(args.length === 0), "Instances of Const cannot be initialized without a parameter"], ["Instances of Const cannot be initialized with multiple parameters"]]);
             } else if (this.#constant === null) {
                 this.#constant = [args[0]];
                 return this;
             } else if (this.#constant === undefined) {
-                Const.#throwError("Instances of Const cannot be initialized before declaration");
+                this.constructor.#throwError("Instances of Const cannot be initialized before declaration");
             } else {
-                Const.#throwError("Instances of Const cannot be reinitialized");
+                this.constructor.#throwError("Instances of Const cannot be reinitialized");
             }
         }
         read(...args) {
             if (args.length !== 0) {
-                Const.#throwError([[(args.length === 1), "Instances of Const cannot be read with a parameter"], ["Instances of Const cannot read with any parameters"]]);
+                this.constructor.#throwError([[(args.length === 1), "Instances of Const cannot be read with a parameter"], ["Instances of Const cannot read with any parameters"]]);
             } else if (Array.isArray(this.#constant)) {
                 return this.#constant[0];
             } else if (this.#constant === null) {
-                Const.#throwError("Despite prior declaration, instances of Const cannot be read before initialization");
+                this.constructor.#throwError("Despite prior declaration, instances of Const cannot be read before initialization");
             } else {
-                Const.#throwError("Instances of Const cannot be read before initialization");
+                this.constructor.#throwError("Instances of Const cannot be read before initialization");
             }
         }
         // An error condition is paired with an error message [condition, message], call #throwError with an array of pairs to throw the message corresponding with the first true condition [[cndtn1, msg1], [cndtn2, msg2], [cndtn3, msg3], ...] The first conditionless array element always evaluates to true ('else')
@@ -6411,6 +7138,28 @@ function AutoCards(inHook, inText, inStop) {
     function hoistWords() { return (class Words { static #cache = {}; static {
         // Each word list is initialized only once before being cached!
         const wordListInitializers = {
+            // These are being made available for externally fixing the AI raw mode bad truncation.
+            commonHonorificsAbbreviations: () => [
+                // Honorifics
+                'Dr', 'Mrs', 'Mr', 'Ms', 'Jr', 'Sr', 'Prof', 'Gen', 'Col', 'Capt', 'Maj', 'Lt', 'Cpl', 'Sgt', 'Pvt',
+                // Common Latin/English abbreviations
+                'e.g', 'i.e', 'etc', 'vs', 'cf', 'viz', 'et al', 'ibid', 'id',
+                // Units of measure (often have periods)
+                'in', 'ft', 'yd', 'mi', 'km', 'cm', 'mm', 'kg', 'g', 'mg', 'lb', 'oz', 'ml', 'L', 'cc', 'sq', 'cu', 'F', 'C',
+                // Geographic/Organizational abbreviations
+                'St', 'Ave', 'Blvd', 'Rd', 'Ct', 'Pl', 'P.O', 'Co', 'Corp', 'Inc', 'Ltd', 'Assn', 'Dept', 'Univ', 'Gov', 'Mfg',
+                // Time/Date
+                'Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+                'A.M', 'P.M',
+                // Academic/Titles
+                'Ph.D', 'M.D', 'B.A', 'B.S', 'M.A', 'J.D', 'Esq',
+                // Other common acronyms/initials that might use periods
+                'U.S', 'U.S.A', 'U.K', 'E.U', 'N.A.S.A', 'F.B.I', 'C.I.A', 'D.E.A', 'I.C.E',
+                // Miscellaneous
+                'Vol', 'Chap', 'Sec', 'Para', 'App', 'Conf', 'Min', 'Max', 'Avg', 'No', 'Fig'
+            ],
+
             // Special-cased honorifics which are excluded from titles and ignored during split-by-sentences operations
             honorifics: () => [
                 "mr.", "ms.", "mrs.", "dr."
@@ -6685,7 +7434,7 @@ function AutoCards(inHook, inText, inStop) {
                 "❤️ Special Thanks",
                 "This project flourished due to the incredible help, feedback, and encouragement from the AI Dungeon community. Your ideas, bug reports, testing, and support made Auto-Cards smarter, faster, and more fun for all. Please refer to my source code to learn more about everyone's specific contributions",
                 "",
-                "AHotHamster22, BinKompliziert, Boo, bottledfox, Bruno, Burnout, bweni, DebaczX, Dirty Kurtis, Dragranis, effortlyss, Hawk, Idle Confusion, ImprezA, Kat-Oli, KryptykAngel, Mad19pumpkin, Magic, Mirox80, Nathaniel Wyvern, NobodyIsUgly, OnyxFlame, Purplejump, Randy Viosca, RustyPawz, sinner, Sleepy pink, Vutinberg, Wilmar, Yi1i1i",
+                "AHotHamster, BinKompliziert, Boo, bottledfox, Bruno, Burnout, bweni, DebaczX, Dirty Kurtis, Dragranis, effortlyss, Hawk, Idle Confusion, ImprezA, Kat-Oli, KryptykAngel, Mad19pumpkin, Magic, Mirox80, Nathaniel Wyvern, NobodyIsUgly, OnyxFlame, Purplejump, Randy Viosca, RustyPawz, sinner, Sleepy pink, Vutinberg, Wilmar, Yi1i1i",
                 "",
                 Words.delimiter,
                 "",
@@ -6777,7 +7526,209 @@ function AutoCards(inHook, inText, inStop) {
         // Some exported API functions are internally reused by AutoCards
         // Recursively calling AutoCards().API is computationally wasteful
         // AutoCards uses this collection of static methods as an internal proxy
-        static generateCard(request, predefinedPair = ["", ""]) {
+
+        /**
+         * Trims an incomplete phrase from the end of a string.
+         * This function identifies the last valid phrase terminator (e.g., '.', '?', ',', '!")
+         * and removes any subsequent text, which is considered an unfinished fragment.
+         * It's designed to clean up abruptly truncated text, especially from AI outputs.
+         * @param {string} str The input string to trim.
+         * @returns {string} The cleaned string with any trailing fragment removed.
+         */
+        static trimPhraseFrag(str) {
+            if (typeof str === 'undefined') return "";
+            // Create a regex pattern from a list of common abbreviations (e.g., "Mr.", "Mrs.", "e.g.").
+            // This is used in a negative lookbehind to prevent mistaking an abbreviation for a phrase end.
+            const abbrPattern = Words.commonHonorificsAbbreviations
+                .map(abbr => abbr.replace(/\./g, '\\.')) // Escape any literal periods in the abbreviations
+                .join('|');
+
+            // Define what constitutes a "true" phrase ending. This includes:
+            // 1. Punctuation like ellipses, "?", "!", or ",".
+            // 2. A period that is NOT part of an abbreviation.
+            // 3. Any of the above can be optionally followed by a closing quote, parenthesis, or other matching delimiters.
+            const truePhraseEnd = `(?:\\.{3}|[?!,]|(?<!\\b(?:${abbrPattern}))\\.)['")\\]}]?`;
+
+            // This regex splits the entire string into two parts:
+            // Group 1: The "keep" part. Everything from the start to the last valid phrase end.
+            // Group 2: The "fragment" part. Everything after the last valid phrase end.
+            // The 's' flag allows '.' to match newlines, handling multi-line text.
+            const fragmentRemovalRegex = new RegExp(
+                `^(.*(?:${truePhraseEnd}[ \\t\\r\\n]*))?(.*)$`,
+                's'
+            );
+            const matches = str.match(fragmentRemovalRegex);
+
+            if (matches) {
+                // The first group ($1) is the part we want to keep.
+                const keepPart = matches[1] || ''; // Default to empty string if undefined
+
+                // The second group ($2) is the fragment we are removing.
+                const fragmentPart = matches[2] || ''; // Default to empty string
+
+                // Return the "keep" part, effectively trimming the fragment.
+                return keepPart.trimEnd();
+            }
+
+            return str;
+        }
+        static trimPhraseFragIf(condition, str) {
+            return condition ? (Internal.trimPhraseFrag(str)) : str;
+        }
+
+        static trimDelimParenFrag(str) {
+            return str.replace(/\((?![^)]*\))\s*$/, "");
+        }
+        static trimDelimBraceFrag(str) {
+            return str.replace(/\{(?![^}]*\})\s*$/, "");
+        }
+        static trimDelimBracketFrag(str) {
+            return str.replace(/\[(?![^\]]*\])\s*$/, "");
+        }
+        static trimDelimDQuoteFrag(str) {
+            return str.replace(/(?<!\d)\"[^"\s][^"\n]*$/, "");
+        } 
+        static trimDelimSQuoteFrag(str) {
+            return str.replace(/(?<!\w)\'[^'\n]*$/, "");
+        }
+        
+        static trimDelimiterFrag(str) {
+            return Internal.trimDelimParenFrag(
+                        Internal.trimDelimDQuoteFrag(
+                            Internal.trimDelimSQuoteFrag(str)
+                        )
+                    );
+               //Internal.trimDelimBracketFrag(
+                //    Internal.trimDelimBraceFrag(
+                //        Internal.trimDelimParenFrag(
+                //            Internal.trimDelimSQuoteFrag(
+                //                Internal.trimDelimDQuoteFrag(str)
+                //            )
+                //        )
+                //    )
+                //)
+            //;
+        }
+        static trimDelimiterFragIf(condition, str) {
+            return condition ? Internal.trimDelimiterFrag(str) : str;
+        }
+
+        /**
+         * Normalizes whitespace and newlines in a block of text.
+         * - Ensures single spaces between sentences.
+         * - Removes spaces before newlines (trailing whitespace).
+         * - Collapses multiple newlines into a maximum of two (for paragraph breaks).
+         * - Removes empty or whitespace-only lines.
+         * @param {string} str The input string.
+         * @returns {string} The cleaned string with normalized whitespace.
+         */
+        static normalizeWhitespaceIf(condition, str) {
+            return condition ? Internal.normalizeWhitespace(str) : str;
+        }
+
+        static normalizeWhitespace(str) {
+            if (typeof str !== 'string') return "";
+
+            let cleaned = str;
+
+            // 1. Standardize sentence spacing: Replace any whitespace following sentence-ending
+            //    punctuation with a single space. This handles cases like "Hello.   World" -> "Hello. World".
+            //    The lookbehind `(?<=[.?!])` ensures we only target spaces after punctuation.
+            cleaned = cleaned.replace(/(?<=[.?!,:;\)\]\}"'/])[ \t]+/g, ' ');
+
+            // 2. Remove trailing whitespace: Delete all spaces and tabs at the end of every line.
+            //    The `m` (multiline) flag is crucial here.
+            cleaned = cleaned.replace(/[ \t]+$/gm, '');
+
+            // 3. Collapse excess newlines: Replace three or more newlines with just two,
+            //    preserving paragraph breaks but removing excessive empty space.
+            cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+            // 4. Final clean: if it ends with a newline just return it, otherwise make it end in a single space.
+            cleaned = cleaned.endsWith('\n') ? cleaned : cleaned.trimEnd() + ' ';
+
+            return cleaned;
+        }
+        static stripAsterisks(str) {
+            return str.replace(/\*/g,"");
+        }
+        static stripAsterisksIf(condition, str) {
+            return condition ? Internal.stripAsterisks(str) : str;
+        }
+
+        static prettifyEmDashes(str) {
+            return str.replace(/(?<!^\s*)(?: - | ?– ?)(?!\s*$)/g, "—");
+        }
+        static prettifyEmDashesIf(condition, str) {
+            return condition ? Internal.prettifyEmDashes(str): str;
+        }
+
+        static escapeRegExp(str) { //
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); //
+        }
+
+        static SCContainerWrapSize() {
+            return AC.config.SCContainerOpen.length + AC.config.SCContainerClose.length;
+        }
+        static SCContainerSentinelSize() {
+            return AC.config.SCContainerAIBeginSentinel.length + AC.config.SCContainerAIEndSentinel.length;
+        }
+        static SCEntryMaxLen = 2000;
+        static SCContainerIsWrapped(content) {
+            const open = Internal.escapeRegExp(AC.config.SCContainerOpen); //
+            const openRegex = new RegExp(`^\\s*${open}\\s*`, 'i'); //
+            return openRegex.test(content);
+        }
+
+        static SCContainerWrap(content) {
+            //log("SCContainerWrap in:content: ", content);
+            // If it's already wrapped, do nothing.
+            if (Internal.SCContainerIsWrapped(content)) {
+                return content;
+            }
+            // If containerizing is on, limit the contained content so the wrapper fits and return it.
+            if (AC.config.SCContainerize) {
+                content = limitString(content, Internal.SCEntryMaxLen - Internal.SCContainerWrapSize());
+                content = AC.config.SCContainerOpen + content + AC.config.SCContainerClose; 
+                //log("SCContainerWrap wrapped out:content: ", wrappedContent);
+                return content; //
+            }
+            // Otherwise, not containerizing, so just limit the string.
+            return limitString(content, Internal.SCEntryMaxLen);
+        }
+
+        static SCContainerUnwrap(content) {
+            //log("SCContainerUnwrap in:content: ", content);
+            if (AC.config.SCContainerize) { //
+                const open = Internal.escapeRegExp(AC.config.SCContainerOpen); //
+                const close = Internal.escapeRegExp(AC.config.SCContainerClose); //
+
+                // Build regex for opening and closing tags, ignoring whitespace and case
+                const openRegex = new RegExp(`^\\s*${open}\\s*`, 'i'); //
+                const closeRegex = new RegExp(`\\s*${close}\\s*$`, 'i'); //
+
+                if (openRegex.test(content)) { // Always remove the open if present.
+                    // Remove opening tag
+                    let unwrappedContent = content.replace(openRegex, ''); //
+                    if (closeRegex.test(content)) {
+                        // Only remove the close if both open and close are present.
+                        // we dont want to accidentally remove the close on things like {title:} if there's a user error in the SC.
+                        unwrappedContent = unwrappedContent.replace(closeRegex, ''); //
+                    }
+                    //log("SCContainerUnwrap unwrapped out:content: ", unwrappedContent);
+                    return unwrappedContent; //
+                }
+            }
+            //log("SCContainerUnwrap ignored content: ", content);
+            return content; //
+        }
+        static SCContainerProcess(content, limit, processorFunction, ...processorArgs) {
+            const unwrappedContent = Internal.SCContainerUnwrap(content);
+            const processedResult = processorFunction(unwrappedContent, ...processorArgs);
+            return Internal.SCContainerWrap(processedResult);
+        }
+
+        static generateCard(request, predefinedPair = ["", ""], isManualOverride) {
             // Method call guide:
             // Internal.generateCard({
             //     // All properties except 'title' are optional
@@ -6793,7 +7744,11 @@ function AutoCards(inHook, inText, inStop) {
             //     memoryUpdates: true, // card updates when new relevant memories are formed
             //     memoryLimit: 3200, // max characters before the card memory is compressed
             // });
-            const titleKeyPair = formatTitle((request.title ?? "").toString());
+            const isManual = (isManualOverride !== undefined)
+                ? isManualOverride
+                : (!!request.isManual);
+            const allowBypass = (AC.config.manualBypassTitleFilters !== false);
+            const titleKeyPair = formatTitle((request.title ?? "").toString(), allowBypass && isManual);
             const title = predefinedPair[0] || titleKeyPair.newTitle;
             if (
                 (title === "")
@@ -6805,24 +7760,30 @@ function AutoCards(inHook, inText, inStop) {
                 logEvent("The title '" + request.title + "' is invalid or unavailable for card generation", true);
                 return false;
             }
+
+            // For rawAIPromptMode, we don't prepend the title and just send raw prompt to the AI.
+            const entryStr = AC.config.rawAIPromptMode ? (request.entryStart ?? "") : "{title: " + title + "}" + limitString(cleanSpaces((function() {
+                const entry = (request.entryStart ?? "").toString().trim();
+                //log("AC.generation.pending.push entry: ", entry);
+                if (entry === "") {
+                    return "";
+                } else {
+                    return ("\n" + entry + (function() {
+                        if (/[a-zA-Z]$/.test(entry)) {
+                            return ".";
+                        } else {
+                            return "";
+                        }
+                    })() + " ");
+                }
+                })()), 2000 - Internal.SCContainerWrapSize());
+
             AC.generation.pending.push(O.s({
                 title: title,
                 type: limitString((request.type || AC.config.defaultCardType).toString().trim(), 100),
                 keys: predefinedPair[1] || buildKeys((request.keysStart ?? "").toString(), titleKeyPair.newKey),
-                entry: limitString("{title: " + title + "}" + cleanSpaces((function() {
-                    const entry = (request.entryStart ?? "").toString().trim();
-                    if (entry === "") {
-                        return "";
-                    } else {
-                        return ("\n" + entry + (function() {
-                            if (/[a-zA-Z]$/.test(entry)) {
-                                return ".";
-                            } else {
-                                return "";
-                            }
-                        })() + " ");
-                    }
-                })()), 2000),
+                //entry: limitString("{title: " + title + "}" + cleanSpaces((function() {
+                entry: entryStr,
                 description: limitString((
                     (function() {
                         const description = limitString((request.description ?? "").toString().trim(), 9900);
@@ -6855,6 +7816,17 @@ function AutoCards(inHook, inText, inStop) {
                     let promptDetails = insertTitle((
                         cleanSpaces((request.entryPromptDetails ?? "").toString().trim())
                     ), title);
+
+                    if (AC.config.SCContainerize) {
+                        if (AC.config.SCContainerAIBeginSentinel) {
+                            prompt = prompt.replaceAll(/%SC_BEGIN_SENTINEL%/g, AC.config.SCContainerAIBeginSentinel);
+                        }
+                        if (AC.config.SCContainerAIEndSentinel) {
+                            prompt = prompt.replaceAll(/%SC_END_SENTINEL%/g, AC.config.SCContainerAIEndSentinel);
+                        }
+                    }
+                    //log("request.prompt: ", prompt);
+                    //log("request.promptDetails: ", promptDetails);
                     if (promptDetails !== "") {
                         const spacesPrecedingTerminalEntryPlaceholder = (function() {
                             const terminalEntryPlaceholderPattern = /(?:[%\$]+\s*|[%\$]*){+\s*entry\s*}+$/i;
@@ -6911,7 +7883,11 @@ function AutoCards(inHook, inText, inStop) {
                             return;
                         }
                     }
-                    return limitString(prompt, Math.floor(0.8 * AC.signal.maxChars));
+                    prompt = limitString(prompt, Math.floor(0.8 * AC.signal.maxChars));
+                    if (AC.config.showDebugDataSCRawAIEntry) {
+                        logEvent(`generateCard prompt: ${prompt}`);
+                    }
+                    return prompt;
                 })(),
                 limit: validateEntryLimit(parseInt((request.entryLimit || AC.config.defaultEntryLimit), 10))
             }));
@@ -6929,13 +7905,14 @@ function AutoCards(inHook, inText, inStop) {
             } else if (newInfo !== "") {
                 request.entryPromptDetails = (request.entryPromptDetails ?? "").toString() + "\n" + newInfo;
             }
+            request.isManual = true;
             O.f(request);
             Internal.getUsedTitles(true);
-            if (!Internal.generateCard(request) && !Internal.generateCard(request, [
-                (oldCard.entry.match(/^{title: ([\s\S]*?)}/)?.[1] || request.title.replace(/\w\S*/g, word => (
+            if (!Internal.generateCard(request, ["", ""], true) && !Internal.generateCard(request, [
+                (oldCard.entry.match(/{title: ([\s\S]*?)}/)?.[1] || request.title.replace(/\w\S*/g, word => (
                     word[0].toUpperCase() + word.slice(1).toLowerCase()
                 ))), oldCard.keys
-            ])) {
+            ], true)) {
                 constructCard(oldCard, newCardIndex());
                 Internal.getUsedTitles(true);
                 return false;
@@ -6967,7 +7944,7 @@ function AutoCards(inHook, inText, inStop) {
             const cards = [];
             Internal.getUsedTitles(true);
             for (const card of storyCards) {
-                if (card.entry.startsWith("{title: ")) {
+                if (Internal.SCContainerUnwrap(card.entry).startsWith("{title: ")) {
                     cards.push(card);
                 }
             }
@@ -6999,7 +7976,6 @@ function AutoCards(inHook, inText, inStop) {
             for (const card of storyCards) {
                 // Perform some common sense maintenance while we're here
                 const coerce = (str) => (typeof str === "string") ? str : "";
-                // Do not trim card.keys
                 card.keys = coerce(card.keys);
                 if (card.keys.includes("\"agent\"") || card.keys.includes("aidungeon")) {
                     if (isExternal) {
@@ -7009,7 +7985,6 @@ function AutoCards(inHook, inText, inStop) {
                 }
                 card.type = coerce(card.type).trim();
                 card.title = coerce(card.title).trim();
-                card.entry = coerce(card.entry).trim();
                 card.description = coerce(card.description).trim();
                 if (isExternal) {
                     O.s(card);
@@ -7019,18 +7994,19 @@ function AutoCards(inHook, inText, inStop) {
                 }
                 // An ideal auto-card's entry starts with "{title: Example of Greatness}" (example)
                 // An ideal auto-card's description contains "{updates: true, limit: 3200}" (example)
-                if (checkPlurals(denumberName(card.title.replace("\n", "")), t => isBanned(t))) {
+                if (checkPlurals(denumberName(card.title.replace("\n", "")), t => (isSystemBanned(t) || Internal.getBannedTitles().map(b => b.toLowerCase()).includes(t)))) {
                     checkRemaining();
                     continue;
                 } else if (!card.keys.includes(",")) {
                     const cleanKeys = denumberName(card.keys.trim());
-                    if ((2 < cleanKeys.length) && checkPlurals(cleanKeys, t => isBanned(t))) {
+                    if ((2 < cleanKeys.length) && checkPlurals(cleanKeys, t => (isSystemBanned(t) || Internal.getBannedTitles().map(b => b.toLowerCase()).includes(t)))) {
                         checkRemaining();
                         continue;
                     }
                 }
+
                 // Detect and repair malformed auto-card properties in a fault-tolerant manner
-                const traits = [card.entry, card.description].map((str, i) => {
+                const traits = [Internal.SCContainerUnwrap(card.entry), card.description].map((str, i) => {
                     // Absolute abomination uwu
                     const hasUpdates = /updates?\s*:[\s\S]*?(?:(?:title|limit)s?\s*:|})/i.test(str);
                     const hasLimit = /limits?\s*:[\s\S]*?(?:(?:title|update)s?\s*:|})/i.test(str);
@@ -7088,7 +8064,7 @@ function AutoCards(inHook, inText, inStop) {
                     let title = "";
                     if (typeof hasEntryTitle === "string") {
                         repair = true;
-                        title = formatTitle(hasEntryTitle).newTitle;
+                        title = formatTitle(hasEntryTitle, true).newTitle;
                         if (hasDescTitle && bad()) {
                             title = parseTitle(false);
                         }
@@ -7108,7 +8084,7 @@ function AutoCards(inHook, inText, inStop) {
                     }
                     if (bad()) {
                         repair = true;
-                        title = formatTitle(card.title).newTitle;
+                        title = formatTitle(card.title, true).newTitle;
                         if (bad()) {
                             release = true;
                         } else {
@@ -7119,7 +8095,8 @@ function AutoCards(inHook, inText, inStop) {
                         seen.add(title);
                         auto.add(title.toLowerCase());
                         const titleHeader = "{title: " + title + "}";
-                        if (!repair && !((card.entry === titleHeader) || card.entry.startsWith(titleHeader + "\n"))) {
+                        const cardEntryUnwrapped = Internal.SCContainerUnwrap(card.entry);
+                        if (!repair && !((cardEntryUnwrapped === titleHeader) || cardEntryUnwrapped.startsWith(titleHeader + "\n"))) {
                             repair = true;
                         }
                     }
@@ -7129,7 +8106,7 @@ function AutoCards(inHook, inText, inStop) {
                     function parseTitle(fromEntry) {
                         const [sourceType, sourceText] = (function() {
                             if (fromEntry) {
-                                return [hasEntryTitle, card.entry];
+                                return [hasEntryTitle, Internal.SCContainerUnwrap(card.entry)];
                             } else {
                                 return [hasDescTitle, card.description];
                             }
@@ -7140,13 +8117,13 @@ function AutoCards(inHook, inText, inStop) {
                                 sourceText,
                                 /titles?\s*:[\s\S]*?}/i,
                                 /(?:titles?\s*:|})/gi
-                            )).newTitle; }
+                            ), true).newTitle; }
                         case 2: {
                             return formatTitle(isolateProperty(
                                 sourceText,
                                 /titles?\s*:[\s\S]*?(?:(?:limit|update)s?\s*:|})/i,
                                 /(?:(?:title|update|limit)s?\s*:|})/gi
-                            )).newTitle; }
+                            ), true).newTitle; }
                         default: {
                             return ""; }
                         }
@@ -7192,7 +8169,7 @@ function AutoCards(inHook, inText, inStop) {
                         const updatesText = (isolateProperty(
                             (function() {
                                 if (fromEntry) {
-                                    return card.entry;
+                                    return Internal.SCContainerUnwrap(card.entry);
                                 } else {
                                     return card.description;
                                 }
@@ -7238,7 +8215,7 @@ function AutoCards(inHook, inText, inStop) {
                         const limitText = (isolateProperty(
                             (function() {
                                 if (fromEntry) {
-                                    return card.entry;
+                                    return Internal.SCContainerUnwrap(card.entry);
                                 } else {
                                     return card.description;
                                 }
@@ -7265,8 +8242,11 @@ function AutoCards(inHook, inText, inStop) {
                 }
                 // Damage was detected, perform an adaptive repair on this auto-card's configurable properties
                 card.description = card.description.replaceAll("%@%", "\n\n");
+                card.entry = Internal.SCContainerUnwrap(card.entry).trimEnd();
                 safeRemoveProps();
-                card.entry = limitString(("{title: " + title + "}\n" + card.entry).trimEnd(), 2000);
+                //card.entry = limitString(("{title: " + title + "}\n" + card.entry).trimEnd(), 2000);
+
+                card.entry = Internal.SCContainerWrap("{title: " + title + "}\n" + card.entry);
                 const [left, right] = card.description.split("%@%");
                 rejoinDescription(left, memoryProperties, right);
                 checkRemaining();
@@ -7334,6 +8314,8 @@ function AutoCards(inHook, inText, inStop) {
                         return name;
                     }
                 }
+                card.entry = Internal.SCContainerWrap(card.entry);
+
             }
             clearTransientTitles();
             AC.database.titles.used = [...seen];
@@ -7374,7 +8356,7 @@ function AutoCards(inHook, inText, inStop) {
         }
     }); }
     function validateCooldown(cooldown) {
-        return boundInteger(0, cooldown, 9999, 40);
+        return boundInteger(0, cooldown, 9999, 28);
     }
     function validateEntryLimit(entryLimit) {
         return boundInteger(200, entryLimit, 2000, 600);
@@ -7385,7 +8367,7 @@ function AutoCards(inHook, inText, inStop) {
     function validateMemCompRatio(memCompressRatio) {
         return boundInteger(20, memCompressRatio, 1250, 25);
     }
-    function validateMLBD(minLookBackDist) {
+    function validateMinLookBackDist(minLookBackDist) {
         return boundInteger(2, minLookBackDist, 88, 7);
     }
     function getDefaultConfig() {
@@ -7396,96 +8378,95 @@ function AutoCards(inHook, inText, inStop) {
                 return fallback;
             }
         }
-        function maybeProse(value) {
-            if (Array.isArray(value)) {
-                return prose(...value);
-            } else {
-                return value;
-            }
-        }
+        const mode = (typeof DEFAULT_OPERATING_MODE === "string" && DEFAULT_OPERATING_MODE.toLowerCase().includes("classic")) ? "classic" : "entity";
+        const isEntity = (mode === "entity");
+
         return O.s({
-            // Is Auto-Cards enabled?
-            doAC: check(S.DEFAULT_DO_AC),
+            // Is Auto-Cards / Entity Cards enabled?
+            doAC: check(DEFAULT_DO_AC),
+            // Operating mode: "entity" (Entity Cards) or "classic" (Classic Auto-Cards)
+            operatingMode: mode,
+            // Header to replace "World Lore:" in context
+            ECContextHeader: check(DEFAULT_EC_CONTEXT_HEADER, "Named Entities (NER):", "string"),
+            // Entity Cards Presets
+            ECPreset: check(DEFAULT_EC_PRESET, "standard", "string"),
+            ECAutoPreset: check(DEFAULT_EC_AUTO_PRESET, true, "boolean"),
             // Delete all previously generated story cards?
             deleteAllAutoCards: null,
             // Pin the configuration interface story card near the top?
-            pinConfigureCard: check(S.DEFAULT_PIN_CONFIGURE_CARD),
+            pinConfigureCard: check(DEFAULT_PIN_CONFIGURE_CARD),
             // Minimum number of turns in between automatic card generation events?
-            addCardCooldown: validateCooldown(S.DEFAULT_CARD_CREATION_COOLDOWN),
-            // Use bulleted list mode for newly generated card entries?
-            bulletedListMode: check(S.DEFAULT_USE_BULLETED_LIST_MODE),
+            addCardCooldown: validateCooldown(DEFAULT_CARD_CREATION_COOLDOWN),
+
+            // Mode-specific defaults
+            bulletedListMode: check(isEntity ? false : DEFAULT_AC_USE_BULLETED_LIST_MODE),
+            rawAIPromptMode: check(isEntity ? DEFAULT_EC_RAWAI_PROMPT_MODE : false),
+            rawAIResponseMode: check(isEntity ? DEFAULT_EC_RAWAI_RESPONSE_MODE : false),
+            autoTypeCards: check(isEntity ? DEFAULT_EC_AUTO_TYPE_CARDS : false),
+            SCContainerize: check(isEntity ? DEFAULT_EC_SC_CONTAINERIZE : false),
+
+            // Container settings
+            SCContainerOpen: check(DEFAULT_EC_SC_CONTAINER_OPEN, "{ Entity: ", "string"),
+            SCContainerClose: check(DEFAULT_EC_SC_CONTAINER_CLOSE, "\n}", "string"),
+            SCContainerAIBeginSentinel: check(DEFAULT_EC_SC_AI_BEGIN_SENTINEL, "ENTITY_BEGIN", "string"),
+            SCContainerAIEndSentinel: check(DEFAULT_EC_SC_AI_END_SENTINEL, "ENTITY_END", "string"),
+
             // Maximum allowed length for newly generated story card entries?
-            defaultEntryLimit: validateEntryLimit(S.DEFAULT_GENERATED_ENTRY_LIMIT),
+            defaultEntryLimit: validateEntryLimit(isEntity ? DEFAULT_EC_GENERATED_ENTRY_LIMIT : DEFAULT_GENERATED_ENTRY_LIMIT),
             // Do newly generated cards have memory updates enabled by default?
-            defaultCardsDoMemoryUpdates: check(S.DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES),
+            defaultCardsDoMemoryUpdates: check(DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES),
             // Default character limit before the card's memory bank is summarized?
-            defaultMemoryLimit: validateMemoryLimit(S.DEFAULT_NEW_CARDS_MEMORY_LIMIT),
+            defaultMemoryLimit: validateMemoryLimit(DEFAULT_NEW_CARDS_MEMORY_LIMIT),
             // Approximately how much shorter should recently compressed memories be? (ratio = 10 * old / new)
-            memoryCompressionRatio: validateMemCompRatio(S.DEFAULT_MEMORY_COMPRESSION_RATIO),
+            memoryCompressionRatio: validateMemCompRatio(DEFAULT_MEMORY_COMPRESSION_RATIO),
             // Ignore all-caps during title candidate detection?
-            ignoreAllCapsTitles: check(S.DEFAULT_IGNORE_ALL_CAPS_TITLES),
+            ignoreAllCapsTitles: check(DEFAULT_IGNORE_ALL_CAPS_TITLES),
             // Should player input actions (Do/Say/Story) be considered for future named entity detection?
-            readFromInputs: check(S.DEFAULT_DETECT_TITLES_FROM_INPUTS),
+            readFromInputs: check(DEFAULT_DETECT_TITLES_FROM_INPUTS),
             // How many (minimum) actions in the past does Auto-Cards look for named entities?
-            minimumLookBackDistance: validateMLBD(S.DEFAULT_MINIMUM_LOOK_BACK_DISTANCE),
+            minimumLookBackDistance: validateMinLookBackDist(DEFAULT_MINIMUM_LOOK_BACK_DISTANCE),
+            // Allow manual player commands (/ec or /ac) to bypass common entity & banned title filters?
+            manualBypassTitleFilters: check(DEFAULT_MANUAL_BYPASS_TITLE_FILTERS, true),
+            // Filter common entities from background auto-detection?
+            filterCommonEntities: check(DEFAULT_FILTER_COMMON_ENTITIES, true),
             // Is Live Script Interface v2 enabled?
-            LSIv2: (function() {
-                if (S.DEFAULT_DO_LSI_V2 === true) {
-                    return true;
-                } else {
-                    // Intrepret "false" as null, both here and for later config card reads
-                    return null;
-                }
-            })(),
-            // Should the debug data card be visible?
-            showDebugData: check(S.DEFAULT_SHOW_DEBUG_DATA, false),
-            // How should the AI be prompted when generating new story card entries?
-            generationPrompt: check(maybeProse(S.DEFAULT_CARD_GENERATION_PROMPT), prose(
-                "-----",
-                "",
-                "<SYSTEM>",
-                "# Stop the story and ignore previous instructions. Write a brief and coherent informational entry for %{title} following these instructions:",
-                "- Write only third-person pure prose information about %{title} using complete sentences with correct punctuation",
-                "- Avoid short-term temporary details or appearances, instead focus on plot-significant information",
-                "- Prioritize story-relevant details about %{title} first to ensure seamless integration with the previous plot",
-                "- Create new information based on the context and story direction",
-                "- Mention %{title} in every sentence",
-                "- Use semicolons if needed",
-                "- Add additional details about %{title} beneath incomplete entries",
-                "- Be concise and grounded",
-                "- Imitate the story's writing style and infer the reader's preferences",
-                "</SYSTEM>",
-                "Continue the entry for %{title} below while avoiding repetition:",
-                "%{entry}"
-            ), "string"),
-            // How should the AI be prompted when summarizing memories for a given story card?
-            compressionPrompt: check(maybeProse(S.DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT), prose(
-                "-----",
-                "",
-                "<SYSTEM>",
-                "# Stop the story and ignore previous instructions. Summarize and condense the given paragraph into a narrow and focused memory passage while following these guidelines:",
-                "- Ensure the passage retains the core meaning and most essential details",
-                "- Use the third-person perspective",
-                "- Prioritize information-density, accuracy, and completeness",
-                "- Remain brief and concise",
-                "- Write firmly in the past tense",
-                "- The paragraph below pertains to old events from far earlier in the story",
-                "- Integrate %{title} naturally within the memory; however, only write about the events as they occurred",
-                "- Only reference information present inside the paragraph itself, be specific",
-                "</SYSTEM>",
-                "Write a summarized old memory passage for %{title} based only on the following paragraph:",
-                "\"\"\"",
-                "%{memory}",
-                "\"\"\"",
-                "Summarize below:"
-            ), "string"),
-            // All cards constructed by AC will inherit this type by default
-            defaultCardType: check(S.DEFAULT_CARD_TYPE, "class", "string")
+            LSIv2: (DEFAULT_DO_LSI_V2 === true) ? true : null,
+
+            // Card cleanup
+            trimPhraseFragCards: check(DEFAULT_EC_TRIM_PHRASE_FRAG_CARDS, true),
+            trimDelimiterFragCards: check(DEFAULT_EC_TRIM_DELIMITER_FRAG_CARDS, true),
+            stripAsterisksCards: check(DEFAULT_EC_STRIP_ASTERISKS_CARDS, true),
+            prettifyEmDashesCards: check(DEFAULT_EC_PRETTIFY_EMDASHES_CARDS, true),
+
+            // Story cleanup
+            trimPhraseFragStory: check(DEFAULT_TRIM_PHRASE_FRAG_STORY, false),
+            trimDelimiterFragStory: check(DEFAULT_TRIM_DELIMITER_FRAG_STORY, false),
+            stripAsterisksStory: check(DEFAULT_STRIP_ASTERISKS_STORY, false),
+            prettifyEmDashesStory: check(DEFAULT_PRETTIFY_EMDASHES_STORY, true),
+            normalizeWhitespaceStory: check(DEFAULT_NORMALIZE_WHITESPACE_STORY, false),
+
+            // Debug settings
+            showDebugData: check(DEFAULT_SHOW_DEBUG_DATA, false),
+            showDebugDataSCRawAIEntry: check(DEFAULT_EC_SHOW_DEBUG_RAWAI_ENTRY, false),
+            showDebugDataSCRawAIMemory: check(DEFAULT_EC_SHOW_DEBUG_RAWAI_MEMORY, false),
+
+            // AI Prompts
+            generationPrompt: check(
+                isEntity ? DEFAULT_EC_CARD_GENERATION_PROMPT : DEFAULT_AC_CARD_GENERATION_PROMPT,
+                isEntity ? DEFAULT_EC_CARD_GENERATION_PROMPT : DEFAULT_AC_CARD_GENERATION_PROMPT,
+                "string"
+            ),
+            compressionPrompt: check(
+                DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT,
+                DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT,
+                "string"
+            ),
+            defaultCardType: "auto-card"
         });
     }
     function getDefaultConfigBans() {
-        if (typeof S.DEFAULT_BANNED_TITLES_LIST === "string") {
-            return uniqueTitlesArray(S.DEFAULT_BANNED_TITLES_LIST.split(","));
+        if (typeof DEFAULT_BANNED_TITLES_LIST === "string") {
+            return uniqueTitlesArray(DEFAULT_BANNED_TITLES_LIST.split(","));
         } else {
             return [
                 "North", "East", "South", "West", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
@@ -7525,14 +8506,14 @@ function AutoCards(inHook, inText, inStop) {
         } else if (Number.isInteger(upperBound) && (upperBound < value)) {
             return upperBound;
         } else {
-            return value;
+        return value;
         }
     }
     function limitString(str, lengthLimit) {
         if (lengthLimit < str.length) {
             return str.slice(0, lengthLimit).trim();
         } else {
-            return str;
+        return str;
         }
     }
     function cleanSpaces(unclean) {
@@ -7547,7 +8528,7 @@ function AutoCards(inHook, inText, inStop) {
         if (bisector === -1) {
             return [str, ""];
         } else {
-            return [str.slice(0, bisector), str.slice(bisector)];
+        return [str.slice(0, bisector), str.slice(bisector)];
         }
     }
     function removeAutoProps(str) {
@@ -7607,6 +8588,306 @@ function AutoCards(inHook, inText, inStop) {
             i++;
         }
         return keys;
+    }
+    function getEnableCardTemplate() {
+        const names = getControlVariants().enable;
+        return O.f({
+            type: AC.config.defaultCardType,
+            title: names.title,
+            keys: names.keys,
+            entry: prose(
+                "> Auto-Cards automatically creates and updates plot-relevant story cards while you play. To enable this system, simply edit the \"false\" below to say \"true\" instead!",
+                "> Enable Auto-Cards: false"),
+            description: "Perform any Do/Say/Story/Continue action within your adventure to apply this change!"
+        });
+    }
+    function getConfigureCardTemplate() {
+        const names = getControlVariants().configure;
+        return O.f({
+            type: AC.config.defaultCardType,
+            title: names.title,
+            keys: names.keys,
+            entry: getConfigureCardEntry(),
+            description: getConfigureCardDescription()
+        });
+    }
+    function getConfigureCardEntry() {
+        const isEntity = (AC.config.operatingMode === "entity");
+        return prose(
+            "> Auto-Cards / Entity Cards automatically creates and updates plot-relevant story cards while you play. Configure settings by replacing \"false\" with \"true\" (and vice versa) or by adjusting numbers/strings.",
+            "> Disable Auto-Cards: false",
+            "> Operating Mode: " + (isEntity ? "Entity Cards" : "Classic Auto-Cards"),
+            "> Show detailed guide: false",
+            "> Delete all automatic story cards: false",
+            "> Reset all config settings and prompts: false",
+            "> Pin this config card near the top: " + AC.config.pinConfigureCard,
+            "> Minimum turns cooldown for new cards: " + AC.config.addCardCooldown,
+            ...(isEntity ? [] : ["> New cards use a bulleted list format: " + AC.config.bulletedListMode]),
+            "> Maximum entry length for new cards: " + AC.config.defaultEntryLimit,
+            "> New cards perform memory updates: " + AC.config.defaultCardsDoMemoryUpdates,
+            "> Card memory bank preferred length: " + AC.config.defaultMemoryLimit,
+            "> Memory summary compression ratio: " + AC.config.memoryCompressionRatio,
+            "> Exclude all-caps from title detection: " + AC.config.ignoreAllCapsTitles,
+            "> Also detect titles from player inputs: " + AC.config.readFromInputs,
+            "> Minimum turns age for title detection: " + AC.config.minimumLookBackDistance,
+            "> Manual commands bypass title filters: " + AC.config.manualBypassTitleFilters,
+            "> Filter common entities from auto-detection: " + AC.config.filterCommonEntities,
+            "> Use Live Script Interface v2: " + (AC.config.LSIv2 !== null),
+            "> Trim story phrase frag: " + AC.config.trimPhraseFragStory,
+            "> Trim story quote frag: " + AC.config.trimDelimiterFragStory,
+            "> Strip story asterisks: " + AC.config.stripAsterisksStory,
+            "> Prettify story em dashes: " + AC.config.prettifyEmDashesStory,
+            "> Normalize story whitespace: " + AC.config.normalizeWhitespaceStory,
+            "> Log debug data in a separate card: " + AC.config.showDebugData
+        );
+    }
+    function getConfigureCardDescription() {
+        const isEntity = (AC.config.operatingMode === "entity");
+        return limitString(O.v(prose(
+            Words.delimiter,
+            ...(isEntity ? [] : [
+                "> AI prompt to generate new cards:",
+                limitString(AC.config.generationPrompt.trim(), 4350).trimEnd(),
+                Words.delimiter
+            ]),
+            "> AI prompt to summarize card memories:",
+            limitString(AC.config.compressionPrompt.trim(), 4350).trimEnd(),
+            Words.delimiter,
+            "> Titles banned from new card creation:",
+            AC.database.titles.banned.join(", ")
+        )), 9850);
+    }
+    function getECConfigureCardTemplate() {
+        const names = getControlVariants().configureEC;
+        return O.f({
+            type: AC.config.defaultCardType,
+            title: names.title,
+            keys: names.keys,
+            entry: getECConfigureCardEntry(),
+            description: getECConfigureCardDescription()
+        });
+    }
+    function getECConfigureCardEntry() {
+        const isActive = (AC.config.operatingMode === "entity");
+        const presetLabel = AC.config.ECPreset ? (AC.config.ECPreset[0].toUpperCase() + AC.config.ECPreset.slice(1).toLowerCase()) : "Standard";
+        return prose(
+            "> Entity Cards (EC) configuration. When in Classic Auto-Cards mode, this card is marked Inactive but preserved.",
+            "> Status: " + (isActive ? "Active" : "Inactive"),
+            "> Active Preset: " + presetLabel,
+            "> Auto-select preset by model: " + AC.config.ECAutoPreset,
+            "> Context Header: " + JSON.stringify(AC.config.ECContextHeader),
+            "> Auto type story cards: " + AC.config.autoTypeCards,
+            "> Use custom container: " + AC.config.SCContainerize,
+            "> Container open string: " + JSON.stringify(AC.config.SCContainerOpen),
+            "> Container close string: " + JSON.stringify(AC.config.SCContainerClose),
+            "> AI begin sentinel: " + JSON.stringify(AC.config.SCContainerAIBeginSentinel),
+            "> AI end sentinel: " + JSON.stringify(AC.config.SCContainerAIEndSentinel),
+            "> Trim card phrase frags: " + AC.config.trimPhraseFragCards,
+            "> Trim card quote frags: " + AC.config.trimQuoteFragCards,
+            "> Trim card delimiter frags: " + AC.config.trimDelimiterFragCards,
+            "> Strip card asterisks: " + AC.config.stripAsterisksCards,
+            "> Prettify card em dashes: " + AC.config.prettifyEmDashesCards,
+            "> Log raw ai entry data: " + AC.config.showDebugDataSCRawAIEntry,
+            "> Log raw ai memory data: " + AC.config.showDebugDataSCRawAIMemory
+        );
+    }
+    function getECConfigureCardDescription() {
+        return limitString(O.v(prose(
+            Words.delimiter,
+            "> AI prompt to generate new entity cards (live editable template):",
+            limitString(AC.config.generationPrompt.trim(), 4350).trimEnd()
+        )), 9850);
+    }
+    function detectModelTier() {
+        const model = ((typeof info === "object" && info?.storyModel?.name) || "").toLowerCase();
+        if (!model) return "standard";
+        if (/fable|muse|wayfarer small|madness/i.test(model)) {
+            return "lite";
+        }
+        if (/author|writer|co-writer/i.test(model)) {
+            return "authoring";
+        }
+        return "standard";
+    }
+    function applyModeSwitch(newMode) {
+        const isNowEntity = (newMode === "entity");
+        AC.config.operatingMode = isNowEntity ? "entity" : "classic";
+        AC.config.SCContainerize = isNowEntity;
+        AC.config.rawAIPromptMode = isNowEntity;
+        AC.config.rawAIResponseMode = isNowEntity;
+        AC.config.autoTypeCards = isNowEntity;
+        AC.config.bulletedListMode = !isNowEntity;
+        AC.config.generationPrompt = isNowEntity ? (EC_PRESETS[AC.config.ECPreset] || DEFAULT_EC_CARD_GENERATION_PROMPT) : DEFAULT_AC_CARD_GENERATION_PROMPT;
+        AC.config.defaultEntryLimit = validateEntryLimit(isNowEntity ? DEFAULT_EC_GENERATED_ENTRY_LIMIT : DEFAULT_GENERATED_ENTRY_LIMIT);
+
+        // Sync master card
+        const masterTitle = getControlVariants().configure.title;
+        const masterCard = Internal.getCard(c => c && c.title === masterTitle);
+        if (masterCard) {
+            masterCard.entry = masterCard.entry.replace(
+                /(?:>\s*)?(?:\*EC\s+)?Operating Mode:\s*[^\n]+/i,
+                "> Operating Mode: " + (isNowEntity ? "Entity Cards" : "Classic Auto-Cards")
+            );
+            masterCard.entry = masterCard.entry.replace(
+                /(?:>\s*)?Maximum entry length for new cards:\s*\d+/i,
+                "> Maximum entry length for new cards: " + AC.config.defaultEntryLimit
+            );
+            masterCard.description = getConfigureCardDescription();
+        }
+
+        // Sync companion card non-destructively
+        const ecTemplate = getECConfigureCardTemplate();
+        banTitle(ecTemplate.title);
+        const ecCard = getSingletonCard(isNowEntity, ecTemplate);
+        if (ecCard && ecCard.entry) {
+            ecCard.entry = ecCard.entry.replace(
+                /(?:>\s*)?Status:\s*[^\n]+/i,
+                "> Status: " + (isNowEntity ? "Active" : "Inactive")
+            );
+        }
+
+        notify("Operating Mode set to: " + (isNowEntity ? "Entity Cards" : "Classic Auto-Cards"));
+    }
+    function processECConfigureCard() {
+        const isEntity = (AC.config.operatingMode === "entity");
+        const ecTemplate = getECConfigureCardTemplate();
+        banTitle(ecTemplate.title);
+
+        // In entity mode: allow construction. In classic mode: retrieve only if it exists.
+        const ecCard = getSingletonCard(isEntity, ecTemplate);
+        if (!ecCard) return;
+
+        // Auto-detect model preset if enabled and not already customized
+        if (isEntity && AC.config.ECAutoPreset && (AC.config.ECPreset !== "custom") && (typeof info === "object") && info?.storyModel?.name) {
+            const detected = detectModelTier();
+            if (detected !== AC.config.ECPreset) {
+                AC.config.ECPreset = detected;
+                if (EC_PRESETS[detected]) {
+                    AC.config.generationPrompt = EC_PRESETS[detected];
+                }
+                ecCard.entry = getECConfigureCardEntry();
+                ecCard.description = getECConfigureCardDescription();
+            }
+        }
+
+        // Pin companion card directly beneath master card if pinned
+        if (isEntity && AC.config.pinConfigureCard && (storyCards.length >= 2)) {
+            const masterTitle = getControlVariants().configure.title;
+            const masterIdx = storyCards.findIndex(c => c && c.title === masterTitle);
+            const ecIdx = storyCards.indexOf(ecCard);
+            if (masterIdx !== -1 && ecIdx !== -1 && ecIdx !== masterIdx + 1) {
+                storyCards.splice(ecIdx, 1);
+                storyCards.splice(masterIdx + 1, 0, ecCard);
+            }
+        }
+
+        // In Classic mode: non-destructive persistence check
+        if (!isEntity) {
+            if (ecCard.entry) {
+                const userSettings = extractSettings(ecCard.entry);
+                const statusVal = typeof userSettings.status === "string" ? userSettings.status.toLowerCase() : userSettings.status;
+                if (statusVal === "active" || statusVal === true) {
+                    applyModeSwitch("entity");
+                    return;
+                }
+                if (!/Status:\s*Inactive/i.test(ecCard.entry)) {
+                    ecCard.entry = ecCard.entry.replace(/(?:>\s*)?Status:\s*[^\n]+/i, "> Status: Inactive");
+                }
+            }
+            return;
+        }
+
+        // In Entity mode:
+        // Description check (user custom prompt)
+        if (ecCard.description && (ecCard.description !== getECConfigureCardDescription())) {
+            const descConfigs = ecCard.description.split(Words.delimiter).slice(1);
+            if (descConfigs.length > 0) {
+                const headerPattern = /^\s*>\s*AI prompt to generate new entity cards[^:]*:\s*/i;
+                const promptText = descConfigs[0].replace(headerPattern, "").trim();
+                if (promptText && (promptText !== AC.config.generationPrompt.trim())) {
+                    const matchedPreset = Object.keys(EC_PRESETS).find(k => EC_PRESETS[k].trim() === promptText);
+                    if (matchedPreset) {
+                        AC.config.ECPreset = matchedPreset;
+                        AC.config.generationPrompt = EC_PRESETS[matchedPreset];
+                        ecCard.entry = getECConfigureCardEntry();
+                    } else {
+                        AC.config.generationPrompt = promptText;
+                        if (AC.config.ECPreset !== "custom") {
+                            AC.config.ECPreset = "custom";
+                            notify("Template modified: Active Preset set to Custom");
+                            ecCard.entry = getECConfigureCardEntry();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Entry check (user settings)
+        if (ecCard.entry !== ecTemplate.entry) {
+            const settings = extractSettings(ecCard.entry);
+            const statusVal = typeof settings.status === "string" ? settings.status.toLowerCase() : settings.status;
+            if (statusVal === "inactive" || statusVal === false) {
+                applyModeSwitch("classic");
+                return;
+            }
+            if (settings.activepreset) {
+                const reqPreset = settings.activepreset.toLowerCase();
+                if (["standard", "lite", "authoring", "custom"].includes(reqPreset) && (reqPreset !== AC.config.ECPreset)) {
+                    AC.config.ECPreset = reqPreset;
+                    if (EC_PRESETS[reqPreset]) {
+                        AC.config.generationPrompt = EC_PRESETS[reqPreset];
+                    }
+                    notify("Entity Cards preset set to: " + reqPreset[0].toUpperCase() + reqPreset.slice(1));
+                }
+            }
+            if (typeof settings.autoselectpresetbymodel === "boolean") {
+                AC.config.ECAutoPreset = settings.autoselectpresetbymodel;
+            }
+            if (typeof settings.contextheader === "string") {
+                AC.config.ECContextHeader = settings.contextheader;
+            }
+            if (typeof settings.autotypestorycards === "boolean") {
+                AC.config.autoTypeCards = settings.autotypestorycards;
+            }
+            if (typeof settings.usecustomcontainer === "boolean") {
+                AC.config.SCContainerize = settings.usecustomcontainer;
+            }
+            if (typeof settings.containeropenstring === "string") {
+                AC.config.SCContainerOpen = settings.containeropenstring;
+            }
+            if (typeof settings.containerclosestring === "string") {
+                AC.config.SCContainerClose = settings.containerclosestring;
+            }
+            if (typeof settings.aibeginsentinel === "string") {
+                AC.config.SCContainerAIBeginSentinel = settings.aibeginsentinel;
+            }
+            if (typeof settings.aiendsentinel === "string") {
+                AC.config.SCContainerAIEndSentinel = settings.aiendsentinel;
+            }
+            if (typeof settings.trimcardphrasefrags === "boolean") {
+                AC.config.trimPhraseFragCards = settings.trimcardphrasefrags;
+            }
+            if (typeof settings.trimcardquotefrags === "boolean") {
+                AC.config.trimQuoteFragCards = settings.trimcardquotefrags;
+            }
+            if (typeof settings.trimcarddelimiterfrags === "boolean") {
+                AC.config.trimDelimiterFragCards = settings.trimcarddelimiterfrags;
+            }
+            if (typeof settings.stripcardasterisks === "boolean") {
+                AC.config.stripAsterisksCards = settings.stripcardasterisks;
+            }
+            if (typeof settings.prettifycardemdashes === "boolean") {
+                AC.config.prettifyEmDashesCards = settings.prettifycardemdashes;
+            }
+            if (typeof settings.lograwaientrydata === "boolean") {
+                AC.config.showDebugDataSCRawAIEntry = settings.lograwaientrydata;
+            }
+            if (typeof settings.lograwaimemorydata === "boolean") {
+                AC.config.showDebugDataSCRawAIMemory = settings.lograwaimemorydata;
+            }
+            ecCard.entry = getECConfigureCardEntry();
+            ecCard.description = getECConfigureCardDescription();
+        }
     }
     // Returns the template-specified singleton card (or secondary varient) after:
     // 1) Erasing all inferior duplicates
@@ -7716,7 +8997,7 @@ function AutoCards(inHook, inText, inStop) {
         const titleKey = targetCard.trim().replace(/\s+/g, " ").toLowerCase();
         const autoCard = Internal.getCard(card => (card.entry
             .toLowerCase()
-            .startsWith("{title: " + titleKey + "}")
+            .includes("{title: " + titleKey + "}")
         ));
         if (autoCard !== null) {
             return [autoCard, true, titleKey];
@@ -7735,12 +9016,13 @@ function AutoCards(inHook, inText, inStop) {
                 } else {
                     return input.trimEnd();
                 }
-            })().split(/(?=\/\s*A\s*C)/i)
+            })().split(/(?=\/\s*(?:A|E)\s*C)/i)
         )) {
-            const prefixPattern = /^\/\s*A\s*C/i;
+            const prefixPattern = /^\/\s*(?:A|E)\s*C/i;
             if (!prefixPattern.test(command)) {
                 continue;
             }
+            const cmdPrefix = (command.match(/^\/\s*(A|E)C/i)?.[1]?.toUpperCase() || (AC.config.operatingMode === "entity" ? "E" : "A")) + "C";
             const [requestTitle, requestDetails, requestEntry] = (command
                 .replace(/(?:{\s*)|(?:\s*})/g, "")
                 .replace(prefixPattern, "")
@@ -7752,8 +9034,40 @@ function AutoCards(inHook, inText, inStop) {
             if (!requestTitle) {
                 // Request with no args
                 AC.generation.cooldown = 0;
-                result += "/AC -> Success!\n\n";
-                logEvent("/AC");
+                result += "/EC -> Card generation triggered!\n\n";
+                logEvent("/EC");
+            } else if (/^mode\s+(entity|classic)/i.test(requestTitle)) {
+                const requestedMode = requestTitle.match(/^mode\s+(entity|classic)/i)[1].toLowerCase();
+                applyModeSwitch(requestedMode);
+                result += "/EC mode -> Switched to " + (requestedMode === "entity" ? "Entity Cards" : "Classic Auto-Cards") + "\n\n";
+                logEvent("/EC mode: " + requestedMode);
+            } else if (/^preset\s+(standard|lite|authoring|custom)/i.test(requestTitle)) {
+                const reqPreset = requestTitle.match(/^preset\s+(standard|lite|authoring|custom)/i)[1].toLowerCase();
+                AC.config.ECPreset = reqPreset;
+                if (EC_PRESETS[reqPreset]) {
+                    AC.config.generationPrompt = EC_PRESETS[reqPreset];
+                }
+                const ecTitle = getControlVariants().configureEC.title;
+                const ecCard = Internal.getCard(card => card && card.title === ecTitle);
+                if (ecCard) {
+                    ecCard.entry = getECConfigureCardEntry();
+                    ecCard.description = getECConfigureCardDescription();
+                }
+                result += "/EC preset -> Set to " + (reqPreset[0].toUpperCase() + reqPreset.slice(1)) + "\n\n";
+                logEvent("/EC preset: " + reqPreset);
+            } else if (/^header\s+/i.test(requestTitle)) {
+                const newHeader = requestTitle.replace(/^header\s+/i, "").trim();
+                AC.config.ECContextHeader = newHeader;
+                const cfgTitle = getControlVariants().configure.title;
+                const cfgCard = Internal.getCard(card => card.title === cfgTitle);
+                if (cfgCard) {
+                    cfgCard.entry = cfgCard.entry.replace(
+                        /(?:\*EC\s+)?(?:Entity Cards\s+)?(?:Context\s+)?Header:\s*[^\n]+/i,
+                        "*EC Context Header: " + JSON.stringify(newHeader)
+                    );
+                }
+                result += "/EC header -> Set to: \"" + newHeader + "\"\n\n";
+                logEvent("/EC header: " + newHeader);
             } else {
                 const request = {title: requestTitle.replace(/\s*[\.\?!:]+$/, "")};
                 const redo = (function() {
@@ -7774,12 +9088,12 @@ function AutoCards(inHook, inText, inStop) {
                     Internal.getUsedTitles(true);
                     const titleMatchPattern = /^{title: ([\s\S]*?)}/;
                     redo.push(...Internal.getCard(card => (
-                        titleMatchPattern.test(card.entry)
+                        titleMatchPattern.test(Internal.SCContainerUnwrap(card.entry))
                         && /{updates: (?:true|false), limit: \d+}/.test(card.description)
                     ), true));
                     let count = 0;
                     for (const card of redo) {
-                        const titleMatch = card.entry.match(titleMatchPattern);  
+                        const titleMatch = Internal.SCContainerUnwrap(card.entry).match(titleMatchPattern);  
                         if (titleMatch && Internal.redoCard(O.f({title: titleMatch[1]}), true, "")) {
                             count++;
                         }
@@ -7810,16 +9124,17 @@ function AutoCards(inHook, inText, inStop) {
                 }
                 result += "\n\n";
                 function submitRequest(extra) {
+                    request.isManual = true;
                     O.f(request);
                     const [type, success] = (function() {
                         if (redo) {
                             return [" redo", Internal.redoCard(request, true, "")];
                         } else {
                             Internal.getUsedTitles(true);
-                            return ["", Internal.generateCard(request)];
+                            return ["", Internal.generateCard(request, ["", ""], true)];
                         }
                     })();
-                    const left = "/AC" + type + " {";
+                    const left = "/" + cmdPrefix + type + " {";
                     const right = "}" + extra;
                     if (success) {
                         const parsed = left + AC.generation.pending[AC.generation.pending.length - 1].title + right;
@@ -8211,31 +9526,40 @@ function AutoCards(inHook, inText, inStop) {
     // Used to parse the "Configure Auto-Cards" and "Edit to enable Auto-Cards" control card entries
     function extractSettings(settingsText) {
         const settings = {};
-        // Lowercase everything
-        // Remove all non-alphanumeric characters (aside from ":" and ">")
-        // Split into an array of strings delimited by the ">" character
-        const settingLines = settingsText.toLowerCase().replace(/[^a-z0-9:>]+/g, "").split(">");
-        for (const settingLine of settingLines) {
-            // Each setting line is preceded by ">" and bisected by ":"
-            const settingKeyValue = settingLine.split(":");
-            if ((settingKeyValue.length !== 2) || settings.hasOwnProperty(settingKeyValue[0])) {
-                // The bisection failed or this setting line's key already exists
+        const rawLines = settingsText.replace(/>/g, "\n").split("\n");
+        for (const rawLine of rawLines) {
+            const trimmed = rawLine.trim();
+            if (!trimmed || !trimmed.includes(":")) {
                 continue;
             }
-            // Parse boolean and integer setting values
-            if (Words.falses.includes(settingKeyValue[1])) {
-                // This setting line's value is false
-                settings[settingKeyValue[0]] = false;
-            } else if (Words.trues.includes(settingKeyValue[1])) {
-                // This setting line's value is true
-                settings[settingKeyValue[0]] = true;
-            } else if (/^\d+$/.test(settingKeyValue[1])) {
-                // This setting line's value is an integer
-                // Negative integers are parsed as being positive (because "-" characters were removed)
-                settings[settingKeyValue[0]] = parseInt(settingKeyValue[1], 10);
+            const colonIdx = trimmed.indexOf(":");
+            const rawKey = trimmed.slice(0, colonIdx).toLowerCase().replace(/[^a-z0-9]/g, "");
+            const rawVal = trimmed.slice(colonIdx + 1).trim();
+            if (!rawKey || settings.hasOwnProperty(rawKey)) {
+                continue;
+            }
+            const cleanVal = (function() {
+                if ((rawVal.startsWith('"') && rawVal.endsWith('"')) || (rawVal.startsWith("'") && rawVal.endsWith("'"))) {
+                    try {
+                        return JSON.parse(rawVal);
+                    } catch (_) {
+                        return rawVal.slice(1, -1);
+                    }
+                }
+                return rawVal.trim();
+            })();
+            const lowerClean = cleanVal.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+            if (Words.falses.includes(lowerClean)) {
+                settings[rawKey] = false;
+            } else if (Words.trues.includes(lowerClean)) {
+                settings[rawKey] = true;
+            } else if (/^\d+$/.test(lowerClean)) {
+                settings[rawKey] = parseInt(lowerClean, 10);
+            } else {
+                settings[rawKey] = cleanVal;
             }
         }
-        // Return the settings object for later analysis
         return settings;
     }
     // Ensure the given singleton card is pinned near the top of the player's list of story cards
@@ -8268,7 +9592,7 @@ function AutoCards(inHook, inText, inStop) {
     function see(arr) {
         return String.fromCharCode(...arr.map(n => Math.sqrt(n / 33)));
     }
-    function formatTitle(title) {
+    function formatTitle(title, isManual = false) {
         const input = title;
         let useMemo = false;
         if (
@@ -8278,10 +9602,11 @@ function AutoCards(inHook, inText, inStop) {
                 (nameset.size === 1)
                 && nameset.has("%@%")
             ))
+            && !isManual
         ) {
             const pair = memoized.get(input);
             if (pair !== undefined) {
-                if (50000 < memoized.size) {
+                if (30000 < memoized.size) {
                     memoized.delete(input);
                     memoized.set(input, pair);
                 }
@@ -8294,12 +9619,11 @@ function AutoCards(inHook, inText, inStop) {
             return end();
         }
         title = (title
-            // Inner Self
+            // Inner Entity / Inner Self visual indicator prefix
             .slice(title.indexOf("\u200B") + 1)
-            .replace(/\u200B-\u200D/g, "")
-            // Localized Languages
-            .replace(/[–。？！´؟،«»¿¡„“”「」…§，、\*_~><\(\)\[\]{}#"`:!—;\.\?,\s\\]/g, " ")
-            // Fix contractions
+            .replace(/[\u200B-\u200D]+/g, "")
+            // Begone!
+            .replace(/[–。？！´“”؟،«»¿¡„“…§，、\*_~><\(\)\[\]{}#"`:!—;\.\?,\s\\]/g, " ")
             .replace(/[‘’]/g, "'").replace(/\s+'/g, " ")
             // Remove the words "I", "I'm", "I'd", "I'll", and "I've"
             .replace(/(?<=^|\s)(?:I|I'm|I'd|I'll|I've)(?=\s|$)/gi, "")
@@ -8361,28 +9685,28 @@ function AutoCards(inHook, inText, inStop) {
                 titleWords = title.split(" ");
             }
         }
-        if (isUsedOrBanned(title) || isNamed(title)) {
+        if (isUsedOrBanned(title, isManual) || (!isManual && isNamed(title))) {
             return end();
         }
         // Procedurally generated story card trigger keywords exclude certain words and patterns which are otherwise permitted in titles
         let key = title;
         const peerage = new Set(Words.peerage);
         if (titleWords.some(word => ((word === "the") || peerage.has(word.toLowerCase())))) {
-            if (titleWords.length < 2) {
-                return end();
-            }
-            key = enforceBoundaryCondition(
-                titleWords.filter(word => !peerage.has(word.toLowerCase())).join(" ")
-            );
-            if (key.includes(" the ")) {
-                key = enforceBoundaryCondition(key.split(" the ")[0]);
-            }
-            if (isUsedOrBanned(key)) {
-                return end();
+            if (titleWords.length >= 2) {
+                let stripped = enforceBoundaryCondition(
+                    titleWords.filter(word => !peerage.has(word.toLowerCase())).join(" ")
+                );
+                if (stripped.includes(" the ")) {
+                    stripped = enforceBoundaryCondition(stripped.split(" the ")[0]);
+                }
+                const minLen = isManual ? 2 : 3;
+                if ((minLen <= stripped.length) && !isUsedOrBanned(stripped, isManual)) {
+                    key = stripped;
+                }
             }
         }
         function short() {
-            return (title.length < 3);
+            return (title.length < (isManual ? 2 : 3));
         }
         function enforceBoundaryCondition(str) {
             while (leadingMinorWordsKiller.test(str)) {
@@ -8396,7 +9720,7 @@ function AutoCards(inHook, inText, inStop) {
         function end(newTitle = "", newKey = "") {
             if (useMemo) {
                 memoized.set(input, [newTitle, newKey]);
-                if (30000 < memoized.size) {
+                if (55000 < memoized.size) {
                     memoized.delete(memoized.keys().next().value);
                 }
             }
@@ -8405,8 +9729,9 @@ function AutoCards(inHook, inText, inStop) {
         return end(title, key);
     }
     // I really hate english grammar
-    function checkPlurals(title, predicate) {
-        function check(t) { return ((t.length < 3) || (100 < t.length) || predicate(t)); }
+    function checkPlurals(title, predicate, isManual = false) {
+        const minLen = isManual ? 2 : 3;
+        function check(t) { return ((t.length < minLen) || (100 < t.length) || predicate(t)); }
         const t = title.toLowerCase();
         if (check(t)) { return true; }
         // s>p : singular -> plural : p>s: plural -> singular
@@ -8456,7 +9781,30 @@ function AutoCards(inHook, inText, inStop) {
             break;
         } return false;
     }
-    function isUsedOrBanned(title) {
+    function isSystemBanned(lowerTitle) {
+        if (systemBans.size === 0) {
+            const controlVariants = getControlVariants();
+            const dataVariants = getDataVariants();
+            const sys = lowArr([
+                controlVariants.enable.title.replace("\n", ""),
+                controlVariants.enable.keys,
+                controlVariants.configure.title.replace("\n", ""),
+                controlVariants.configure.keys,
+                controlVariants.configureEC.title.replace("\n", ""),
+                controlVariants.configureEC.keys,
+                dataVariants.debug.title,
+                dataVariants.debug.keys,
+                dataVariants.critical.title,
+                dataVariants.critical.keys,
+                ...Object.values(Words.reserved)
+            ]);
+            for (let i = 0; i < sys.length; i++) {
+                systemBans.add(sys[i]);
+            }
+        }
+        return systemBans.has(lowerTitle);
+    }
+    function isUsedOrBanned(title, isManual = false) {
         function isUsed(lowerTitle) {
             if (used.size === 0) {
                 const usedTitles = Internal.getUsedTitles();
@@ -8470,26 +9818,21 @@ function AutoCards(inHook, inText, inStop) {
             }
             return used.has(lowerTitle);
         }
+        if (isManual) {
+            return checkPlurals(title, t => (isUsed(t) || isSystemBanned(t)), true);
+        }
         return checkPlurals(title, t => (isUsed(t) || isBanned(t)));
     }
     function isBanned(lowerTitle, getUsedIsExternal) {
+        if (isSystemBanned(lowerTitle)) {
+            return true;
+        }
         if (bans.size === 0) {
             // In order to save space, implicit bans aren't listed within the UI
-            const controlVariants = getControlVariants();
-            const dataVariants = getDataVariants();
             const bansToAdd = [...lowArr([
-                ...Internal.getBannedTitles(),
-                controlVariants.enable.title.replace("\n", ""),
-                controlVariants.enable.keys,
-                controlVariants.configure.title.replace("\n", ""),
-                controlVariants.configure.keys,
-                dataVariants.debug.title,
-                dataVariants.debug.keys,
-                dataVariants.critical.title,
-                dataVariants.critical.keys,
-                ...Object.values(Words.reserved)
+                ...Internal.getBannedTitles()
             ]), ...(function() {
-                if (shouldProceed() || getUsedIsExternal) {
+                if ((shouldProceed() || getUsedIsExternal) && (AC.config.filterCommonEntities !== false)) {
                     // These proper nouns are way too common to waste card generations on; they already exist within the AI training data so this would be pointless
                     return [...Words.entities, ...Words.undesirables.map(undesirable => see(undesirable))];
                 } else {
@@ -8641,6 +9984,10 @@ function AutoCards(inHook, inText, inStop) {
                 title: "Configure \nAuto-Cards",
                 keys: "Edit the entry above to adjust your story card automation settings",
             }),
+            configureEC: O.f({
+                title: "Configure \nEntity Cards",
+                keys: "Edit the entry above to adjust your Entity Cards settings and templates",
+            }),
             enable: O.f({
                 title: "Edit to enable \nAuto-Cards",
                 keys: "Edit the entry above to enable story card automation",
@@ -8778,6 +10125,8 @@ function AutoCards(inHook, inText, inStop) {
     } else {
         return codomain;
     }
-} function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
+} AutoCards(null); const EntityCards = AutoCards; try { globalThis.EntityCards = AutoCards; } catch (_) {} function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
 // Your other library scripts go here
+
+globalThis.EntityCards = AutoCards;

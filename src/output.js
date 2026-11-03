@@ -1,5 +1,5 @@
 // Your "Output" tab should look like this
-InnerSelf("output");
+InnerEntity("output");
 const modifier = (text) => {
   // Any other output modifier scripts can go here
   return { text };
