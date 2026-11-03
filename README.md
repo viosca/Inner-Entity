@@ -6,13 +6,13 @@
 ### *Giving characters minds of their own with Entity Cards~*
 Originally created as **Inner Self** by **LewdLeah** ❤️  
 Optimized Context patch by **XloSky**  
-Expanded with **Entity Cards (NER)** and maintained by **Randy Viosca**  
+Expanded with **Entity Cards (NER)** and maintained by **Randy Viosca** ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable))  
 
 ---
 
 ## Overview
 
-**Inner Entity** combines the character-mind simulation of LewdLeah's **Inner Self** with the structured Named Entity Recognition (NER) and token-dense YAML world-building of Randy Viosca's **Entity Cards**, fully updated with XloSky's **Optimized Context** compatibility patch.
+**Inner Entity** combines the character-mind simulation of LewdLeah's **Inner Self** with the structured Named Entity Recognition (NER) and token-dense YAML world-building of Randy Viosca's ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable)) **Entity Cards**, fully updated with XloSky's **Optimized Context** compatibility patch.
 
 Simulated NPCs build, reflect upon, and maintain their own mental state (goals, secrets, opinions, private plans) while the world around them is dynamically indexed into token-calibrated Entity Cards across 5 types: **Person**, **Location**, **Organization**, **Thing**, and **Event**.
 
@@ -151,5 +151,5 @@ globalThis.MainSettings = (class MainSettings {
 
 - **LewdLeah:** Creator of the original **Inner Self** (January 3, 2026) and **Auto-Cards** (May 21, 2025). The architecture of segmented memories, autonomous reflection, and card synchronization is LewdLeah's foundational work.
 - **XloSky:** Creator of the **Optimized Context** patch (build 2.8.0), solving server-side prompt cache discard via dynamic task cards, dialogue-vs-narration trigger weighting, and self-referential thought filtering.
-- **Randy Viosca:** Creator of **Entity Cards**, contributing Named Entity Recognition (NER), token-density calibration for AID's 100-token slider, two-card architecture, model-aware presets, fence cleaners, and maintainer of **Inner Entity**.
+- **Randy Viosca ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable)):** Creator of **Entity Cards**, contributing Named Entity Recognition (NER), token-density calibration for AID's 100-token slider, two-card architecture, model-aware presets, fence cleaners, and maintainer of **Inner Entity**.
 - **Community:** Pull requests and benchmark contributions by dirtymined13, -Vinny-, and testers across the AI Dungeon community.

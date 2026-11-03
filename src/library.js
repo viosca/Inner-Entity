@@ -2,14 +2,18 @@
 //
 //                             USE THIS VERSION
 //
-//                        InnerSelf_OC_Ver.2_8_0.js
+//                        InnerEntity_Ver.2_8_0-IE.js
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
-//   do not add to it. If an older copy of Inner Self is left anywhere below,
+//   do not add to it. If an older copy is left anywhere below,
 //   JavaScript silently lets the later copy win and this one never runs.
 //
-//   To confirm this version is live, the "Configure Inner Self" card's first
-//   line reads: === Optimized Context patch build Ver.2_8_0 ===
+//   Inner Entity combines character minds (LewdLeah's Inner Self), Optimized
+//   Context prompt caching support (XloSky patch), and structured Named
+//   Entity Recognition (Randy Viosca / @Random_Variable's Entity Cards).
+//
+//   To confirm this version is live, the "Configure Inner Entity" card's first
+//   line reads: === Inner Entity build Ver.2_8_0-IE ===
 //
 // ============================================================================
 
@@ -104,7 +108,7 @@ globalThis.MainSettings = (class MainSettings {
      */
         /**
      * Entity Cards / Auto-Cards
-     * Originally made by LewdLeah, expanded with Named Entity Recognition (NER) by Randy Viosca
+     * Originally made by LewdLeah, expanded with Named Entity Recognition (NER) by Randy Viosca (@Random_Variable on AI Dungeon)
      */
     static EntityCards = {
     // Is Entity Cards / Auto-Cards already enabled when the adventure begins?
