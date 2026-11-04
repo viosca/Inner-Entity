@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LewdLeah/Inner-Self/main/assets/cover1.png" width="800">
+  <img src="assets/cover_inner_entity.png" width="800">
 </p>
 
 # Inner Entity 🎭
