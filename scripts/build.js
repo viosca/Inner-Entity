@@ -61,6 +61,21 @@ ${divider}`;
     // 3. Align cache cap to 30000 for QuickJS memory optimization
     code = code.replace("if (50000 < memoized.size) {", "if (30000 < memoized.size) {");
 
+    // 3b. Bridge state.InnerSelf.AC.event signal during classic Auto-Cards generation/compression
+    code = code.replace(
+        /if\s*\(isGenerating\)\s*\{\s*\/\/[^\n]*\s*context\s*=\s*context\.replaceAll\("%@GEN@%",\s*""\);\s*\}\s*else\s+if\s*\(isCompressing\)\s*\{\s*\/\/[^\n]*\s*context\s*=\s*context\.replaceAll\("%@COM@%",\s*""\);\s*\}/,
+        `if (isGenerating || isCompressing) {
+                state.InnerSelf ??= {};
+                state.InnerSelf.AC ??= {};
+                state.InnerSelf.AC.event = true;
+                if (isGenerating) {
+                    context = context.replaceAll("%@GEN@%", "");
+                } else {
+                    context = context.replaceAll("%@COM@%", "");
+                }
+            }`
+    );
+
     // 4. Update trailing invocation and global export
     const trailingOld = "} AutoCards(null); function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }";
     const trailingNew = `}
