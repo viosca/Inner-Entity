@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node scripts/build.js --ec",
     "build:classic": "node scripts/build.js --ac",
-    "build:all": "node scripts/build.js --ec && node scripts/build.js --ac",
+    "build:minds": "node scripts/build.js --minds",
+    "build:all": "node scripts/build.js --all",
     "submodule:update": "git submodule update --remote --merge"
   },
   "keywords": [

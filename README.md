@@ -153,13 +153,14 @@ Inner Entity is designed with a **clean, decoupled architecture** separating the
 
 ### Available Distribution Files (No Node.js Required!)
 For players and creators, pre-assembled, single-file scripts are committed directly to the repository:
-- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) — Inner Self with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH, YAML schemas).
-- **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self with XloSky prompt caching + LewdLeah's official upstream Auto-Cards.
+- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) — Inner Self character minds with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH schemas, YAML). (~498 KB)
+- **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self character minds with XloSky prompt caching + LewdLeah's official upstream Auto-Cards (prose & bullet lists). (~436 KB)
+- **Mind-Only (Pure Cognition):** [`dist/inner-self-minds-only.js`](dist/inner-self-minds-only.js) — Lightweight standalone character cognition with Optimized Context prompt caching and zero card engine code. (~132 KB)
 
 ### Automated GitHub Sync (100% Free)
 You never have to manually build scripts or install tools if you don't want to:
 - A cloud **GitHub Actions** workflow (`.github/workflows/sync.yml`) runs on GitHub's cloud.
-- Automatically compiles both distribution files whenever `src/core.js` or the submodule updates.
+- Automatically compiles all three distribution files whenever `src/core.js` or the submodule updates.
 - Under the **Actions** tab on GitHub, you can click **"Run workflow"** anytime to sync with the latest upstream commits directly from your browser.
 
 ### Local Development & Build Commands
@@ -168,13 +169,16 @@ If you are developing locally:
 # Clone with submodules
 git clone --recurse-submodules https://github.com/viosca/Inner-Entity.git
 
-# Build Entity-Cards version (src/library.js)
+# Build Flagship Entity-Cards version (src/library.js)
 npm run build
 
 # Build Classic Auto-Cards version (dist/inner-self-classic.js)
 npm run build:classic
 
-# Build both versions
+# Build Mind-Only version (dist/inner-self-minds-only.js)
+npm run build:minds
+
+# Build all three distribution targets
 npm run build:all
 
 # Update the Entity-Cards submodule to latest remote commit

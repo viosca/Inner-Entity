@@ -9,6 +9,7 @@ const vm = require("vm");
 const ROOT_DIR = path.resolve(__dirname, "..");
 const CORE_PATH = path.join(ROOT_DIR, "src", "core.js");
 const OUTPUT_PATH = path.join(ROOT_DIR, "src", "library.js");
+const DIST_DIR = path.join(ROOT_DIR, "dist");
 
 const EC_SUBMODULE_PATH = path.join(ROOT_DIR, "submodules", "Entity-Cards", "src", "library.js");
 const EC_SIBLING_PATH1 = path.join(ROOT_DIR, "..", "Auto-Cards", "src", "library.js");
@@ -34,6 +35,10 @@ function fetchHttps(url) {
 }
 
 async function loadEngine(engine) {
+    if (engine === "minds" || engine === "none") {
+        return null;
+    }
+
     if (engine === "ac") {
         console.log("   Fetching LewdLeah/Auto-Cards upstream via HTTPS...");
         return await fetchHttps(AC_REMOTE_URL);
@@ -57,15 +62,7 @@ async function loadEngine(engine) {
     return await fetchHttps(EC_REMOTE_URL);
 }
 
-async function build() {
-    const args = process.argv.slice(2);
-    let engine = "ec";
-    for (const arg of args) {
-        if (arg.startsWith("--engine=")) engine = arg.split("=")[1].toLowerCase();
-        if (arg === "--ac") engine = "ac";
-        if (arg === "--ec") engine = "ec";
-    }
-
+async function buildTarget(engine) {
     console.log(`=== Building Inner-Entity (Engine: ${engine.toUpperCase()}) ===`);
 
     if (!fs.existsSync(CORE_PATH)) {
@@ -76,9 +73,21 @@ async function build() {
     console.log(`   Reading core: ${path.relative(ROOT_DIR, CORE_PATH)}`);
     const coreCode = fs.readFileSync(CORE_PATH, "utf8").trimEnd();
 
-    const engineCode = (await loadEngine(engine)).trimStart();
+    let combined;
+    let outPath;
 
-    const combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (${engine.toUpperCase()})\n// ============================================================================\n\n${engineCode}\n`;
+    if (!fs.existsSync(DIST_DIR)) {
+        fs.mkdirSync(DIST_DIR, { recursive: true });
+    }
+
+    if (engine === "minds" || engine === "none") {
+        combined = `${coreCode}\n`;
+        outPath = path.join(DIST_DIR, "inner-self-minds-only.js");
+    } else {
+        const engineCode = (await loadEngine(engine)).trimStart();
+        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (${engine.toUpperCase()})\n// ============================================================================\n\n${engineCode}\n`;
+        outPath = (engine === "ac") ? path.join(DIST_DIR, "inner-self-classic.js") : OUTPUT_PATH;
+    }
 
     // Syntax validation
     try {
@@ -89,22 +98,39 @@ async function build() {
         process.exit(1);
     }
 
-    let outPath = OUTPUT_PATH;
-    if (engine === "ac") {
-        const distDir = path.join(ROOT_DIR, "dist");
-        if (!fs.existsSync(distDir)) fs.mkdirSync(distDir, { recursive: true });
-        outPath = path.join(distDir, "inner-self-classic.js");
-    }
-
     fs.writeFileSync(outPath, combined, "utf8");
     const lineCount = combined.split("\n").length;
     const sizeKb = (Buffer.byteLength(combined, "utf8") / 1024).toFixed(1);
 
     console.log(`   ✔ Wrote ${path.relative(ROOT_DIR, outPath)} (${lineCount.toLocaleString()} lines, ${sizeKb} KB)`);
-    console.log("=== Build complete! ===\n");
+    console.log("=== Target complete! ===\n");
 }
 
-build().catch((err) => {
+async function main() {
+    const args = process.argv.slice(2);
+    let isAll = false;
+    let engine = "ec";
+
+    for (const arg of args) {
+        if (arg === "--all") isAll = true;
+        else if (arg.startsWith("--engine=")) engine = arg.split("=")[1].toLowerCase();
+        else if (arg === "--ac") engine = "ac";
+        else if (arg === "--ec") engine = "ec";
+        else if (arg === "--minds" || arg === "--none") engine = "minds";
+    }
+
+    if (isAll) {
+        console.log("Building all 3 distribution targets...\n");
+        await buildTarget("ec");
+        await buildTarget("ac");
+        await buildTarget("minds");
+        console.log("All 3 targets built successfully!");
+    } else {
+        await buildTarget(engine);
+    }
+}
+
+main().catch((err) => {
     console.error("Build failed:", err);
     process.exit(1);
 });
