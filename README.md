@@ -108,11 +108,13 @@ When your adventure begins, the script generates:
 
 ### Slash Commands
 
-You can execute commands directly in the AID input bar:
+You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
 - `/ec on` or `/ac on`: Force-enable card automation.
 - `/ec preset lite` (or `standard`, `authoring`, `custom`): Switch schema preset on the fly.
 - `/ec header Named Entities (NER):`: Customize the context header replacing `World Lore:`.
-- `/ec manual <title>`: Instantly generate an entity card, bypassing common filters.
+- `/ec <Title>`: Instantly generate an entity card, bypassing common filters.
+- `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
+- `/ec redo <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema.
 
 ---
 

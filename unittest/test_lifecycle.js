@@ -102,6 +102,18 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     s.InnerEntity("input");
     console.log("   ✔ Input hook processed /ec command");
 
+    // Input hook: /ec with -<type> flag & single-branch prompt verification
+    s.text = "/ec Futaba -p";
+    s.InnerEntity("input");
+    const pending = s.state.AutoCards?.generation?.pending;
+    if (!pending || pending.length === 0) throw new Error("Expected pending card from /ec Futaba -p");
+    const futabaCard = pending[pending.length - 1];
+    if (futabaCard.title !== "Futaba") throw new Error(`Expected title 'Futaba', got '${futabaCard.title}'`);
+    if (futabaCard.type !== "Person") throw new Error(`Expected type 'Person', got '${futabaCard.type}'`);
+    if (futabaCard.prompt.includes("type: Location")) throw new Error("Prompt should NOT contain Location branch when -p is specified!");
+    if (!futabaCard.prompt.includes("type: Person")) throw new Error("Prompt must contain Person branch!");
+    console.log(`   ✔ Verified -<type> flag parsing and single-branch prompt optimization (${futabaCard.prompt.length} chars)`);
+
     // Context hook: standard mode
     s.text = "Recent Story:\nHakari smiled warmly at Karane.";
     s.InnerEntity("context");
