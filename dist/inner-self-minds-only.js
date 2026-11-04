@@ -94,7 +94,7 @@ globalThis.MainSettings = (class MainSettings {
     // (true or false)
     ,
     // Is AC already enabled when the adventure begins?
-    IS_AC_ENABLED_BY_DEFAULT: false
+    IS_AC_ENABLED_BY_DEFAULT: true
     // (true or false)
     ,
     }; //——————————————————————————————————————————————————————————————————————————————
@@ -572,7 +572,7 @@ function InnerSelf(hook) {
     // (true or false)
     ,
     // Is AC already enabled when the adventure begins?
-    IS_AC_ENABLED_BY_DEFAULT: false
+    IS_AC_ENABLED_BY_DEFAULT: true
     // (true or false)
     ,
     }; //——————————————————————————————————————————————————————————————————————————————
@@ -649,12 +649,13 @@ function InnerSelf(hook) {
      * Checks if Auto-Cards is available in the global scope
      * @returns {boolean} true if Auto-Cards is installed and callable
      */
-    const hasAutoCards = () => (typeof globalThis.AutoCards === "function");
+    const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
+    const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
     if (IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
-            text = AutoCards(hook, text);
+            text = getAutoCards()(hook, text);
         } catch (error) {
             log(error.message);
         }
@@ -1374,7 +1375,7 @@ function InnerSelf(hook) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
-                    const api = AutoCards().API;
+                    const api = getAutoCards()().API;
                     // Prevent AC from generating cards with reserved titles
                     api.setBannedTitles([
                         "Inner",
@@ -1389,9 +1390,9 @@ function InnerSelf(hook) {
                     ]);
                 }
                 // Run AC's context branch
-                AutoCards(null);
+                getAutoCards()(null);
                 IS.AC.event = false;
-                [text, stop] = AutoCards("context", text, stop);
+                [text, stop] = getAutoCards()("context", text, stop);
             } catch (error) {
                 log(error.message);
             }
@@ -2173,7 +2174,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
         // Player used a /AC command, force-enable Auto-Cards
         IS.AC.forced = true;
         try {
-            text = AutoCards("input", text);
+            text = getAutoCards()("input", text);
         } catch (error) {
             log(error.message);
         }

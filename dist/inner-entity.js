@@ -94,7 +94,7 @@ globalThis.MainSettings = (class MainSettings {
     // (true or false)
     ,
     // Is AC already enabled when the adventure begins?
-    IS_AC_ENABLED_BY_DEFAULT: false
+    IS_AC_ENABLED_BY_DEFAULT: true
     // (true or false)
     ,
     }; //——————————————————————————————————————————————————————————————————————————————
@@ -572,7 +572,7 @@ function InnerSelf(hook) {
     // (true or false)
     ,
     // Is AC already enabled when the adventure begins?
-    IS_AC_ENABLED_BY_DEFAULT: false
+    IS_AC_ENABLED_BY_DEFAULT: true
     // (true or false)
     ,
     }; //——————————————————————————————————————————————————————————————————————————————
@@ -649,12 +649,13 @@ function InnerSelf(hook) {
      * Checks if Auto-Cards is available in the global scope
      * @returns {boolean} true if Auto-Cards is installed and callable
      */
-    const hasAutoCards = () => (typeof globalThis.AutoCards === "function");
+    const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
+    const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
     if (IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
-            text = AutoCards(hook, text);
+            text = getAutoCards()(hook, text);
         } catch (error) {
             log(error.message);
         }
@@ -1374,7 +1375,7 @@ function InnerSelf(hook) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
-                    const api = AutoCards().API;
+                    const api = getAutoCards()().API;
                     // Prevent AC from generating cards with reserved titles
                     api.setBannedTitles([
                         "Inner",
@@ -1389,9 +1390,9 @@ function InnerSelf(hook) {
                     ]);
                 }
                 // Run AC's context branch
-                AutoCards(null);
+                getAutoCards()(null);
                 IS.AC.event = false;
-                [text, stop] = AutoCards("context", text, stop);
+                [text, stop] = getAutoCards()("context", text, stop);
             } catch (error) {
                 log(error.message);
             }
@@ -2173,7 +2174,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
         // Player used a /AC command, force-enable Auto-Cards
         IS.AC.forced = true;
         try {
-            text = AutoCards("input", text);
+            text = getAutoCards()("input", text);
         } catch (error) {
             log(error.message);
         }
@@ -6609,8 +6610,49 @@ description: {1 concise sentence narrative summary}
                 AC.generation.completed++;
                 const generationsRemaining = (function() {
                     if (AC.config.rawAIResponseMode) {
-                        // We combine here in case there was a partial sentinel that the AI has completed.
-                        AC.generation.workpiece.entry += TEXT;
+                        const beginSentinel = AC.config.SCContainerAIBeginSentinel || "ENTITY_BEGIN";
+                        const endSentinel = AC.config.SCContainerAIEndSentinel || "ENTITY_END";
+                        const hasSentinel = (beginSentinel !== "" && TEXT.includes(beginSentinel))
+                            || (endSentinel !== "" && TEXT.includes(endSentinel));
+                        const hasYamlKey = /(?:^|\n)\s*(?:entity|type|category|role|appearance|personality|description|atmosphere|key_locations|key_points|connections|agenda|status|stakes|bearer|physical|function|rules|stance|true_agenda|public_face)\s*:/i.test(TEXT);
+                        const hasDialogueOrSpeech = textClone.includes("\"") || /(?<=^|\s|—|\(|\[|{)sa(ys?|id)(?=\s|\.|\?|!|,|;|—|\)|\]|}|$)/i.test(textClone);
+
+                        const cardTitle = AC.generation.workpiece.title;
+                        const explicitType = AC.generation.workpiece.explicitType;
+                        const primedPrefix = explicitType
+                            ? `${beginSentinel}\nentity: ${cardTitle}\ntype: ${explicitType}\n`
+                            : `${beginSentinel}\nentity: ${cardTitle}\n`;
+                        const isStartingCard = (AC.generation.workpiece.entry.trim() === primedPrefix.trim() || AC.generation.workpiece.entry.trim() === "");
+
+                        // Discard story prose fallbacks if the AI ignored directives and continued normal narration
+                        if (isStartingCard && !hasSentinel && !hasYamlKey) {
+                            if (AC.config.showDebugDataSCRawAIEntry) {
+                                logEvent("outputModifier: Discarded narrative prose output on card generation start");
+                            }
+                            return skip(estimateRemainingGens());
+                        }
+                        if (!hasSentinel && !hasYamlKey && hasDialogueOrSpeech) {
+                            if (AC.config.showDebugDataSCRawAIEntry) {
+                                logEvent("outputModifier: Discarded dialogue/speech output during entity card generation");
+                            }
+                            return skip(estimateRemainingGens());
+                        }
+
+                        // Combine workpiece entry with incoming TEXT, handling potential restarts or overlaps
+                        const trimmedText = TEXT.trimStart();
+                        if (AC.generation.workpiece.entry.trim() === primedPrefix.trim()) {
+                            if (beginSentinel !== "" && trimmedText.includes(beginSentinel)) {
+                                AC.generation.workpiece.entry = trimmedText;
+                            } else if (cardTitle && new RegExp(`^entity:\\s*${Internal.escapeRegExp(cardTitle)}\\s*`, 'i').test(trimmedText)) {
+                                AC.generation.workpiece.entry = `${beginSentinel}\n` + trimmedText;
+                            } else if (explicitType && new RegExp(`^type:\\s*${Internal.escapeRegExp(explicitType)}\\s*`, 'i').test(trimmedText)) {
+                                AC.generation.workpiece.entry = `${beginSentinel}\nentity: ${cardTitle}\n` + trimmedText;
+                            } else {
+                                AC.generation.workpiece.entry += TEXT;
+                            }
+                        } else {
+                            AC.generation.workpiece.entry += TEXT;
+                        }
 
                         let sawEndSentinel = false;
                         if (AC.config.SCContainerAIEndSentinel !== "") {
@@ -6623,10 +6665,10 @@ description: {1 concise sentence narrative summary}
                             }
                         }
 
-                        // Remove begin sentinel and any preceding preamble immediately whenever it appears
+                        // Remove begin sentinel and any preceding preamble immediately whenever it appears (greedy to eliminate all preambles/duplicates)
                         if (AC.config.SCContainerAIBeginSentinel !== "") {
                             const beginSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIBeginSentinel);
-                            const beginSentinelRx = new RegExp(`^[\\s\\S]*?${beginSentinelEscaped}\\s*`, 'i');
+                            const beginSentinelRx = new RegExp(`^[\\s\\S]*${beginSentinelEscaped}\\s*`, 'i');
                             AC.generation.workpiece.entry = AC.generation.workpiece.entry.replace(beginSentinelRx, "");
                         }
 
@@ -6826,7 +6868,7 @@ description: {1 concise sentence narrative summary}
                                 let cleanEntry = AC.generation.workpiece.entry.trim();
                                 if (AC.config.SCContainerAIBeginSentinel !== "") {
                                     const beginSentinelEscaped = Internal.escapeRegExp(AC.config.SCContainerAIBeginSentinel);
-                                    const beginSentinelRx = new RegExp(`^[\\s\\S]*?${beginSentinelEscaped}\\s*`, 'i');
+                                    const beginSentinelRx = new RegExp(`^[\\s\\S]*${beginSentinelEscaped}\\s*`, 'i');
                                     cleanEntry = cleanEntry.replace(beginSentinelRx, "");
                                 }
                                 if (AC.config.SCContainerAIEndSentinel !== "") {
@@ -7912,22 +7954,35 @@ description: {1 concise sentence narrative summary}
                 return false;
             }
 
-            // For rawAIPromptMode, we don't prepend the title and just send raw prompt to the AI.
-            const entryStr = AC.config.rawAIPromptMode ? (request.entryStart ?? "") : "{title: " + title + "}" + limitString(cleanSpaces((function() {
-                const entry = (request.entryStart ?? "").toString().trim();
-                //log("AC.generation.pending.push entry: ", entry);
-                if (entry === "") {
-                    return "";
+            // For rawAIPromptMode, prime the prompt lead-in so the AI is constrained to generate YAML entity fields
+            let entryStr = "";
+            if (AC.config.rawAIPromptMode) {
+                if (request.entryStart) {
+                    entryStr = (request.entryStart).toString().trim();
                 } else {
-                    return ("\n" + entry + (function() {
-                        if (/[a-zA-Z]$/.test(entry)) {
-                            return ".";
-                        } else {
-                            return "";
-                        }
-                    })() + " ");
+                    const beginSentinel = AC.config.SCContainerAIBeginSentinel || "ENTITY_BEGIN";
+                    const explicitType = request.entityType ? (TYPE_ALIAS_MAP[request.entityType.toLowerCase()] || request.entityType) : null;
+                    entryStr = explicitType
+                        ? `${beginSentinel}\nentity: ${title}\ntype: ${explicitType}\n`
+                        : `${beginSentinel}\nentity: ${title}\n`;
                 }
-                })()), 2000 - Internal.SCContainerWrapSize());
+            } else {
+                entryStr = "{title: " + title + "}" + limitString(cleanSpaces((function() {
+                    const entry = (request.entryStart ?? "").toString().trim();
+                    //log("AC.generation.pending.push entry: ", entry);
+                    if (entry === "") {
+                        return "";
+                    } else {
+                        return ("\n" + entry + (function() {
+                            if (/[a-zA-Z]$/.test(entry)) {
+                                return ".";
+                            } else {
+                                return "";
+                            }
+                        })() + " ");
+                    }
+                    })()), 2000 - Internal.SCContainerWrapSize());
+            }
 
             AC.generation.pending.push(O.s({
                 title: title,
@@ -10293,6 +10348,7 @@ if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity 
     AutoCards(null);
 }
 const EntityCards = AutoCards;
+try { globalThis.AutoCards = AutoCards; } catch (_) {}
 try { globalThis.EntityCards = AutoCards; } catch (_) {}
 function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 

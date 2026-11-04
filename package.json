@@ -8,7 +8,7 @@
     "build:minds": "node scripts/build.js --minds",
     "build:all": "node scripts/build.js --all",
     "submodule:update": "git submodule update --remote --merge",
-    "test": "node unittest/test_lifecycle.js",
+    "test": "node unittest/test_lifecycle.js && node unittest/test_card_content.js",
     "test:openrouter": "node unittest/test_openrouter.js"
   },
   "keywords": [
