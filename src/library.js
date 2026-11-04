@@ -430,7 +430,7 @@ description: {1 concise sentence narrative summary}
  * Gives story characters the ability to learn, plan, and adapt over time
  * Inner Self is free and open-source for anyone! ❤️
  */
-function InnerEntity(hook) {
+function InnerSelf(hook) {
     // ==================== TASK CARD SAFETY NET ====================
     //
     // This runs FIRST, on EVERY hook, before anything else in Inner Self.
@@ -2891,17 +2891,32 @@ I hope you will have lots of fun!
 
 //—————————————————————————————————————————————————————————————————————————————————————
 
-/**
- * Auto-Cards v1.1.3
- * Made by LewdLeah on May 21, 2025
- * This AI Dungeon script automatically creates and updates plot-relevant story cards while you play
- * General-purpose usefulness and compatibility with other scenarios/scripts were my design priorities
- * Auto-Cards is fully open-source, please copy for use within your own projects! ❤️
- */
 
-function InnerSelf(hook) { return InnerEntity(hook); }
+
+function InnerEntity(hook) { return InnerSelf(hook); }
 globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
+
+// ============================================================================
+// BUNDLED CARD ENGINE (EC)
+// ============================================================================
+
+/// <reference no-default-lib="true"/>
+/// <reference lib="es2022"/>
+// Your "Library" tab should look like this
+
+/*
+Auto-Cards / Entity Cards
+Originally made by LewdLeah on May 21, 2025
+Forked and expanded as "Entity Cards" by Randy Viosca (@Random_Variable on AI Dungeon)
+- Named Entity Recognition (NER) and automatic story card typing (Person, Organization, Location, Event, Thing)
+- JellyFish (JFSH) structured AI pseudo-language generation prompts
+- Story card containerization / encapsulation and sentinels
+- Raw AI prompt and response modes
+- Smart phrase and delimiter fragment trimming
+- User-customizable context header replacement for "World Lore:"
+- Selectable operating mode: "entity" (Entity Cards) or "classic" (Classic Auto-Cards)
+*/
 
 function AutoCards(inHook, inText, inStop) {
     "use strict";
@@ -4019,6 +4034,7 @@ description: {1 concise sentence narrative summary}
             }
             CODOMAIN.initialize(null);
         } else {
+            // Synchronize with external Inner Self / Inner Entity if installed
             state.InnerSelf ??= {};
             state.InnerSelf.AC ??= {};
             state.InnerSelf.AC.forced = true;
@@ -5594,7 +5610,7 @@ description: {1 concise sentence narrative summary}
                             continue;
                         }
                         const words = (Internal.prettifyEmDashes(action.text)
-                            // Inner Entity / Inner Self visual indicator prefix
+                            // Inner Self / Inner Entity visual indicator prefix
                             .replace(/\s*[\u200B-\u200D][\s\u200B-\u200D]*/g, " ")
                             // Nuh uh
                             .replace(/[“”]/g, "\"").replace(/[‘’]/g, "'").replaceAll("´", "`")
@@ -6262,8 +6278,10 @@ description: {1 concise sentence narrative summary}
                 state.InnerSelf.AC ??= {};
                 state.InnerSelf.AC.event = true;
                 if (isGenerating) {
+                    // Likewise for the card entry generation delimiter
                     context = context.replaceAll("%@GEN@%", "");
                 } else {
+                    // Or the (mutually exclusive) card memory compression delimiter
                     context = context.replaceAll("%@COM@%", "");
                 }
             }
@@ -7978,7 +7996,7 @@ description: {1 concise sentence narrative summary}
             clearTransientTitles();
             AC.database.titles.used = ["%@%"];
             for (const card of storyCards) {
-                // Perform some common sense maintenance while we're here
+                // Perform some common-sense maintenance while we're here
                 const coerce = (str) => (typeof str === "string") ? str : "";
                 card.keys = coerce(card.keys);
                 if (card.keys.includes("\"agent\"") || card.keys.includes("aidungeon")) {
@@ -7989,6 +8007,7 @@ description: {1 concise sentence narrative summary}
                 }
                 card.type = coerce(card.type).trim();
                 card.title = coerce(card.title).trim();
+                // card.keys should be left as-is
                 card.description = coerce(card.description).trim();
                 if (isExternal) {
                     O.s(card);
@@ -9623,7 +9642,7 @@ description: {1 concise sentence narrative summary}
             return end();
         }
         title = (title
-            // Inner Entity / Inner Self visual indicator prefix
+            // Inner Self / Inner Entity visual indicator prefix
             .slice(title.indexOf("\u200B") + 1)
             .replace(/[\u200B-\u200D]+/g, "")
             // Begone!
@@ -10129,8 +10148,13 @@ description: {1 concise sentence narrative summary}
     } else {
         return codomain;
     }
-} AutoCards(null); const EntityCards = AutoCards; try { globalThis.EntityCards = AutoCards; } catch (_) {} function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
+}
+if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity !== "function") {
+    AutoCards(null);
+}
+const EntityCards = AutoCards;
+try { globalThis.EntityCards = AutoCards; } catch (_) {}
+function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
 // Your other library scripts go here
 
-globalThis.EntityCards = AutoCards;

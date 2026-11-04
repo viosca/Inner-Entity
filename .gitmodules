@@ -1,0 +1,4 @@
+[submodule "submodules/Entity-Cards"]
+	path = submodules/Entity-Cards
+	url = https://github.com/viosca/Entity-Cards.git
+	branch = main

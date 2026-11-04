@@ -1,0 +1,62 @@
+name: Auto-Sync and Build Distribution Files
+
+on:
+  push:
+    branches:
+      - main
+      - inner-entity
+    paths:
+      - 'src/core.js'
+      - 'scripts/build.js'
+      - 'submodules/**'
+      - '.gitmodules'
+      - '.github/workflows/sync.yml'
+  workflow_dispatch:
+    inputs:
+      update_submodule:
+        description: 'Update Entity-Cards submodule to latest remote commit'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '0 6 * * 1' # Runs every Monday at 6:00 AM UTC
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update submodule if requested
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.update_submodule == 'true' }}
+        run: |
+          git submodule update --remote --merge
+
+      - name: Build Entity-Cards distribution (src/library.js)
+        run: node scripts/build.js --ec
+
+      - name: Build Classic Auto-Cards distribution (dist/inner-self-classic.js)
+        run: node scripts/build.js --ac
+
+      - name: Commit and push changes if any
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/library.js dist/inner-self-classic.js submodules/Entity-Cards
+          if git diff --staged --quiet; then
+            echo "No changes to commit. Everything is up-to-date."
+          else
+            git commit -m "chore(build): auto-sync distribution files [skip ci]"
+            git push
+          fi

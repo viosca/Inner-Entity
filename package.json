@@ -1,0 +1,24 @@
+{
+  "name": "inner-entity",
+  "version": "2.8.0",
+  "description": "Inner Entity: Inner Self character cognition with Named Entity Recognition (Entity Cards) and Optimized Context prompt caching for AI Dungeon",
+  "scripts": {
+    "build": "node scripts/build.js --ec",
+    "build:classic": "node scripts/build.js --ac",
+    "build:all": "node scripts/build.js --ec && node scripts/build.js --ac",
+    "submodule:update": "git submodule update --remote --merge"
+  },
+  "keywords": [
+    "ai-dungeon",
+    "inner-self",
+    "entity-cards",
+    "auto-cards",
+    "ner"
+  ],
+  "author": "Randy Viosca (@Random_Variable on AI Dungeon)",
+  "contributors": [
+    "LewdLeah",
+    "XloSky"
+  ],
+  "license": "MIT"
+}

@@ -147,6 +147,42 @@ globalThis.MainSettings = (class MainSettings {
 
 ---
 
+## Modular Architecture & Builds
+
+Inner Entity is designed with a **clean, decoupled architecture** separating the character cognition host (`src/core.js`) from the card generation engine via a Git submodule (`submodules/Entity-Cards`).
+
+### Available Distribution Files (No Node.js Required!)
+For players and creators, pre-assembled, single-file scripts are committed directly to the repository:
+- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) — Inner Self with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH, YAML schemas).
+- **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self with XloSky prompt caching + LewdLeah's official upstream Auto-Cards.
+
+### Automated GitHub Sync (100% Free)
+You never have to manually build scripts or install tools if you don't want to:
+- A cloud **GitHub Actions** workflow (`.github/workflows/sync.yml`) runs on GitHub's cloud.
+- Automatically compiles both distribution files whenever `src/core.js` or the submodule updates.
+- Under the **Actions** tab on GitHub, you can click **"Run workflow"** anytime to sync with the latest upstream commits directly from your browser.
+
+### Local Development & Build Commands
+If you are developing locally:
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/viosca/Inner-Entity.git
+
+# Build Entity-Cards version (src/library.js)
+npm run build
+
+# Build Classic Auto-Cards version (dist/inner-self-classic.js)
+npm run build:classic
+
+# Build both versions
+npm run build:all
+
+# Update the Entity-Cards submodule to latest remote commit
+npm run submodule:update
+```
+
+---
+
 ## Credits & Attributions
 
 - **LewdLeah:** Creator of the original **Inner Self** (January 3, 2026) and **Auto-Cards** (May 21, 2025). The architecture of segmented memories, autonomous reflection, and card synchronization is LewdLeah's foundational work.
