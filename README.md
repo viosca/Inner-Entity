@@ -153,7 +153,7 @@ Inner Entity is designed with a **clean, decoupled architecture** separating the
 
 ### Available Distribution Files (No Node.js Required!)
 For players and creators, pre-assembled, single-file scripts are committed directly to the repository:
-- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) — Inner Self character minds with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH schemas, YAML). (~498 KB)
+- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) or [`dist/inner-entity.js`](dist/inner-entity.js) — Inner Self character minds with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH schemas, YAML). (~498 KB)
 - **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self character minds with XloSky prompt caching + LewdLeah's official upstream Auto-Cards (prose & bullet lists). (~436 KB)
 - **Mind-Only (Pure Cognition):** [`dist/inner-self-minds-only.js`](dist/inner-self-minds-only.js) — Lightweight standalone character cognition with Optimized Context prompt caching and zero card engine code. (~132 KB)
 

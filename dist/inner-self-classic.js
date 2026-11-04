@@ -2898,7 +2898,7 @@ globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
 
 // ============================================================================
-// BUNDLED CARD ENGINE (AC)
+// BUNDLED CARD ENGINE (CLASSIC AUTO-CARDS)
 // ============================================================================
 
 // Your "Library" tab should look like this
@@ -2919,59 +2919,59 @@ function AutoCards(inHook, inText, inStop) {
     */
 
     // Is Auto-Cards already enabled when the adventure begins?
-    const DEFAULT_DO_AC = false
+    let DEFAULT_DO_AC = false
     // (true or false)
 
     // Pin the "Configure Auto-Cards" story card at the top of the player's story cards list?
-    const DEFAULT_PIN_CONFIGURE_CARD = true
+    let DEFAULT_PIN_CONFIGURE_CARD = true
     // (true or false)
 
     // Minimum number of turns in between automatic card generation events?
-    const DEFAULT_CARD_CREATION_COOLDOWN = 28
+    let DEFAULT_CARD_CREATION_COOLDOWN = 28
     // (0 to 9999)
 
     // Use a bulleted list format for newly generated card entries?
-    const DEFAULT_USE_BULLETED_LIST_MODE = true
+    let DEFAULT_USE_BULLETED_LIST_MODE = true
     // (true or false)
 
     // Maximum allowed length for newly generated story card entries?
-    const DEFAULT_GENERATED_ENTRY_LIMIT = 600
+    let DEFAULT_GENERATED_ENTRY_LIMIT = 600
     // (200 to 2000)
 
     // Do newly generated cards have memory updates enabled by default?
-    const DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES = true
+    let DEFAULT_NEW_CARDS_DO_MEMORY_UPDATES = true
     // (true or false)
 
     // Default character limit before the card's memory bank is summarized?
-    const DEFAULT_NEW_CARDS_MEMORY_LIMIT = 3200
+    let DEFAULT_NEW_CARDS_MEMORY_LIMIT = 3200
     // (1750 to 9900)
 
     // Approximately how much shorter should recently compressed memories be? (ratio = 10 * old / new)
-    const DEFAULT_MEMORY_COMPRESSION_RATIO = 25
+    let DEFAULT_MEMORY_COMPRESSION_RATIO = 25
     // (20 to 1250)
 
     // Ignore all-caps during title candidate detection?
-    const DEFAULT_IGNORE_ALL_CAPS_TITLES = true
+    let DEFAULT_IGNORE_ALL_CAPS_TITLES = true
     // (true or false)
 
     // Should player input actions (Do/Say/Story) be considered during title detection?
-    const DEFAULT_DETECT_TITLES_FROM_INPUTS = false
+    let DEFAULT_DETECT_TITLES_FROM_INPUTS = false
     // (true or false)
 
     // How many (minimum) actions in the past does Auto-Cards look for named entities?
-    const DEFAULT_MINIMUM_LOOK_BACK_DISTANCE = 5
+    let DEFAULT_MINIMUM_LOOK_BACK_DISTANCE = 5
     // (2 to 88)
 
     // Is Live Script Interface v2 enabled?
-    const DEFAULT_DO_LSI_V2 = false
+    let DEFAULT_DO_LSI_V2 = false
     // (true or false)
 
     // Should the "Debug Data" story card be visible?
-    const DEFAULT_SHOW_DEBUG_DATA = false
+    let DEFAULT_SHOW_DEBUG_DATA = false
     // (true or false)
 
     // AI prompt used to generate new story card entries?
-    const DEFAULT_CARD_GENERATION_PROMPT = prose(
+    let DEFAULT_CARD_GENERATION_PROMPT = prose(
         "-----",
         "",
         "<SYSTEM>",
@@ -2991,7 +2991,7 @@ function AutoCards(inHook, inText, inStop) {
     ); // (mimic this multi-line "text" format)
 
     // AI prompt used to summarize a given story card's memory bank?
-    const DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT = prose(
+    let DEFAULT_CARD_MEMORY_COMPRESSION_PROMPT = prose(
         "-----",
         "",
         "<SYSTEM>",
@@ -3013,19 +3013,28 @@ function AutoCards(inHook, inText, inStop) {
     ); // (mimic this multi-line "text" format)
 
     // Titles banned from future card generation attempts?
-    const DEFAULT_BANNED_TITLES_LIST = (
+    let DEFAULT_BANNED_TITLES_LIST = (
         "North, East, South, West, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, January, February, March, April, May, June, July, August, September, October, November, December"
     ); // (mimic this comma-list "text" format)
 
     // Default story card "type" used by Auto-Cards? (does not matter)
-    const DEFAULT_CARD_TYPE = "class"
+    let DEFAULT_CARD_TYPE = "class"
     // ("text")
 
     // Should titles mentioned in the "opening" plot component be banned from future card generation by default?
-    const DEFAULT_BAN_TITLES_FROM_OPENING = true
+    let DEFAULT_BAN_TITLES_FROM_OPENING = true
     // (true or false)
 
-    //—————————————————————————————————————————————————————————————————————————————————
+    
+    // Main settings override local settings
+    if (typeof globalThis.MainSettings === "function") {
+        const _ovr = {};
+        new MainSettings("AutoCards", "AC").merge(_ovr);
+        for (const [k, v] of Object.entries(_ovr)) {
+            try { eval(k + " = v;"); } catch (e) { /* ignore non-existent settings */ }
+        }
+    }
+//—————————————————————————————————————————————————————————————————————————————————
 
     /*
     Useful API functions for coders (otherwise ignore)
@@ -8404,7 +8413,7 @@ function AutoCards(inHook, inText, inStop) {
         ) {
             const pair = memoized.get(input);
             if (pair !== undefined) {
-                if (50000 < memoized.size) {
+                if (30000 < memoized.size) {
                     memoized.delete(input);
                     memoized.set(input, pair);
                 }
@@ -8897,7 +8906,13 @@ function AutoCards(inHook, inText, inStop) {
     } else {
         return codomain;
     }
-} AutoCards(null); function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
+}
+if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity !== "function") {
+    AutoCards(null);
+}
+globalThis.AutoCards = AutoCards;
+globalThis.EntityCards = AutoCards;
+function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
 // Your other library scripts go here
 

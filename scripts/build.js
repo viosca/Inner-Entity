@@ -34,6 +34,52 @@ function fetchHttps(url) {
     });
 }
 
+function bridgeClassicAutoCards(rawCode) {
+    console.log("   Bridging upstream Auto-Cards for Inner-Self & MainSettings compatibility...");
+    let code = rawCode;
+
+    // 1. Scoped let instead of const DEFAULT_
+    code = code.replace(/const DEFAULT_/g, "let DEFAULT_");
+
+    // 2. Insert MainSettings override block before divider
+    const divider = "//—————————————————————————————————————————————————————————————————————————————————";
+    const msBlock = `
+    // Main settings override local settings
+    if (typeof globalThis.MainSettings === "function") {
+        const _ovr = {};
+        new MainSettings("AutoCards", "AC").merge(_ovr);
+        for (const [k, v] of Object.entries(_ovr)) {
+            try { eval(k + " = v;"); } catch (e) { /* ignore non-existent settings */ }
+        }
+    }
+${divider}`;
+
+    if (code.includes(divider)) {
+        code = code.replace(divider, msBlock);
+    }
+
+    // 3. Align cache cap to 30000 for QuickJS memory optimization
+    code = code.replace("if (50000 < memoized.size) {", "if (30000 < memoized.size) {");
+
+    // 4. Update trailing invocation and global export
+    const trailingOld = "} AutoCards(null); function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }";
+    const trailingNew = `}
+if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity !== "function") {
+    AutoCards(null);
+}
+globalThis.AutoCards = AutoCards;
+globalThis.EntityCards = AutoCards;
+function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }`;
+
+    if (code.includes(trailingOld)) {
+        code = code.replace(trailingOld, trailingNew);
+    } else {
+        code = code.replace(/} AutoCards\(null\);[\s\S]*$/, trailingNew);
+    }
+
+    return code;
+}
+
 async function loadEngine(engine) {
     if (engine === "minds" || engine === "none") {
         return null;
@@ -41,7 +87,8 @@ async function loadEngine(engine) {
 
     if (engine === "ac") {
         console.log("   Fetching LewdLeah/Auto-Cards upstream via HTTPS...");
-        return await fetchHttps(AC_REMOTE_URL);
+        const rawAC = await fetchHttps(AC_REMOTE_URL);
+        return bridgeClassicAutoCards(rawAC);
     }
 
     // Default: Entity-Cards (via submodule, sibling repo, or HTTPS)
@@ -74,7 +121,7 @@ async function buildTarget(engine) {
     const coreCode = fs.readFileSync(CORE_PATH, "utf8").trimEnd();
 
     let combined;
-    let outPath;
+    let outPaths = [];
 
     if (!fs.existsSync(DIST_DIR)) {
         fs.mkdirSync(DIST_DIR, { recursive: true });
@@ -82,11 +129,16 @@ async function buildTarget(engine) {
 
     if (engine === "minds" || engine === "none") {
         combined = `${coreCode}\n`;
-        outPath = path.join(DIST_DIR, "inner-self-minds-only.js");
+        outPaths = [path.join(DIST_DIR, "inner-self-minds-only.js")];
+    } else if (engine === "ac") {
+        const engineCode = (await loadEngine(engine)).trimStart();
+        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (CLASSIC AUTO-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
+        outPaths = [path.join(DIST_DIR, "inner-self-classic.js")];
     } else {
         const engineCode = (await loadEngine(engine)).trimStart();
-        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (${engine.toUpperCase()})\n// ============================================================================\n\n${engineCode}\n`;
-        outPath = (engine === "ac") ? path.join(DIST_DIR, "inner-self-classic.js") : OUTPUT_PATH;
+        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (ENTITY-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
+        // Flagship outputs to BOTH src/library.js (AID tab standard) and dist/inner-entity.js (dist lineup)
+        outPaths = [OUTPUT_PATH, path.join(DIST_DIR, "inner-entity.js")];
     }
 
     // Syntax validation
@@ -98,11 +150,13 @@ async function buildTarget(engine) {
         process.exit(1);
     }
 
-    fs.writeFileSync(outPath, combined, "utf8");
     const lineCount = combined.split("\n").length;
     const sizeKb = (Buffer.byteLength(combined, "utf8") / 1024).toFixed(1);
 
-    console.log(`   ✔ Wrote ${path.relative(ROOT_DIR, outPath)} (${lineCount.toLocaleString()} lines, ${sizeKb} KB)`);
+    for (const p of outPaths) {
+        fs.writeFileSync(p, combined, "utf8");
+        console.log(`   ✔ Wrote ${path.relative(ROOT_DIR, p)} (${lineCount.toLocaleString()} lines, ${sizeKb} KB)`);
+    }
     console.log("=== Target complete! ===\n");
 }
 
@@ -120,11 +174,11 @@ async function main() {
     }
 
     if (isAll) {
-        console.log("Building all 3 distribution targets...\n");
+        console.log("Building all distribution targets...\n");
         await buildTarget("ec");
         await buildTarget("ac");
         await buildTarget("minds");
-        console.log("All 3 targets built successfully!");
+        console.log("All targets built successfully!");
     } else {
         await buildTarget(engine);
     }

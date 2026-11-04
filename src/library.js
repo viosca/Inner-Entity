@@ -2898,7 +2898,7 @@ globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
 
 // ============================================================================
-// BUNDLED CARD ENGINE (EC)
+// BUNDLED CARD ENGINE (ENTITY-CARDS)
 // ============================================================================
 
 /// <reference no-default-lib="true"/>
