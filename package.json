@@ -7,7 +7,9 @@
     "build:classic": "node scripts/build.js --ac",
     "build:minds": "node scripts/build.js --minds",
     "build:all": "node scripts/build.js --all",
-    "submodule:update": "git submodule update --remote --merge"
+    "submodule:update": "git submodule update --remote --merge",
+    "test": "node unittest/test_lifecycle.js",
+    "test:openrouter": "node unittest/test_openrouter.js"
   },
   "keywords": [
     "ai-dungeon",

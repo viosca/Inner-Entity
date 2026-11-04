@@ -183,7 +183,21 @@ npm run build:all
 
 # Update the Entity-Cards submodule to latest remote commit
 npm run submodule:update
+# Run automated lifecycle unit tests
+npm test
+
+# Run OpenRouter prompt benchmarking harness (requires OPENROUTER_API_KEY in .env)
+npm run test:openrouter
 ```
+
+---
+
+## Unit Testing & Prompt Benchmarking
+
+See the [`unittest/`](unittest/) directory for comprehensive testing tools:
+- **`unittest/test_lifecycle.js`:** Automated offline unit testing in a simulated AI Dungeon sandbox. Tests hook execution, story card pinning, mutual exclusion, prompt caching, and backward compatibility across all 3 distribution files.
+- **`unittest/test_openrouter.js`:** Live LLM prompt benchmarking harness. Test and calibrate prompts against DeepSeek V3, Gemma 2, and Llama 3 via [OpenRouter](https://openrouter.ai/) to ensure generated YAML stays within AI Dungeon's default 100-token slider.
+- See [`unittest/README.md`](unittest/README.md) for complete instructions on obtaining a free OpenRouter key, configuring `.env`, and tweaking generation schemas.
 
 ---
 

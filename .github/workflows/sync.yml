@@ -46,6 +46,9 @@ jobs:
       - name: Build all distribution targets (EC, AC, Minds-Only)
         run: node scripts/build.js --all
 
+      - name: Run automated unit tests
+        run: node unittest/test_lifecycle.js
+
       - name: Commit and push changes if any
         run: |
           git config user.name "github-actions[bot]"
