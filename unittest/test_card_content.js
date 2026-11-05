@@ -437,7 +437,7 @@ atmosphere: Perpetual neon haze blankets the lower wards.`;
     console.log("   ✔ Test 8 passed: dist/inner-self-classic.js routes Classic Auto-Cards prompt via Auto-Cards Task Card under Optimize Context");
 }
 
-// Test 9: /ec Molly -p parses cleanly across AI Dungeon Say/Do/Story modes, quotes, smart dashes, and trailing punctuation (never "Molly -P")
+// Test 9: /ec Molly -p and prefix flags (-p Molly) parse cleanly across AI Dungeon Say/Do/Story modes, quotes, smart dashes, and trailing punctuation (never "Molly -P")
 {
     const cases = [
         { input: '\n> You say, "/ec Molly -p."\n', expectedTitle: "Molly", expectedType: "Person" },
@@ -447,6 +447,14 @@ atmosphere: Perpetual neon haze blankets the lower wards.`;
         { input: '/ec Molly –p', expectedTitle: "Molly", expectedType: "Person" },
         { input: '/ec Molly —person.', expectedTitle: "Molly", expectedType: "Person" },
         { input: '/ec -loc Neo-Tokyo', expectedTitle: "Neo-Tokyo", expectedType: "Location" },
+        { input: '/ec -p Molly', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec --person Molly', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec -who Molly', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec -t Excalibur', expectedTitle: "Excalibur", expectedType: "Thing" },
+        { input: '\n> Joe says, "/ec -p Molly."\n', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '[AI: polish] Author as Joe says, “/ec -loc Citadel!”', expectedTitle: "Citadel", expectedType: "Location" },
+        { input: 'Joe says, "/ec -o Arasaka / Cyberpunk Megacorp."', expectedTitle: "Arasaka", expectedType: "Organization" },
+        { input: 'Joe says, "/ec -p Molly." and winks.', expectedTitle: "Molly", expectedType: "Person" },
         { input: '/ec Spider-Man', expectedTitle: "Spider-Man", expectedType: null }
     ];
 
