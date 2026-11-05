@@ -61,19 +61,113 @@ ${divider}`;
     // 3. Align cache cap to 30000 for QuickJS memory optimization
     code = code.replace("if (50000 < memoized.size) {", "if (30000 < memoized.size) {");
 
-    // 3b. Bridge state.InnerSelf.AC.event signal during classic Auto-Cards generation/compression
+    // 3b. Bridge state.InnerSelf.AC.event signal and Optimize Context task card routing
+    code = code.replace(
+        "const Internal = hoistInternal();",
+        "const Internal = hoistInternal();\n    const AC_OC_CARD_TITLE = \"\\uD83D\\uDDC2\\uFE0F Auto-Cards Task — do not edit\";"
+    );
     code = code.replace(
         /if\s*\(isGenerating\)\s*\{\s*\/\/[^\n]*\s*context\s*=\s*context\.replaceAll\("%@GEN@%",\s*""\);\s*\}\s*else\s+if\s*\(isCompressing\)\s*\{\s*\/\/[^\n]*\s*context\s*=\s*context\.replaceAll\("%@COM@%",\s*""\);\s*\}/,
         `if (isGenerating || isCompressing) {
                 state.InnerSelf ??= {};
                 state.InnerSelf.AC ??= {};
                 state.InnerSelf.AC.event = true;
-                if (isGenerating) {
-                    context = context.replaceAll("%@GEN@%", "");
+                const delim = isGenerating ? "%@GEN@%" : "%@COM@%";
+                const delimIdx = context.lastIndexOf(delim);
+                const activeTaskPrompt = (delimIdx !== -1) ? context.slice(delimIdx + delim.length) : "";
+                context = context.replaceAll(delim, "");
+                if (isCacheEfficient()) {
+                    const targetTitle = isGenerating ? AC.generation.workpiece.title : AC.compression.vanityTitle;
+                    writeOCTaskCard(formatOCTaskPrompt(activeTaskPrompt), targetTitle, TEXT);
                 } else {
-                    context = context.replaceAll("%@COM@%", "");
+                    deactivateOCTaskCard();
                 }
+            } else {
+                deactivateOCTaskCard();
             }`
+    );
+    code = code.replace("if (generationsRemaining <= 0) {", "if (generationsRemaining <= 0) {\n                    deactivateOCTaskCard();");
+    code = code.replace("if (compressionsRemaining <= 0) {", "if (compressionsRemaining <= 0) {\n                    deactivateOCTaskCard();");
+    code = code.replace(
+        "for (const card of storyCards) {\n                // Perform some common-sense maintenance while we're here",
+        `for (const card of storyCards) {
+                if (card && (String(card.keys || "").includes("\\"agent\\"") || /task\\s*[—–-]\\s*do\\s*not\\s*edit/i.test(String(card.title || "")))) {
+                    continue;
+                }
+                // Perform some common-sense maintenance while we're here`
+    );
+    code = code.replace(
+        "// This is the only return point within the parent scope of AutoCards",
+        `function isCacheEfficient() {
+        try { return info?.useCacheEfficient === true; } catch (_) { return false; }
+    }
+    function buildOCTaskKeys(targetTitle, sourceText) {
+        const keySet = new Set();
+        const addKey = (k) => {
+            const clean = String(k || "").replace(/[,\\\\"\\n\\r]+/g, " ").trim().toLowerCase();
+            if (clean.length >= 2 && clean.length <= 40) keySet.add(clean);
+        };
+        if (targetTitle) {
+            addKey(targetTitle);
+            for (const part of String(targetTitle).split(/\\s+/)) {
+                if (part.length >= 3) addKey(part);
+            }
+        }
+        if (typeof sourceText === "string" && sourceText.trim() !== "") {
+            const words = sourceText.slice(-1200).match(/[a-zA-Z]{3,20}/g) || [];
+            for (let i = words.length - 1; i >= 0 && keySet.size < 14; i--) addKey(words[i]);
+        }
+        for (const common of ["the", "a", "an", "you", "and", "to", "of", "it", "is", "was", "in", "on", "aidungeon"]) {
+            keySet.add(common);
+        }
+        return Array.from(keySet).join(",");
+    }
+    function writeOCTaskCard(body, targetTitle, sourceText) {
+        try {
+            if (!Array.isArray(storyCards)) return;
+            const cleanBody = String(body || "").trim();
+            if (cleanBody === "") { deactivateOCTaskCard(); return; }
+            const keys = buildOCTaskKeys(targetTitle, sourceText);
+            let card = storyCards.find(c => c && c.title === AC_OC_CARD_TITLE);
+            if (!card) {
+                addStoryCard("%@%");
+                const idx = storyCards.findIndex(c => c && (c.title === "%@%" || c.keys === "%@%"));
+                if (idx !== -1) card = storyCards[idx];
+            }
+            if (!card || typeof card !== "object") return;
+            card.type = card.type || "class";
+            card.title = AC_OC_CARD_TITLE;
+            card.keys = keys;
+            card.entry = cleanBody;
+            card.description = "[Auto-Cards Optimize Context Task] Active for \\"" + String(targetTitle || "") + "\\".";
+        } catch (_) {}
+    }
+    function deactivateOCTaskCard() {
+        try {
+            if (!Array.isArray(storyCards)) return;
+            for (const card of storyCards) {
+                if (!card || card.title !== AC_OC_CARD_TITLE || (card.keys === "" && card.entry === "")) continue;
+                card.keys = "";
+                card.entry = "";
+                card.description = "Inactive. Safe to delete.";
+            }
+        } catch (_) {}
+    }
+    function formatOCTaskPrompt(rawTaskPrompt) {
+        const prompt = String(rawTaskPrompt || "").replace(/^\\s*-{3,}\\s*/, "").trim();
+        if (prompt === "") return "";
+        const STAMP = "// Auto-Cards OC\\n";
+        const OVERRIDE_FOOTER = "\\n\\n# IMPORTANT: Pause story narration and dialogue for this turn only. Output ONLY the requested response.";
+        const sysCloseIdx = prompt.toUpperCase().lastIndexOf("</SYSTEM>");
+        if (sysCloseIdx !== -1) {
+            const insideSys = prompt.slice(0, sysCloseIdx).trimEnd();
+            const afterSys = prompt.slice(sysCloseIdx + "</SYSTEM>".length).trim();
+            const tailSection = afterSys ? "\\n\\n" + afterSys : "";
+            return STAMP + insideSys + tailSection + OVERRIDE_FOOTER + "\\n</SYSTEM>";
+        }
+        return STAMP + "<SYSTEM>\\n" + prompt + OVERRIDE_FOOTER + "\\n</SYSTEM>";
+    }
+    // This is the only return point within the parent scope of AutoCards`
     );
 
     // 4. Update trailing invocation and global export

@@ -1370,80 +1370,8 @@ function InnerSelf(hook) {
             }
         }
         const unzero = () => ((text = text.replace(/[\u200B-\u200D]+/g, "") || " "), (IS.encoding = ""));
-        // ── OPTIMIZED CONTEXT ────────────────────────────────────────────
-        // Measured live on 2026-09-02, toggling the setting on and off inside
-        // one adventure: AI Dungeon's Optimized Context runs the context hook
-        // and lets a script read info.maxChars — which doubles — and then
-        // DISCARDS whatever the hook returns. Inner Self asks for a thought by
-        // rewriting that returned text, so with the setting on the request
-        // never reaches the model and thoughts stop completely. No error, no
-        // failed operation, nothing on the brain card: just silence.
-        //
-        // Story cards DO still reach the model, confirmed by a token echoed
-        // back from a card entry with the setting on. So the request travels on
-        // one instead. The story is already in the context; only the directive,
-        // the brain block and the format rules have to move.
-        //
-        // The card is keyed on ordinary words because AI Dungeon includes cards
-        // "based on how recently and frequently their triggers were used" — a
-        // card with NO keys is never matched, which is why clearing `keys` is
-        // what deactivates one elsewhere in this script.
-        const OC_BUILD = globalThis.INNER_SELF_OC_BUILD;
-        const THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Entity Task — do not edit";
-        const LEGACY_THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Self Task — do not edit";
-        const EC_TASK_CARD_TITLE = "\uD83D\uDDC2\uFE0F Entity Cards Task — do not edit";
-        const THOUGHT_CARD_KEYS = "the,a,an,you,and,to,of,it,is,was,in,on,aidungeon";
-        const cacheEfficient = () => {
-            try { return info.useCacheEfficient === true; } catch (error) { return false; }
-        };
-        const deactivateThoughtCard = () => {
-            try {
-                const card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE || (c.title || "") === LEGACY_THOUGHT_CARD_TITLE);
-                if (!card || ((card.keys === "") && (card.entry === ""))) {
-                    return;
-                }
-                card.keys = "";
-                card.entry = "";
-                card.description = `[build ${OC_BUILD}] route=context`
-                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}\n`
-                    + "Inactive. Only used while AI Dungeon's Optimized Context setting is on. Safe to delete.";
-            } catch (error) { /* bookkeeping must never break the turn */ }
-        };
-        const writeThoughtCard = (body = "") => {
-            try {
-                if (String(body || "").trim() === "") {
-                    deactivateThoughtCard();
-                    return;
-                }
-                let card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE || (c.title || "") === LEGACY_THOUGHT_CARD_TITLE);
-                if (!card) {
-                    addStoryCard(THOUGHT_CARD_KEYS, "", "class", THOUGHT_CARD_TITLE, "");
-                    card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE);
-                }
-                if (!card) {
-                    return;
-                }
-                card.entry = `// Inner Self ${OC_BUILD}\n${String(body)}`.slice(0, 2000);
-                card.keys = THOUGHT_CARD_KEYS;
-                card.title = THOUGHT_CARD_TITLE;
-                card.description = `[build ${OC_BUILD}] triggers=${IS.triggers || "?"} route=card`
-                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}`
-                    + ` entry=${String(body).length + OC_BUILD.length + 18}chars\n`
-                    + "Written automatically every turn so Inner Self can ask for a thought while"
-                    + " AI Dungeon's Optimized Context setting is on, which stops scripts adding to the context."
-                    + " Editing this does nothing; it is overwritten each turn. Deleting it stops thoughts.";
-                // PINNING, if this build of AI Dungeon has it.
-                for (const name of ["pinned", "isPinned", "pin", "sticky", "alwaysOn", "alwaysActive"]) {
-                    if (storyCards.some(c => c && (typeof c[name] === "boolean"))) {
-                        card[name] = true;
-                        break;
-                    }
-                }
-            } catch (error) { /* bookkeeping must never break the turn */ }
-        };
         // Handle Auto-Cards integration when enabled
         if (config.auto && hasAutoCards()) {
-            let preACText = text;
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
@@ -1457,12 +1385,6 @@ function InnerSelf(hook) {
                         "Configure Inner Self",
                         "Configure Entity Cards",
                         "Configure Auto-Cards",
-                        THOUGHT_CARD_TITLE,
-                        LEGACY_THOUGHT_CARD_TITLE,
-                        EC_TASK_CARD_TITLE,
-                        "Entity Cards Task",
-                        "Inner Entity Task",
-                        "Inner Self Task",
                         "Agent",
                         ...api.getBannedTitles(),
                     ]);
@@ -1470,37 +1392,14 @@ function InnerSelf(hook) {
                 // Run AC's context branch
                 getAutoCards()(null);
                 IS.AC.event = false;
-                preACText = text;
                 [text, stop] = getAutoCards()("context", text, stop);
             } catch (error) {
                 log(error.message);
             }
             IS.AC.enabled = true;
             if (IS.AC.event || (stop === true)) {
-                if (IS.AC.event && cacheEfficient()) {
-                    const hasActiveECTaskCard = Array.isArray(storyCards) && storyCards.some(
-                        c => c && (c.title || "") === EC_TASK_CARD_TITLE && c.entry && c.keys
-                    );
-                    if (hasActiveECTaskCard) {
-                        deactivateThoughtCard();
-                    } else {
-                        // Fallback for classic Auto-Cards builds that only append prompts to context text
-                        const sysIdx = text.lastIndexOf("<SYSTEM>");
-                        if (sysIdx !== -1 && sysIdx >= Math.max(0, preACText.trimEnd().length - 50)) {
-                            const extractedPrompt = text.slice(sysIdx).trim();
-                            const classicOCPrompt = "<SYSTEM>\n# SYSTEM OVERRIDE — PAUSE STORY FOR THIS TURN ONLY\n"
-                                + "Ignore story continuation and Author's Notes this turn. Do NOT write story dialogue or second-person narration.\n"
-                                + extractedPrompt.replace(/^<SYSTEM>\s*/i, "")
-                                + (!extractedPrompt.includes("</SYSTEM>") ? "\n</SYSTEM>" : "");
-                            writeThoughtCard(classicOCPrompt.slice(0, 1950));
-                        } else {
-                            deactivateThoughtCard();
-                        }
-                    }
-                } else {
-                    deactivateThoughtCard();
-                }
                 // If AC triggered an event or stop, we're done here
+                deactivateThoughtCard();
                 config.allow ? unzero() : ((IS.encoding = ""), (text ||= " "));
                 return;
             }
@@ -1522,7 +1421,7 @@ function InnerSelf(hook) {
                     "Configure \nAuto-Cards",
                     "Configure \nEntity Cards",
                     "Edit to enable \nAuto-Cards",
-                    EC_TASK_CARD_TITLE
+                    "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit"
                 ] }, { key: "keys", options: [
                     "Edit the entry above to adjust your story card automation settings",
                     "Edit the entry above to adjust your Entity Cards settings and templates",
@@ -1870,6 +1769,95 @@ function InnerSelf(hook) {
          * Generates a simple PoV directive for non-task turns
          * @returns {string} System prompt for PoV guidance
          */
+        // ── OPTIMIZED CONTEXT ────────────────────────────────────────────
+        // Measured live on 2026-09-02, toggling the setting on and off inside
+        // one adventure: AI Dungeon's Optimized Context runs the context hook
+        // and lets a script read info.maxChars — which doubles — and then
+        // DISCARDS whatever the hook returns. Inner Self asks for a thought by
+        // rewriting that returned text, so with the setting on the request
+        // never reaches the model and thoughts stop completely. No error, no
+        // failed operation, nothing on the brain card: just silence.
+        //
+        // Story cards DO still reach the model, confirmed by a token echoed
+        // back from a card entry with the setting on. So the request travels on
+        // one instead. The story is already in the context; only the directive,
+        // the brain block and the format rules have to move.
+        //
+        // The card is keyed on ordinary words because AI Dungeon includes cards
+        // "based on how recently and frequently their triggers were used" — a
+        // card with NO keys is never matched, which is why clearing `keys` is
+        // what deactivates one elsewhere in this script.
+        const OC_BUILD = globalThis.INNER_SELF_OC_BUILD;
+        const THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Entity Task — do not edit";
+        const LEGACY_THOUGHT_CARD_TITLE = "\uD83E\uDDE0 Inner Self Task — do not edit";
+        const THOUGHT_CARD_KEYS = "the,a,an,you,and,to,of,it,is,was,in,on,aidungeon";
+        const cacheEfficient = () => {
+            try { return info.useCacheEfficient === true; } catch (error) { return false; }
+        };
+        const writeThoughtCard = (body = "") => {
+            try {
+                if (String(body || "").trim() === "") {
+                    deactivateThoughtCard();
+                    return;
+                }
+                let card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE || (c.title || "") === LEGACY_THOUGHT_CARD_TITLE);
+                if (!card) {
+                    addStoryCard(THOUGHT_CARD_KEYS, "", "class", THOUGHT_CARD_TITLE, "");
+                    card = storyCards.find(c => (c.title || "") === THOUGHT_CARD_TITLE);
+                }
+                if (!card) {
+                    return;
+                }
+                card.entry = `// Inner Self ${OC_BUILD}\n${String(body)}`;
+                card.keys = THOUGHT_CARD_KEYS;
+                card.title = THOUGHT_CARD_TITLE;
+                card.description = `[build ${OC_BUILD}] triggers=${IS.triggers || "?"} route=card`
+                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}`
+                    + ` entry=${String(body).length + OC_BUILD.length + 18}chars\n`
+                    + "Written automatically every turn so Inner Self can ask for a thought while"
+                    + " AI Dungeon's Optimized Context setting is on, which stops scripts adding to the context."
+                    + " Editing this does nothing; it is overwritten each turn. Deleting it stops thoughts.";
+                // PINNING, if this build of AI Dungeon has it.
+                //
+                // A pinned card stops competing for the story-card allowance and
+                // cannot be crowded out of a full context, which is exactly the
+                // failure this card is most exposed to. But the property's real
+                // name is undocumented and may not exist at all, so this NEVER
+                // invents a field — an unknown key could confuse whatever
+                // serialises these cards. It looks at cards AI Dungeon itself
+                // made, finds a boolean whose name reads like a pin, and sets
+                // that one. If none exists this does nothing and the trigger
+                // words carry the card exactly as before.
+                for (const name of ["pinned", "isPinned", "pin", "sticky", "alwaysOn", "alwaysActive"]) {
+                    if (storyCards.some(c => c && (typeof c[name] === "boolean"))) {
+                        card[name] = true;
+                        break;
+                    }
+                }
+            } catch (error) { /* bookkeeping must never break the turn */ }
+        };
+        // Called on every turn the setting is OFF or when no thought task is issued.
+        //
+        // Without this, a card left over from a session with the setting ON is
+        // never touched again: it keeps its common-word triggers — the, a, an,
+        // you — so it is matched into EVERY turn, and whatever stale text it
+        // holds goes on reaching the model forever while the script itself looks
+        // perfectly healthy. Clearing `keys` is how this script already
+        // deactivates a card elsewhere.
+        function deactivateThoughtCard() {
+            try {
+                const ocBuild = globalThis.INNER_SELF_OC_BUILD;
+                const card = storyCards.find(c => (c.title || "") === "\uD83E\uDDE0 Inner Entity Task — do not edit" || (c.title || "") === "\uD83E\uDDE0 Inner Self Task — do not edit");
+                if (!card || ((card.keys === "") && (card.entry === ""))) {
+                    return;
+                }
+                card.keys = "";
+                card.entry = "";
+                card.description = `[build ${ocBuild}] route=context`
+                    + ` useCacheEfficient=${(() => { try { return String(info.useCacheEfficient); } catch (e) { return "unreadable"; } })()}\n`
+                    + "Inactive. Only used while AI Dungeon's Optimized Context setting is on. Safe to delete.";
+            } catch (error) { /* bookkeeping must never break the turn */ }
+        }
         const nondirective = () => (
             `<SYSTEM>\n# Always continue the story from ${ownership(config.player)} ${pov} person perspective.\n</SYSTEM>`
         );
@@ -3420,6 +3408,7 @@ function AutoCards(inHook, inText, inStop) {
     const Words = hoistWords();
     const StringsHashed = hoistStringsHashed();
     const Internal = hoistInternal();
+    const AC_OC_CARD_TITLE = "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit";
     // AutoCards has an explicitly immutable domain: HOOK, TEXT, and STOP
     const HOOK = inHook;
     const TEXT = ((typeof inText === "string") && inText) || "\n";
@@ -5793,11 +5782,18 @@ function AutoCards(inHook, inText, inStop) {
                 state.InnerSelf ??= {};
                 state.InnerSelf.AC ??= {};
                 state.InnerSelf.AC.event = true;
-                if (isGenerating) {
-                    context = context.replaceAll("%@GEN@%", "");
+                const delim = isGenerating ? "%@GEN@%" : "%@COM@%";
+                const delimIdx = context.lastIndexOf(delim);
+                const activeTaskPrompt = (delimIdx !== -1) ? context.slice(delimIdx + delim.length) : "";
+                context = context.replaceAll(delim, "");
+                if (isCacheEfficient()) {
+                    const targetTitle = isGenerating ? AC.generation.workpiece.title : AC.compression.vanityTitle;
+                    writeOCTaskCard(formatOCTaskPrompt(activeTaskPrompt), targetTitle, TEXT);
                 } else {
-                    context = context.replaceAll("%@COM@%", "");
+                    deactivateOCTaskCard();
                 }
+            } else {
+                deactivateOCTaskCard();
             }
             CODOMAIN.initialize(context);
             function isolateMemories(memoriesText) {
@@ -6095,6 +6091,7 @@ function AutoCards(inHook, inText, inStop) {
                     AC.generation.completed + generationsRemaining
                 ));
                 if (generationsRemaining <= 0) {
+                    deactivateOCTaskCard();
                     notify("\"" + AC.generation.workpiece.title + "\" was successfully added to your story cards!");
                     constructCard(O.f({
                         type: AC.generation.workpiece.type,
@@ -6180,6 +6177,7 @@ function AutoCards(inHook, inText, inStop) {
                 })();
                 postOutputMessage(textClone, AC.compression.completed / (AC.compression.completed + compressionsRemaining));
                 if (compressionsRemaining <= 0) {
+                    deactivateOCTaskCard();
                     const card = getAutoCard(AC.compression.titleKey);
                     if (card === null) {
                         notify(
@@ -7168,6 +7166,9 @@ function AutoCards(inHook, inText, inStop) {
             clearTransientTitles();
             AC.database.titles.used = ["%@%"];
             for (const card of storyCards) {
+                if (card && (String(card.keys || "").includes("\"agent\"") || /task\s*[—–-]\s*do\s*not\s*edit/i.test(String(card.title || "")))) {
+                    continue;
+                }
                 // Perform some common-sense maintenance while we're here
                 card.type = card.type.trim();
                 card.title = card.title.trim();
@@ -8923,6 +8924,75 @@ function AutoCards(inHook, inText, inStop) {
             }
             return;
         }
+    }
+    function isCacheEfficient() {
+        try { return info?.useCacheEfficient === true; } catch (_) { return false; }
+    }
+    function buildOCTaskKeys(targetTitle, sourceText) {
+        const keySet = new Set();
+        const addKey = (k) => {
+            const clean = String(k || "").replace(/[,\\"\n\r]+/g, " ").trim().toLowerCase();
+            if (clean.length >= 2 && clean.length <= 40) keySet.add(clean);
+        };
+        if (targetTitle) {
+            addKey(targetTitle);
+            for (const part of String(targetTitle).split(/\s+/)) {
+                if (part.length >= 3) addKey(part);
+            }
+        }
+        if (typeof sourceText === "string" && sourceText.trim() !== "") {
+            const words = sourceText.slice(-1200).match(/[a-zA-Z]{3,20}/g) || [];
+            for (let i = words.length - 1; i >= 0 && keySet.size < 14; i--) addKey(words[i]);
+        }
+        for (const common of ["the", "a", "an", "you", "and", "to", "of", "it", "is", "was", "in", "on", "aidungeon"]) {
+            keySet.add(common);
+        }
+        return Array.from(keySet).join(",");
+    }
+    function writeOCTaskCard(body, targetTitle, sourceText) {
+        try {
+            if (!Array.isArray(storyCards)) return;
+            const cleanBody = String(body || "").trim();
+            if (cleanBody === "") { deactivateOCTaskCard(); return; }
+            const keys = buildOCTaskKeys(targetTitle, sourceText);
+            let card = storyCards.find(c => c && c.title === AC_OC_CARD_TITLE);
+            if (!card) {
+                addStoryCard("%@%");
+                const idx = storyCards.findIndex(c => c && (c.title === "%@%" || c.keys === "%@%"));
+                if (idx !== -1) card = storyCards[idx];
+            }
+            if (!card || typeof card !== "object") return;
+            card.type = card.type || "class";
+            card.title = AC_OC_CARD_TITLE;
+            card.keys = keys;
+            card.entry = cleanBody;
+            card.description = "[Auto-Cards Optimize Context Task] Active for \"" + String(targetTitle || "") + "\".";
+        } catch (_) {}
+    }
+    function deactivateOCTaskCard() {
+        try {
+            if (!Array.isArray(storyCards)) return;
+            for (const card of storyCards) {
+                if (!card || card.title !== AC_OC_CARD_TITLE || (card.keys === "" && card.entry === "")) continue;
+                card.keys = "";
+                card.entry = "";
+                card.description = "Inactive. Safe to delete.";
+            }
+        } catch (_) {}
+    }
+    function formatOCTaskPrompt(rawTaskPrompt) {
+        const prompt = String(rawTaskPrompt || "").replace(/^\s*-{3,}\s*/, "").trim();
+        if (prompt === "") return "";
+        const STAMP = "// Auto-Cards OC\n";
+        const OVERRIDE_FOOTER = "\n\n# IMPORTANT: Pause story narration and dialogue for this turn only. Output ONLY the requested response.";
+        const sysCloseIdx = prompt.toUpperCase().lastIndexOf("</SYSTEM>");
+        if (sysCloseIdx !== -1) {
+            const insideSys = prompt.slice(0, sysCloseIdx).trimEnd();
+            const afterSys = prompt.slice(sysCloseIdx + "</SYSTEM>".length).trim();
+            const tailSection = afterSys ? "\n\n" + afterSys : "";
+            return STAMP + insideSys + tailSection + OVERRIDE_FOOTER + "\n</SYSTEM>";
+        }
+        return STAMP + "<SYSTEM>\n" + prompt + OVERRIDE_FOOTER + "\n</SYSTEM>";
     }
     // This is the only return point within the parent scope of AutoCards
     if (stopPackaged === false) {

@@ -239,25 +239,24 @@ ENTITY_END`;
 
     // CRITICAL SIMULATION: AI Dungeon DISCARDS sandbox.text returned by contextModifier when useCacheEfficient === true!
     // The model ONLY receives storyCards whose keys match words in originalStoryContext!
-    const ecTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Entity Cards Task — do not edit");
-    assert(ecTaskCard, "Entity Cards OC Task Card must be created when useCacheEfficient === true");
-    assert(ecTaskCard.keys.length > 0, "Entity Cards OC Task Card must have active trigger keys");
-    assert(ecTaskCard.entry.length > 0 && ecTaskCard.entry.length <= 2000,
-        `OC Task Card entry must be 1..2000 chars (got ${ecTaskCard.entry.length})`);
-    assert(ecTaskCard.entry.startsWith("// Entity Cards OC"), "OC Task Card must carry EC OC header stamp");
-    assert(ecTaskCard.entry.includes("<SYSTEM>") && ecTaskCard.entry.trimEnd().endsWith("</SYSTEM>"),
+    const acTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit");
+    assert(acTaskCard, "Auto-Cards OC Task Card must be created when useCacheEfficient === true");
+    assert(acTaskCard.keys.length > 0, "Auto-Cards OC Task Card must have active trigger keys");
+    assert(acTaskCard.entry.startsWith("// Auto-Cards OC"), "OC Task Card must carry generic Auto-Cards OC header stamp");
+    assert(acTaskCard.entry.includes("<SYSTEM>") && acTaskCard.entry.trimEnd().endsWith("</SYSTEM>"),
         "OC Task Card must have intact <SYSTEM>...</SYSTEM> tags without truncation");
-    assert(ecTaskCard.entry.includes("Target Entity Type: Location"), "OC Task Card must narrow to Location schema");
-    assert(ecTaskCard.entry.includes("FIRST LINE OF OUTPUT MUST BE: ENTITY_BEGIN"), "OC Task Card must enforce ENTITY_BEGIN");
+    assert(acTaskCard.entry.includes("Target Entity Type: Location"), "OC Task Card must narrow to Location schema");
+    assert(acTaskCard.entry.includes("ENTITY_BEGIN") && acTaskCard.entry.includes("ENTITY_END"),
+        "OC Task Card must include sentinels");
 
     // Verify at least one trigger key actually matches originalStoryContext (case-insensitive)
     const lowerCtx = originalStoryContext.toLowerCase();
-    const matchedKeys = ecTaskCard.keys.split(",").filter(k => k && lowerCtx.includes(k.trim().toLowerCase()));
+    const matchedKeys = acTaskCard.keys.split(",").filter(k => k && lowerCtx.includes(k.trim().toLowerCase()));
     assert(matchedKeys.length >= 3, `OC Task Card keys must match story context (matched: ${matchedKeys.join(", ")})`);
 
-    // Verify 🧠 Inner Entity Task card was DEACTIVATED so it cannot collide with Entity Cards generation!
-    assert.strictEqual(thoughtCard.keys, "", "Inner Entity Thought Task Card keys MUST be cleared during EC generation");
-    assert.strictEqual(thoughtCard.entry, "", "Inner Entity Thought Task Card entry MUST be cleared during EC generation");
+    // Verify 🧠 Inner Entity Task card was DEACTIVATED so it cannot collide with card generation!
+    assert.strictEqual(thoughtCard.keys, "", "Inner Entity Thought Task Card keys MUST be cleared during AC/EC generation");
+    assert.strictEqual(thoughtCard.entry, "", "Inner Entity Thought Task Card entry MUST be cleared during AC/EC generation");
 
     // Feed YAML completion with same-line ENTITY_END on the description line
     sandbox.text = `ENTITY_BEGIN
@@ -278,12 +277,12 @@ description: A sprawling neon megacity where syndicates rule from orbital spires
     assert(!created.entry.includes("ENTITY_END"), "ENTITY_END must be stripped");
 
     // Verify OC Task Card is immediately deactivated once generation finishes
-    assert.strictEqual(ecTaskCard.keys, "", "Entity Cards OC Task Card keys must be cleared immediately on completion");
-    assert.strictEqual(ecTaskCard.entry, "", "Entity Cards OC Task Card entry must be cleared immediately on completion");
-    console.log("   ✔ Test 5 passed: Optimize Context routes EC prompt via Task Card, prevents Thought Card collision, and preserves same-line ENTITY_END");
+    assert.strictEqual(acTaskCard.keys, "", "Auto-Cards OC Task Card keys must be cleared immediately on completion");
+    assert.strictEqual(acTaskCard.entry, "", "Auto-Cards OC Task Card entry must be cleared immediately on completion");
+    console.log("   ✔ Test 5 passed: Optimize Context routes prompt via generic Auto-Cards Task Card, prevents Thought Card collision, and preserves same-line ENTITY_END");
 }
 
-// Test 6: Optimize Context multi-branch classification fits <= 2000 chars across ALL presets (standard, lite, authoring)
+// Test 6: Optimize Context multi-branch classification preserves full untruncated JellyFish schemas across ALL presets (standard, lite, authoring)
 {
     for (const preset of ["standard", "lite", "authoring"]) {
         const { sandbox, ctx, cards } = createEnv();
@@ -324,16 +323,18 @@ description: A sprawling neon megacity where syndicates rule from orbital spires
         sandbox.text = "World Lore:\nRecent Story:\nThe Obsidian Rose Syndicate rules the docks.\n";
         vm.runInContext('InnerEntity("context");', ctx);
 
-        const ecTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Entity Cards Task — do not edit");
-        assert(ecTaskCard && ecTaskCard.entry.length > 0, `OC Task Card must be active for preset=${preset}`);
-        assert(ecTaskCard.entry.length <= 2000,
-            `OC Task Card for preset=${preset} exceeded 2000 chars (${ecTaskCard.entry.length})`);
-        assert(ecTaskCard.entry.trimEnd().endsWith("</SYSTEM>"),
+        const acTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit");
+        assert(acTaskCard && acTaskCard.entry.length > 0, `OC Task Card must be active for preset=${preset}`);
+        if (preset === "standard" || preset === "authoring") {
+            assert(acTaskCard.entry.length > 2000,
+                `Full untruncated ${preset} multi-branch prompt must NOT be sliced at 2000 chars (got ${acTaskCard.entry.length})`);
+        }
+        assert(acTaskCard.entry.trimEnd().endsWith("</SYSTEM>"),
             `OC Task Card for preset=${preset} must end cleanly with </SYSTEM>`);
-        assert(ecTaskCard.entry.includes("'Person'") && ecTaskCard.entry.includes("'Organization'"),
-            `OC Task Card for preset=${preset} must include multi-type branches`);
+        assert(acTaskCard.entry.includes("if (entityType is 'Person')") && acTaskCard.entry.includes("else if (entityType is 'Organization')"),
+            `OC Task Card for preset=${preset} must preserve exact JellyFish multi-type branches`);
     }
-    console.log("   ✔ Test 6 passed: Multi-branch Optimize Context prompts fit <= 2000 chars with intact </SYSTEM> across standard, lite, and authoring presets");
+    console.log("   ✔ Test 6 passed: Multi-branch Optimize Context prompts preserve full untruncated JellyFish schemas across standard, lite, and authoring presets");
 }
 
 // Test 7: Optimize Context multi-turn continuation & toggling Optimize Context OFF cleans up Task Card
@@ -364,28 +365,28 @@ category: Megacity
 atmosphere: Perpetual neon haze blankets the lower wards.`;
     vm.runInContext('InnerEntity("output");', ctx);
 
-    // Turn 3: Continue -> verify OC Task Card switches to continuation format
+    // Turn 3: Continue -> verify OC Task Card includes previously generated fields inside <SYSTEM>
     sandbox.text = "";
     sandbox.history.push({ text: "", type: "continue" });
     vm.runInContext('InnerEntity("input");', ctx);
     sandbox.text = "World Lore:\nRecent Story:\nYou arrive in Neo Tokyo.\n";
     vm.runInContext('InnerEntity("context");', ctx);
 
-    const ecTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Entity Cards Task — do not edit");
-    assert(ecTaskCard.entry.includes("CONTINUE AFTER THESE LINES"), "Turn 2+ OC Task Card must include continuation section");
-    assert(ecTaskCard.entry.includes("category: Megacity"), "Turn 2+ OC Task Card must include previously generated fields");
-    assert(ecTaskCard.entry.length <= 2000, "Continuation OC Task Card must fit <= 2000 chars");
+    const acTaskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit");
+    assert(acTaskCard.entry.includes("Complete or continue this entry"), "Turn 2+ OC Task Card must include continuation header");
+    assert(acTaskCard.entry.includes("category: Megacity"), "Turn 2+ OC Task Card must include previously generated fields");
+    assert(acTaskCard.entry.trimEnd().endsWith("</SYSTEM>"), "Continuation OC Task Card must close </SYSTEM>");
 
     // Now toggle Optimize Context OFF before next context call -> OC Task Card must deactivate!
     sandbox.info.useCacheEfficient = false;
     sandbox.text = "World Lore:\nRecent Story:\nYou arrive in Neo Tokyo.\n";
     vm.runInContext('InnerEntity("context");', ctx);
-    assert.strictEqual(ecTaskCard.keys, "", "Toggling useCacheEfficient=false must clear OC Task Card keys");
-    assert.strictEqual(ecTaskCard.entry, "", "Toggling useCacheEfficient=false must clear OC Task Card entry");
+    assert.strictEqual(acTaskCard.keys, "", "Toggling useCacheEfficient=false must clear OC Task Card keys");
+    assert.strictEqual(acTaskCard.entry, "", "Toggling useCacheEfficient=false must clear OC Task Card entry");
     console.log("   ✔ Test 7 passed: Multi-turn OC continuation & toggling Optimize Context OFF verified");
 }
 
-// Test 8: dist/inner-self-classic.js fallback routes Classic Auto-Cards prompt via Task Card under Optimize Context
+// Test 8: dist/inner-self-classic.js routes Classic Auto-Cards prompt via generic Auto-Cards Task Card under Optimize Context
 {
     const classicCode = fs.readFileSync(path.join(__dirname, '..', 'dist', 'inner-self-classic.js'), 'utf8');
     const cards = [];
@@ -429,12 +430,40 @@ atmosphere: Perpetual neon haze blankets the lower wards.`;
     sandbox.text = "World Lore:\nRecent Story:\nYou enter the ancient citadel of Valdris.\n";
     vm.runInContext('InnerSelf("context");', ctx);
 
-    const taskCard = cards.find(c => c.title.includes("Task — do not edit"));
-    assert(taskCard && taskCard.keys.length > 0, "Classic build must activate Task Card during AC generation under Optimize Context");
-    assert(taskCard.entry.includes("Valdris") && taskCard.entry.includes("<SYSTEM>"),
+    const taskCard = cards.find(c => c.title === "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit");
+    assert(taskCard && taskCard.keys.length > 0, "Classic build must activate Auto-Cards Task Card during AC generation under Optimize Context");
+    assert(taskCard.entry.startsWith("// Auto-Cards OC") && taskCard.entry.includes("Valdris") && taskCard.entry.includes("<SYSTEM>"),
         "Classic Task Card must carry the Valdris generation prompt");
-    assert(taskCard.entry.length <= 2000, "Classic Task Card must fit <= 2000 chars");
-    console.log("   ✔ Test 8 passed: dist/inner-self-classic.js routes Classic Auto-Cards prompt via Task Card under Optimize Context");
+    console.log("   ✔ Test 8 passed: dist/inner-self-classic.js routes Classic Auto-Cards prompt via Auto-Cards Task Card under Optimize Context");
+}
+
+// Test 9: /ec Molly -p parses cleanly across AI Dungeon Say/Do/Story modes, quotes, smart dashes, and trailing punctuation (never "Molly -P")
+{
+    const cases = [
+        { input: '\n> You say, "/ec Molly -p."\n', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '\n> You say, “/ec Molly -p!”\n', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '\n> You /ec Molly -p.\n', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec "Molly" -p', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec Molly –p', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec Molly —person.', expectedTitle: "Molly", expectedType: "Person" },
+        { input: '/ec -loc Neo-Tokyo', expectedTitle: "Neo-Tokyo", expectedType: "Location" },
+        { input: '/ec Spider-Man', expectedTitle: "Spider-Man", expectedType: null }
+    ];
+
+    for (const tc of cases) {
+        const { sandbox, ctx } = createEnv();
+        sandbox.text = tc.input;
+        sandbox.history.push({ text: tc.input, type: "say" });
+        vm.runInContext('InnerEntity("input");', ctx);
+
+        const pending = sandbox.state.AutoCards?.generation?.pending || [];
+        assert.strictEqual(pending.length, 1, `Expected 1 pending card for input ${JSON.stringify(tc.input)}`);
+        assert.strictEqual(pending[0].title, tc.expectedTitle,
+            `Input ${JSON.stringify(tc.input)} produced title ${JSON.stringify(pending[0].title)} instead of ${JSON.stringify(tc.expectedTitle)}`);
+        assert.strictEqual(pending[0].explicitType, tc.expectedType,
+            `Input ${JSON.stringify(tc.input)} produced explicitType ${JSON.stringify(pending[0].explicitType)} instead of ${JSON.stringify(tc.expectedType)}`);
+    }
+    console.log("   ✔ Test 9 passed: /ec Molly -p and all Say/Do/quote/dash/prefix variants parse cleanly without creating 'Molly -P'");
 }
 
 console.log("\n==================================================================");
