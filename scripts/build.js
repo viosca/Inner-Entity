@@ -218,6 +218,57 @@ async function loadEngine(engine) {
     return await fetchHttps(EC_REMOTE_URL);
 }
 
+function applyBuildHeader(code, engine, timestamp) {
+    let flavorTitle;
+    let flavorDesc;
+    let flavorTag;
+    if (engine === "minds" || engine === "none") {
+        flavorTitle = "Inner Self Minds-Only";
+        flavorDesc = "Minds-Only (Pure Character Cognition, Zero Card Engine)";
+        flavorTag = "minds-only";
+    } else if (engine === "ac") {
+        flavorTitle = "Inner Self Classic";
+        flavorDesc = "Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)";
+        flavorTag = "classic";
+    } else {
+        flavorTitle = "Inner Entity Flagship";
+        flavorDesc = "Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)";
+        flavorTag = "entity";
+    }
+
+    const bannerRegex = /\/\/\s*={60,}[\s\S]*?\/\/\s*={60,}/;
+    const newBanner = `// ============================================================================
+//
+//                             USE THIS VERSION
+//
+//                      ${flavorTitle} (Ver.2_8_0-IE)
+//
+//   Build Generation: ${timestamp}
+//   Engine Flavor:    ${flavorDesc}
+//
+//   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
+//   do not add to it. If an older copy is left anywhere below,
+//   JavaScript silently lets the later copy win and this one never runs.
+//
+//   Inner Entity combines character minds (LewdLeah's Inner Self), Optimized
+//   Context prompt caching support (XloSky patch), and structured Named
+//   Entity Recognition (Randy Viosca / @Random_Variable's Entity Cards).
+//
+//   To confirm this version is live, the "Configure Inner Entity" card's first
+//   line reads: === Inner Entity build Ver.2_8_0-IE [${flavorTag}] ===
+//
+// ============================================================================`;
+
+    let processed = code.replace(bannerRegex, newBanner);
+
+    processed = processed.replace(
+        'globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";',
+        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";`
+    );
+
+    return processed;
+}
+
 async function buildTarget(engine) {
     console.log(`=== Building Inner-Entity (Engine: ${engine.toUpperCase()}) ===`);
 
@@ -228,6 +279,7 @@ async function buildTarget(engine) {
 
     console.log(`   Reading core: ${path.relative(ROOT_DIR, CORE_PATH)}`);
     const coreCode = fs.readFileSync(CORE_PATH, "utf8").trimEnd();
+    const timestamp = new Date().toISOString().replace("T", " ").replace(/\..+/, "") + " UTC";
 
     let combined;
     let outPaths = [];
@@ -249,6 +301,8 @@ async function buildTarget(engine) {
         // Flagship outputs to BOTH src/library.js (AID tab standard) and dist/inner-entity.js (dist lineup)
         outPaths = [OUTPUT_PATH, path.join(DIST_DIR, "inner-entity.js")];
     }
+
+    combined = applyBuildHeader(combined, engine, timestamp);
 
     // Syntax validation
     try {

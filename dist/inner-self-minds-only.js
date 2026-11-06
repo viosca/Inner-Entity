@@ -2,7 +2,10 @@
 //
 //                             USE THIS VERSION
 //
-//                        InnerEntity_Ver.2_8_0-IE.js
+//                      Inner Self Minds-Only (Ver.2_8_0-IE)
+//
+//   Build Generation: 2026-11-06 05:03:24 UTC
+//   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
 //   do not add to it. If an older copy is left anywhere below,
@@ -13,7 +16,7 @@
 //   Entity Recognition (Randy Viosca / @Random_Variable's Entity Cards).
 //
 //   To confirm this version is live, the "Configure Inner Entity" card's first
-//   line reads: === Inner Entity build Ver.2_8_0-IE ===
+//   line reads: === Inner Entity build Ver.2_8_0-IE [minds-only] ===
 //
 // ============================================================================
 
@@ -23,6 +26,8 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 05:03:24 UTC";
+globalThis.INNER_ENTITY_FLAVOR = "minds-only";
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 

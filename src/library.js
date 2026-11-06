@@ -2,7 +2,10 @@
 //
 //                             USE THIS VERSION
 //
-//                        InnerEntity_Ver.2_8_0-IE.js
+//                      Inner Entity Flagship (Ver.2_8_0-IE)
+//
+//   Build Generation: 2026-11-06 05:03:23 UTC
+//   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
 //   do not add to it. If an older copy is left anywhere below,
@@ -13,7 +16,7 @@
 //   Entity Recognition (Randy Viosca / @Random_Variable's Entity Cards).
 //
 //   To confirm this version is live, the "Configure Inner Entity" card's first
-//   line reads: === Inner Entity build Ver.2_8_0-IE ===
+//   line reads: === Inner Entity build Ver.2_8_0-IE [entity] ===
 //
 // ============================================================================
 
@@ -23,6 +26,8 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 05:03:23 UTC";
+globalThis.INNER_ENTITY_FLAVOR = "entity";
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -2917,11 +2922,32 @@ globalThis.InnerEntity = InnerEntity;
 /// <reference lib="es2022"/>
 // Your "Library" tab should look like this
 
+// ============================================================================
+//
+//                             USE THIS VERSION
+//
+//                        Entity Cards (Ver.2_8_0-EC)
+//
+//   Build Generation: 2026-11-06 05:02:38 UTC
+//   Engine Flavor:    Entity-Cards (Standalone NER & Story Card Engine)
+//
+//   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
+//   do not add to it. If an older copy is left anywhere below,
+//   JavaScript silently lets the later copy win and this one never runs.
+//
+//   Originally created as Auto-Cards by LewdLeah (May 21, 2025).
+//   Forked and expanded as Entity Cards by Randy Viosca (@Random_Variable).
+//
+// ============================================================================
+
 /*
 Auto-Cards / Entity Cards
 Originally made by LewdLeah on May 21, 2025
 Forked and expanded as "Entity Cards" by Randy Viosca (@Random_Variable on AI Dungeon)
+- Build Generation: 2026-11-06 05:02:38 UTC
+- Engine Flavor: Entity-Cards (Standalone NER & Story Card Engine)
 - Named Entity Recognition (NER) and automatic story card typing (Person, Organization, Location, Event, Thing)
+- 4-letter MBTI psychological profiles for characters
 - JellyFish (JFSH) structured AI pseudo-language generation prompts
 - Story card containerization / encapsulation and sentinels
 - Raw AI prompt and response modes
