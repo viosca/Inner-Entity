@@ -4,7 +4,8 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-06 05:03:44 UTC
+//   Build Generation: 2026-11-06 05:14:04 UTC
+//   Git Commit:       79c4ca1
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -26,8 +27,9 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 05:03:44 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 05:14:04 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
+globalThis.INNER_ENTITY_GIT_HASH = "79c4ca1";
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -2958,6 +2960,9 @@ Forked and expanded as "Entity Cards" by Randy Viosca (@Random_Variable on AI Du
 
 function AutoCards(inHook, inText, inStop) {
     "use strict";
+    const EC_BUILD_VERSION = "2.8.0";
+    const EC_BUILD_TIMESTAMP = "2026-11-06 05:05 UTC";
+    const EC_BUILD_GIT_HASH = "f4cfb67";
     /*
     Default Auto-Cards settings
     Feel free to change these settings to customize your scenario's default gameplay experience
@@ -9366,6 +9371,34 @@ description: {1 concise sentence narrative summary}
                 }
                 result += "/EC header -> Set to: \"" + newHeader + "\"\n\n";
                 logEvent("/EC header: " + newHeader);
+            } else if (/^(?:-v|--version|version)\b/i.test(requestTitle)) {
+                const gitHash = (typeof globalThis.INNER_ENTITY_GIT_HASH === "string" && globalThis.INNER_ENTITY_GIT_HASH)
+                    || (typeof EC_BUILD_GIT_HASH === "string" && EC_BUILD_GIT_HASH)
+                    || "f4cfb67";
+                const buildTime = (typeof globalThis.INNER_ENTITY_BUILD_TIME === "string" && globalThis.INNER_ENTITY_BUILD_TIME)
+                    || (typeof EC_BUILD_TIMESTAMP === "string" && EC_BUILD_TIMESTAMP)
+                    || "2026-11-06 05:05 UTC";
+                const isIE = (typeof globalThis.InnerEntity === "function" || typeof globalThis.INNER_ENTITY_BUILD === "string");
+                const buildName = isIE
+                    ? `Inner Entity ${globalThis.INNER_ENTITY_BUILD || "Ver.2_8_0-IE"} [${globalThis.INNER_ENTITY_FLAVOR || "entity"}]`
+                    : `Entity Cards Ver.${typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0"}-EC`;
+                result += `/${cmdPrefix} version -> ${buildName} (git: ${gitHash}, built: ${buildTime})\n\n`;
+                logEvent(`/${cmdPrefix} version`);
+            } else if (/^(?:-h|--help|help|-\?|\?)\b/i.test(requestTitle)) {
+                result += `/${cmdPrefix} help -> Entity Cards Commands:\n`
+                    + `  /${cmdPrefix.toLowerCase()}                       Trigger card generation for recent titles\n`
+                    + `  /${cmdPrefix.toLowerCase()} <Title> [-<type>]     Generate card with optional type flag\n`
+                    + `  /${cmdPrefix.toLowerCase()} <Title> / {Details}   Generate card with custom guidance\n`
+                    + `  /${cmdPrefix.toLowerCase()} redo <Title>          Regenerate an existing card\n`
+                    + `  /${cmdPrefix.toLowerCase()} redo all              Regenerate all automatic story cards\n`
+                    + `  /${cmdPrefix.toLowerCase()} preset <name>         standard | lite | authoring | custom\n`
+                    + `  /${cmdPrefix.toLowerCase()} mode <mode>           entity | classic\n`
+                    + `  /${cmdPrefix.toLowerCase()} header <text>         Set custom context header\n`
+                    + `  /${cmdPrefix.toLowerCase()} -v, --version         Show script version & git hash\n`
+                    + `  /${cmdPrefix.toLowerCase()} -h, --help            Show this command help\n\n`
+                    + `Type flags: -p (Person), -loc (Location), -org (Organization), -t (Thing), -e (Event)\n`
+                    + `Flags can be placed before or after titles (e.g. /${cmdPrefix.toLowerCase()} -p Molly or /${cmdPrefix.toLowerCase()} Molly -p).\n\n`;
+                logEvent(`/${cmdPrefix} help`);
             } else {
                 let rawTitle = requestTitle.replace(/[\s\.\?!:,"”'’]+$/, "");
                 const parsedFlag = parseTypeFlag(rawTitle);

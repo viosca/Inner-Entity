@@ -218,7 +218,16 @@ async function loadEngine(engine) {
     return await fetchHttps(EC_REMOTE_URL);
 }
 
-function applyBuildHeader(code, engine, timestamp) {
+function getGitHash(dir) {
+    try {
+        const { execSync } = require("child_process");
+        return execSync("git rev-parse --short HEAD", { cwd: dir }).toString().trim();
+    } catch (_) {
+        return "unknown";
+    }
+}
+
+function applyBuildHeader(code, engine, timestamp, gitHash) {
     let flavorTitle;
     let flavorDesc;
     let flavorTag;
@@ -244,6 +253,7 @@ function applyBuildHeader(code, engine, timestamp) {
 //                      ${flavorTitle} (Ver.2_8_0-IE)
 //
 //   Build Generation: ${timestamp}
+//   Git Commit:       ${gitHash}
 //   Engine Flavor:    ${flavorDesc}
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -263,7 +273,7 @@ function applyBuildHeader(code, engine, timestamp) {
 
     processed = processed.replace(
         'globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";',
-        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";`
+        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";\nglobalThis.INNER_ENTITY_GIT_HASH = "${gitHash}";`
     );
 
     return processed;
@@ -280,6 +290,7 @@ async function buildTarget(engine) {
     console.log(`   Reading core: ${path.relative(ROOT_DIR, CORE_PATH)}`);
     const coreCode = fs.readFileSync(CORE_PATH, "utf8").trimEnd();
     const timestamp = new Date().toISOString().replace("T", " ").replace(/\..+/, "") + " UTC";
+    const gitHash = getGitHash(ROOT_DIR);
 
     let combined;
     let outPaths = [];
@@ -302,7 +313,7 @@ async function buildTarget(engine) {
         outPaths = [OUTPUT_PATH, path.join(DIST_DIR, "inner-entity.js")];
     }
 
-    combined = applyBuildHeader(combined, engine, timestamp);
+    combined = applyBuildHeader(combined, engine, timestamp, gitHash);
 
     // Syntax validation
     try {

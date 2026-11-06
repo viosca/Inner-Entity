@@ -102,6 +102,19 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     s.InnerEntity("input");
     console.log("   ✔ Input hook processed /ec command");
 
+    // Input hook: /ec -v / --version command
+    s.text = "/ec -v";
+    s.InnerEntity("input");
+    if (!s.text.includes("version -> Inner Entity")) throw new Error("/ec -v failed to return version information");
+    if (!s.text.includes("git:")) throw new Error("/ec -v missing git hash");
+    console.log("   ✔ Input hook processed /ec -v (version & git hash)");
+
+    // Input hook: /ec -h / --help command
+    s.text = "/ec -h";
+    s.InnerEntity("input");
+    if (!s.text.includes("help -> Entity Cards Commands:")) throw new Error("/ec -h failed to return help listing");
+    console.log("   ✔ Input hook processed /ec -h (command help)");
+
     // Input hook: /ec with -<type> flag & single-branch prompt verification
     s.text = "/ec Futaba -p";
     s.InnerEntity("input");
