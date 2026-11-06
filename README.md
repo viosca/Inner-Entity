@@ -109,15 +109,18 @@ When your adventure begins, the script generates:
 ### Slash Commands
 
 You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
-- `/ec on` or `/ac on`: Force-enable card automation.
-- `/ec preset lite` (or `standard`, `authoring`, `custom`): Switch schema preset on the fly.
-- `/ec header Named Entities (NER):`: Customize the context header replacing `World Lore:`.
 - `/ec <Title>`: Instantly generate an entity card, bypassing common filters.
 - `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Flags can be placed before or after the title (e.g. `/ec -p Molly` or `/ec Molly -p`) and work inside Say mode dialogue quotes (e.g. `Joe says, "/ec -p Molly."`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
-- `/ec redo <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema.
-- `/ec info` or `/ec diag`: Output complete system diagnostics (story model, prompt cache, script versions, cooldowns, card counts).
+- `/ec -r <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema (or legacy `/ec redo <Title>`).
+- `/ec -R` or `/ec --redo-all`: Regenerate all automatic story cards (or legacy `/ec redo all`).
+- `/ec -m <mode>` or `/ec --mode <mode>`: Switch operating mode (`-m entity` or `-m classic`).
+- `/ec -P <preset>` or `/ec --preset <preset>`: Switch schema preset on the fly (`-P lite`, `-P standard`, `-P authoring`, `-P custom`).
+- `/ec --header <text>`: Customize the context header replacing `World Lore:` (e.g. `/ec --header "Codex Entities:"`).
+- `/ec -i` or `/ec --info`, `/ec --diag`: Output complete system diagnostics (story model, prompt cache, script versions, cooldowns, card counts).
 - `/ec -v` or `/ec --version`: Display the active script version, build timestamp, and git commit hash.
 - `/ec -h` or `/ec --help`: Display the in-game command help listing and type flag shorthands.
+
+*(Note: Because options use POSIX `-` and `--` flags, titles like "Info", "Mode", "Preset", or "Help" never collide with commands. Any title enclosed in quotes is strictly protected as a title.)*
 
 ---
 
