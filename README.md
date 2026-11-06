@@ -115,6 +115,7 @@ You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
 - `/ec <Title>`: Instantly generate an entity card, bypassing common filters.
 - `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Flags can be placed before or after the title (e.g. `/ec -p Molly` or `/ec Molly -p`) and work inside Say mode dialogue quotes (e.g. `Joe says, "/ec -p Molly."`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
 - `/ec redo <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema.
+- `/ec info` or `/ec diag`: Output complete system diagnostics (story model, prompt cache, script versions, cooldowns, card counts).
 - `/ec -v` or `/ec --version`: Display the active script version, build timestamp, and git commit hash.
 - `/ec -h` or `/ec --help`: Display the in-game command help listing and type flag shorthands.
 

@@ -51,6 +51,7 @@ You don't need separate scenarios to test individual features! You can isolate a
 * **Response Length Slider:** Setting your **Response Length** slider to **250+ tokens** (in Gameplay Settings) allows entity cards to finish generating in a single turn.
 * **Director Mode:** Open the flame menu (Gameplay Settings) and change your character name to "Author" to freely direct the scene without locking yourself into an in-game avatar.
 * **Instant Type Pruning:** Adding `-<type>` (like `-p` for Person or `-loc` for Location) reduces prompt overhead by ~80% and eliminates schema confusion.
+* **Instant System Diagnostics:** Type `/ec info` (or `/ec diag`) at any time to output a full diagnostic report of your story model, prompt cache status, script versions, and card counts.
 
 ---
 

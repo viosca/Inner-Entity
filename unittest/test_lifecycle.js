@@ -115,6 +115,13 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     if (!s.text.includes("help -> Entity Cards Commands:")) throw new Error("/ec -h failed to return help listing");
     console.log("   ✔ Input hook processed /ec -h (command help)");
 
+    // Input hook: /ec info / diag command
+    s.text = "/ec info";
+    s.InnerEntity("input");
+    if (!s.text.includes("INNER ENTITY / AUTO-CARDS DIAGNOSTICS")) throw new Error("/ec info failed to return diagnostics report");
+    if (!s.text.includes("Story Model:") || !s.text.includes("Optimize Context:")) throw new Error("/ec info missing environment section");
+    console.log("   ✔ Input hook processed /ec info (system diagnostics)");
+
     // Input hook: /ec with -<type> flag & single-branch prompt verification
     s.text = "/ec Futaba -p";
     s.InnerEntity("input");
