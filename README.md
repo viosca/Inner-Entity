@@ -25,7 +25,7 @@ Simulated NPCs build, reflect upon, and maintain their own mental state (goals, 
 | **Segmented Character Minds** | Each NPC maintains their own private mental state, separate from other characters |
 | **Optimized Context Support** | Fully compatible with AI Dungeon's *Optimized Context* prompt caching via dynamic task cards |
 | **Smart Trigger Scoring** | Narration mentions outweigh dialogue mentions (3:1), preventing absent characters from thinking |
-| **Named Entity Recognition (NER)** | Automatically generates structured, token-dense YAML cards for people, places, factions, relics, and events |
+| **Named Entity Recognition (NER)** | Automatically generates structured, token-dense YAML cards for people (with 4-letter MBTI profiles), places, factions, relics, and events |
 | **100-Token Slider Calibrated** | Schemas complete reliably in a single turn (~94 tokens) under AI Dungeon's default response slider |
 | **Model-Aware Presets** | Auto-detects story model tier (DeepSeek, Gemma, Wayfarer, Muse) to select Standard, Lite, or Authoring schemas |
 | **Two-Card Configuration** | Modular configuration split between Master *Configure Auto-Cards* and Companion *Configure Entity Cards* |
@@ -113,7 +113,7 @@ You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
 - `/ec preset lite` (or `standard`, `authoring`, `custom`): Switch schema preset on the fly.
 - `/ec header Named Entities (NER):`: Customize the context header replacing `World Lore:`.
 - `/ec <Title>`: Instantly generate an entity card, bypassing common filters.
-- `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
+- `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Flags can be placed before or after the title (e.g. `/ec -p Molly` or `/ec Molly -p`) and work inside Say mode dialogue quotes (e.g. `Joe says, "/ec -p Molly."`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
 - `/ec redo <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema.
 
 ---
@@ -155,8 +155,8 @@ Inner Entity is designed with a **clean, decoupled architecture** separating the
 
 ### Available Distribution Files (No Node.js Required!)
 For players and creators, pre-assembled, single-file scripts are committed directly to the repository:
-- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) or [`dist/inner-entity.js`](dist/inner-entity.js) — Inner Self character minds with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH schemas, YAML). (~498 KB)
-- **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self character minds with XloSky prompt caching + LewdLeah's official upstream Auto-Cards (prose & bullet lists). (~436 KB)
+- **Flagship (Inner Entity):** [`src/library.js`](src/library.js) or [`dist/inner-entity.js`](dist/inner-entity.js) — Inner Self character minds with XloSky prompt caching + Randy Viosca's Entity Cards (NER, JFSH schemas, YAML). (~518 KB)
+- **Classic (Inner Self):** [`dist/inner-self-classic.js`](dist/inner-self-classic.js) — Inner Self character minds with XloSky prompt caching + LewdLeah's official upstream Auto-Cards (prose & bullet lists). (~442 KB)
 - **Mind-Only (Pure Cognition):** [`dist/inner-self-minds-only.js`](dist/inner-self-minds-only.js) — Lightweight standalone character cognition with Optimized Context prompt caching and zero card engine code. (~132 KB)
 
 ### Automated GitHub Sync (100% Free)
