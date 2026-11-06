@@ -4,8 +4,8 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-06 06:23:37 UTC
-//   Git Commit:       6f1ea88
+//   Build Generation: 2026-11-06 17:12:38 UTC
+//   Git Commit:       faa0d6c
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -27,9 +27,9 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 06:23:37 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 17:12:38 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "6f1ea88";
+globalThis.INNER_ENTITY_GIT_HASH = "faa0d6c";
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
