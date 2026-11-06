@@ -474,6 +474,30 @@ atmosphere: Perpetual neon haze blankets the lower wards.`;
     console.log("   ✔ Test 9 passed: /ec Molly -p and all Say/Do/quote/dash/prefix variants parse cleanly without creating 'Molly -P'");
 }
 
+// Test 10: Verify Person schemas in standard, lite, and authoring presets include mbti field
+{
+    const { sandbox, ctx } = createEnv();
+    sandbox.text = "/ec Molly -p";
+    sandbox.history.push({ text: sandbox.text, type: "do" });
+    vm.runInContext('InnerEntity("input");', ctx);
+
+    const pending = sandbox.state.AutoCards?.generation?.pending || [];
+    assert.strictEqual(pending.length, 1);
+    const wp = pending[0];
+    assert.strictEqual(wp.title, "Molly");
+    assert.strictEqual(wp.explicitType, "Person");
+    assert(wp.prompt.includes("mbti:"), "Pruned Person prompt must include 'mbti:' field");
+
+    // Also verify all 3 presets contain mbti for Person
+    const corePresets = sandbox.InnerEntityDefaults?.EC_PRESETS;
+    if (corePresets) {
+        assert(corePresets.standard.includes("mbti:"), "standard preset must contain mbti");
+        assert(corePresets.lite.includes("mbti:"), "lite preset must contain mbti");
+        assert(corePresets.authoring.includes("mbti:"), "authoring preset must contain mbti");
+    }
+    console.log("   ✔ Test 10 passed: Person schemas in standard, lite, and authoring presets include mbti field");
+}
+
 console.log("\n==================================================================");
 console.log("  🎉 SUITE 5 PASSED WITH 100% SUCCESS!");
 console.log("==================================================================\n");

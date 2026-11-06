@@ -190,6 +190,7 @@ print \`
 entity: %{title}
 type: Person
 category: {Archetype or occupation}
+mbti: {4-letter code, e.g. INTJ - Architect}
 appearance: {brief visual traits and attire}
 personality: {demeanor and voice/attitude toward player}
 drive: {primary motive or secret goal}
@@ -269,6 +270,7 @@ print \`
 entity: %{title}
 type: Person
 category: {occupation or role}
+mbti: {4-letter code, e.g. INTJ}
 appearance: {brief visual features}
 personality: {key traits and attitude}
 description: {1 sentence summary}
@@ -333,6 +335,7 @@ print \`
 entity: %{title}
 type: Person
 role: {narrative function, e.g. Catalyst, Rival, Mentor}
+mbti: {4-letter code, e.g. INTJ}
 appearance: {salient sensory details and attire}
 secrets: {hidden agenda, fear, or vulnerability}
 scene_dynamics: {attitude toward protagonist and behavioral quirks}
@@ -3029,6 +3032,7 @@ print \`
 entity: %{title}
 type: Person
 category: {Archetype or occupation}
+mbti: {4-letter code, e.g. INTJ - Architect}
 appearance: {brief visual traits and attire}
 personality: {demeanor and voice/attitude toward player}
 drive: {primary motive or secret goal}
@@ -3108,6 +3112,7 @@ print \`
 entity: %{title}
 type: Person
 category: {occupation or role}
+mbti: {4-letter code, e.g. INTJ}
 appearance: {brief visual features}
 personality: {key traits and attitude}
 description: {1 sentence summary}
@@ -3172,6 +3177,7 @@ print \`
 entity: %{title}
 type: Person
 role: {narrative function, e.g. Catalyst, Rival, Mentor}
+mbti: {4-letter code, e.g. INTJ}
 appearance: {salient sensory details and attire}
 secrets: {hidden agenda, fear, or vulnerability}
 scene_dynamics: {attitude toward protagonist and behavioral quirks}
@@ -6634,7 +6640,7 @@ description: {1 concise sentence narrative summary}
                         const endSentinel = AC.config.SCContainerAIEndSentinel || "ENTITY_END";
                         const hasSentinel = (beginSentinel !== "" && TEXT.includes(beginSentinel))
                             || (endSentinel !== "" && TEXT.includes(endSentinel));
-                        const hasYamlKey = /(?:^|\n)\s*(?:entity|type|category|role|appearance|personality|description|atmosphere|key_locations|key_points|connections|agenda|status|stakes|bearer|physical|function|rules|stance|true_agenda|public_face)\s*:/i.test(TEXT);
+                        const hasYamlKey = /(?:^|\n)\s*(?:entity|type|category|role|mbti|appearance|personality|description|atmosphere|key_locations|key_points|connections|agenda|status|stakes|bearer|physical|function|rules|stance|true_agenda|public_face)\s*:/i.test(TEXT);
                         const hasDialogueOrSpeech = textClone.includes("\"") || /(?<=^|\s|—|\(|\[|{)sa(ys?|id)(?=\s|\.|\?|!|,|;|—|\)|\]|}|$)/i.test(textClone);
 
                         const cardTitle = AC.generation.workpiece.title;
