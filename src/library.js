@@ -4,8 +4,9 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-06 18:45:22 UTC
-//   Git Commit:       11bc026
+//   Build Generation: 2026-11-06 20:20:15 UTC
+//   Git Commit:       8a4a3b8
+//   Submodules:       Entity-Cards: c143f4b, GetoptAID: 6e6966c
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -27,9 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 18:45:22 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-06 20:20:15 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "11bc026";
+globalThis.INNER_ENTITY_GIT_HASH = "8a4a3b8";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "entity", gitHash: "8a4a3b8", buildTime: "2026-11-06 20:20:15 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (8a4a3b8)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -9602,6 +9604,11 @@ description: {1 concise sentence narrative summary}
                 logEvent(`/${cmdPrefix}`);
             } else {
                 const cli = parseCommandLine(requestTitle);
+                const getoptDiag = (typeof globalThis.GetoptAID?.diag === "function")
+                    ? globalThis.GetoptAID.diag()
+                    : (typeof globalThis.AID_MODULES?.["getopt-aid"]?.diag === "function"
+                        ? globalThis.AID_MODULES["getopt-aid"].diag()
+                        : "GetoptAID v1.0.0");
                 if (cli.flags.version) {
                     const gitHash = (typeof globalThis.INNER_ENTITY_GIT_HASH === "string" && globalThis.INNER_ENTITY_GIT_HASH)
                         || (typeof EC_BUILD_GIT_HASH === "string" && EC_BUILD_GIT_HASH)
@@ -9613,7 +9620,7 @@ description: {1 concise sentence narrative summary}
                     const buildName = isIE
                         ? `Inner Entity ${globalThis.INNER_ENTITY_BUILD || "Ver.2_8_0-IE"} [${globalThis.INNER_ENTITY_FLAVOR || "entity"}]`
                         : `Entity Cards Ver.${typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0"}-EC`;
-                    result += `/${cmdPrefix} version -> ${buildName} (git: ${gitHash}, built: ${buildTime})\n\n`;
+                    result += `/${cmdPrefix} version -> ${buildName} (git: ${gitHash}, built: ${buildTime}) | Parser: ${getoptDiag}\n\n`;
                     logEvent(`/${cmdPrefix} version`);
                 } else if (cli.flags.help) {
                     result += `/${cmdPrefix} help -> Entity Cards Commands:\n`
@@ -9680,9 +9687,10 @@ description: {1 concise sentence narrative summary}
                         + `  - Story Model:      ${modelStr}\n`
                         + `  - Optimize Context: ${cacheStr}\n`
                         + `  - Max Context:      ${maxCharsStr} | Action Turn: ${turnStr}\n`
-                        + `• Loaded Scripts:\n`
+                        + `• Loaded Scripts & Modules:\n`
                         + `  - Inner Entity:     ${ieBuild} [${ieFlavor}] (git: ${ieGit})\n`
                         + `  - Entity Cards:     Ver.${ecVersion}-EC (git: ${ecGit})\n`
+                        + `  - Command Parser:   ${getoptDiag}\n`
                         + `  - Active Globals:   ${globalsList}\n`
                         + `• Engine State:\n`
                         + `  - Mode: ${AC.config.operatingMode} | Preset: ${AC.config.ECPreset} | Header: "${AC.config.ECContextHeader}"\n`
@@ -10927,6 +10935,15 @@ if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity 
 const EntityCards = AutoCards;
 try { globalThis.AutoCards = AutoCards; } catch (_) {}
 try { globalThis.EntityCards = AutoCards; } catch (_) {}
+try {
+    (globalThis.AID_MODULES ??= {})["entity-cards"] = {
+        name: "EntityCards",
+        version: typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0",
+        gitHash: typeof EC_BUILD_GIT_HASH === "string" ? EC_BUILD_GIT_HASH : "f4cfb67",
+        buildTime: typeof EC_BUILD_TIMESTAMP === "string" ? EC_BUILD_TIMESTAMP : "2026-11-06 05:05 UTC",
+        diag: () => `EntityCards Ver.${typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0"}-EC`
+    };
+} catch (_) {}
 function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
 // Your other library scripts go here
