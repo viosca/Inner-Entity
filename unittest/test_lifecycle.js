@@ -97,10 +97,11 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     if (typeof s.EntityCards !== "function") throw new Error("Missing EntityCards export");
     console.log("   ✔ All globals and backward-compatibility aliases verified");
 
-    // Input hook: /ec command
-    s.text = "/ec preset lite";
+    // Input hook: /ec -P lite preset switch
+    s.text = "/ec -P lite";
     s.InnerEntity("input");
-    console.log("   ✔ Input hook processed /ec command");
+    if (!s.text.includes("preset -> Set to Lite")) throw new Error("/ec -P lite failed to switch preset");
+    console.log("   ✔ Input hook processed /ec -P lite (preset switch)");
 
     // Input hook: /ec -v / --version command
     s.text = "/ec -v";
@@ -115,12 +116,20 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     if (!s.text.includes("help -> Entity Cards Commands:")) throw new Error("/ec -h failed to return help listing");
     console.log("   ✔ Input hook processed /ec -h (command help)");
 
-    // Input hook: /ec info / diag command
-    s.text = "/ec info";
+    // Input hook: /ec -i / --info diagnostics command
+    s.text = "/ec -i";
     s.InnerEntity("input");
-    if (!s.text.includes("INNER ENTITY / AUTO-CARDS DIAGNOSTICS")) throw new Error("/ec info failed to return diagnostics report");
-    if (!s.text.includes("Story Model:") || !s.text.includes("Optimize Context:")) throw new Error("/ec info missing environment section");
-    console.log("   ✔ Input hook processed /ec info (system diagnostics)");
+    if (!s.text.includes("INNER ENTITY / AUTO-CARDS DIAGNOSTICS")) throw new Error("/ec -i failed to return diagnostics report");
+    if (!s.text.includes("Story Model:") || !s.text.includes("Optimize Context:")) throw new Error("/ec -i missing environment section");
+    console.log("   ✔ Input hook processed /ec -i (system diagnostics)");
+
+    // Input hook: verify bareword "Info" generates card rather than triggering diagnostics
+    s.text = "/ec Info";
+    s.InnerEntity("input");
+    if (s.text.includes("DIAGNOSTICS")) throw new Error("/ec Info mistakenly triggered diagnostics");
+    const infoPending = s.state.AutoCards?.generation?.pending;
+    if (!infoPending?.some(c => c.title === "Info")) throw new Error("Expected pending card titled 'Info'");
+    console.log("   ✔ Verified bareword 'Info' generates story card without command collision");
 
     // Input hook: /ec with -<type> flag & single-branch prompt verification
     s.text = "/ec Futaba -p";
