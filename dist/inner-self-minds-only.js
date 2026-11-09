@@ -4,9 +4,9 @@
 //
 //                      Inner Self Minds-Only (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-09 14:43:26 UTC
-//   Git Commit:       5344d9c
-//   Submodules:       GetoptAID: 225a481
+//   Build Generation: 2026-11-09 16:23:25 UTC
+//   Git Commit:       42e4143
+//   Submodules:       AID-Getopt: afc4f75
 //   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 14:43:26 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 16:23:25 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "minds-only";
-globalThis.INNER_ENTITY_GIT_HASH = "5344d9c";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "minds-only", gitHash: "5344d9c", buildTime: "2026-11-09 14:43:26 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (5344d9c)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "42e4143";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "minds-only", gitHash: "42e4143", buildTime: "2026-11-09 16:23:25 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (42e4143)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 

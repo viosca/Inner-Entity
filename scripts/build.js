@@ -246,10 +246,10 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
     }
 
     const ecHash = getGitHash(path.join(ROOT_DIR, "submodules", "Entity-Cards"));
-    const getoptHash = getGitHash(path.join(ROOT_DIR, "submodules", "getopt-aid"));
+    const getoptHash = getGitHash(path.join(ROOT_DIR, "submodules", "aid-getopt"));
     const submodulesLine = (engine === "minds" || engine === "none")
-        ? `//   Submodules:       GetoptAID: ${getoptHash}`
-        : `//   Submodules:       Entity-Cards: ${ecHash}, GetoptAID: ${getoptHash}`;
+        ? `//   Submodules:       AID-Getopt: ${getoptHash}`
+        : `//   Submodules:       Entity-Cards: ${ecHash}, AID-Getopt: ${getoptHash}`;
 
     const bannerRegex = /\/\/\s*={60,}[\s\S]*?\/\/\s*={60,}/;
     const newBanner = `// ============================================================================

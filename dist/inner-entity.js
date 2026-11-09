@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-09 14:43:25 UTC
-//   Git Commit:       5344d9c
-//   Submodules:       Entity-Cards: db39dd9, GetoptAID: 225a481
+//   Build Generation: 2026-11-09 16:23:24 UTC
+//   Git Commit:       42e4143
+//   Submodules:       Entity-Cards: b889f85, AID-Getopt: afc4f75
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 14:43:25 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 16:23:24 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "5344d9c";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "entity", gitHash: "5344d9c", buildTime: "2026-11-09 14:43:25 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (5344d9c)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "42e4143";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "entity", gitHash: "42e4143", buildTime: "2026-11-09 16:23:24 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (42e4143)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -9604,11 +9604,13 @@ description: {1 concise sentence narrative summary}
                 logEvent(`/${cmdPrefix}`);
             } else {
                 const cli = parseCommandLine(requestTitle);
-                const getoptDiag = (typeof globalThis.GetoptAID?.diag === "function")
-                    ? globalThis.GetoptAID.diag()
-                    : (typeof globalThis.AID_MODULES?.["getopt-aid"]?.diag === "function"
-                        ? globalThis.AID_MODULES["getopt-aid"].diag()
-                        : "GetoptAID v1.0.0");
+                const getoptDiag = (typeof globalThis.AIDGetopt?.diag === "function")
+                    ? globalThis.AIDGetopt.diag()
+                    : (typeof globalThis.GetoptAID?.diag === "function")
+                        ? globalThis.GetoptAID.diag()
+                        : (typeof (globalThis.AID_MODULES?.["aid-getopt"] || globalThis.AID_MODULES?.["getopt-aid"])?.diag === "function"
+                            ? (globalThis.AID_MODULES["aid-getopt"] || globalThis.AID_MODULES["getopt-aid"]).diag()
+                            : "AID-Getopt v1.0.0");
                 if (cli.flags.version) {
                     const gitHash = (typeof globalThis.INNER_ENTITY_GIT_HASH === "string" && globalThis.INNER_ENTITY_GIT_HASH)
                         || (typeof EC_BUILD_GIT_HASH === "string" && EC_BUILD_GIT_HASH)
