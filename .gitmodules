@@ -2,3 +2,6 @@
 	path = submodules/Entity-Cards
 	url = https://github.com/viosca/Entity-Cards.git
 	branch = main
+[submodule "submodules/getopt-aid"]
+	path = submodules/getopt-aid
+	url = https://github.com/viosca/aid-getopt.git

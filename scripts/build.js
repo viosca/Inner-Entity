@@ -245,6 +245,12 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
         flavorTag = "entity";
     }
 
+    const ecHash = getGitHash(path.join(ROOT_DIR, "submodules", "Entity-Cards"));
+    const getoptHash = getGitHash(path.join(ROOT_DIR, "submodules", "getopt-aid"));
+    const submodulesLine = (engine === "minds" || engine === "none")
+        ? `//   Submodules:       GetoptAID: ${getoptHash}`
+        : `//   Submodules:       Entity-Cards: ${ecHash}, GetoptAID: ${getoptHash}`;
+
     const bannerRegex = /\/\/\s*={60,}[\s\S]*?\/\/\s*={60,}/;
     const newBanner = `// ============================================================================
 //
@@ -254,6 +260,7 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
 //
 //   Build Generation: ${timestamp}
 //   Git Commit:       ${gitHash}
+${submodulesLine}
 //   Engine Flavor:    ${flavorDesc}
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -273,7 +280,7 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
 
     processed = processed.replace(
         'globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";',
-        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";\nglobalThis.INNER_ENTITY_GIT_HASH = "${gitHash}";`
+        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";\nglobalThis.INNER_ENTITY_GIT_HASH = "${gitHash}";\ntry { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "${flavorTag}", gitHash: "${gitHash}", buildTime: "${timestamp}", diag: () => "Inner Entity Ver.2_8_0-IE [${flavorTag}] (${gitHash})" }; } catch (_) {}`
     );
 
     return processed;
