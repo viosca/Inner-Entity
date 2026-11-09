@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-09 02:51:58 UTC
-//   Git Commit:       8a7f97e
-//   Submodules:       Entity-Cards: d01c4e5, GetoptAID: 7a1a7ea
+//   Build Generation: 2026-11-09 03:04:47 UTC
+//   Git Commit:       9a39a6d
+//   Submodules:       Entity-Cards: de555cc, GetoptAID: 665ea8c
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 02:51:58 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 03:04:47 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "8a7f97e";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "entity", gitHash: "8a7f97e", buildTime: "2026-11-09 02:51:58 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (8a7f97e)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "9a39a6d";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "entity", gitHash: "9a39a6d", buildTime: "2026-11-09 03:04:47 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (9a39a6d)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
