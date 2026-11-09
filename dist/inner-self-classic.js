@@ -4,8 +4,8 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-09 03:52:12 UTC
-//   Git Commit:       bd97819
+//   Build Generation: 2026-11-09 03:52:33 UTC
+//   Git Commit:       7b56634
 //   Submodules:       Entity-Cards: c295cda, GetoptAID: 665ea8c
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 03:52:12 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-09 03:52:33 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "bd97819";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "classic", gitHash: "bd97819", buildTime: "2026-11-09 03:52:12 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (bd97819)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "7b56634";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "classic", gitHash: "7b56634", buildTime: "2026-11-09 03:52:33 UTC", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (7b56634)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
