@@ -1372,9 +1372,10 @@ function InnerSelf(hook) {
     // This is where (half) of the magic happens: Inner Self injects brains and tasks into context
     // Infer the current lifecycle hook
     if ((hook === "context") || (!hook && Number.isInteger(info.maxChars))) {
-        // If an Inner Entity slash command was processed on input, halt model generation
+        // If an Inner Entity slash command was processed on input, bypass mind injection for this turn
+        // Note: Do NOT set stop = true, as AI Dungeon's runner marks stopped action requests as failed.
+        // Instead, the output hook will cleanly intercept and deliver state.InnerEntity.commandOutput.
         if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
-            globalThis.stop = true;
             return;
         }
         // Calculate the player's context limit with a small buffer
