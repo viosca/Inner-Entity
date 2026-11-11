@@ -2228,23 +2228,24 @@ The key must already exist and the thought is erased permanently. Choose the mos
             if (/^(?:-v|--version|version)\b/i.test(argsStr)) {
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (/^(?:-i|--info|--diag|info|diag)\b/i.test(argsStr)) {
+                const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
                        `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
                        `  Thought Chance: ${config.chance ?? S.THOUGHT_FORMATION_CHANCE_PER_TURN}%\n` +
                        `  Lookback Distance: ${config.lookback ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
-                       `  Prompt Cache: ${info?.useCacheEfficient ? "Optimized Context" : "Standard"}\n` +
+                       `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
                        `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
             } else if (/^(?:-c|--characters|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
             } else if (/^(?:-s|--status|--list|status|list)\b/i.test(argsStr)) {
-                const brainCards = (Array.isArray(storyCards) ? storyCards : [])
-                    .filter(c => c && (
-                        String(c.type) === "brain" || 
-                        String(c.title).includes(config.indicator || "🎭") ||
-                        agents.some(a => a && String(c.title).toLowerCase().includes(a.toLowerCase()))
-                    ) && !String(c.title).includes("Configure"));
+                const allCards = (typeof storyCards !== "undefined" && Array.isArray(storyCards)) ? storyCards : [];
+                const brainCards = allCards.filter(c => c && (
+                    String(c.type) === "brain" || 
+                    String(c.title).includes(config.indicator || "🎭") ||
+                    agents.some(a => a && String(c.title).toLowerCase().includes(a.toLowerCase()))
+                ) && !String(c.title).includes("Configure"));
 
                 let statusLines = `Active Minds (${brainCards.length}):`;
                 if (brainCards.length === 0) {
