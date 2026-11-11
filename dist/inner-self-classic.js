@@ -4,8 +4,8 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-11 20:38:18 UTC
-//   Git Commit:       c56a860
+//   Build Generation: 2026-11-11 20:48:55 UTC
+//   Git Commit:       e09ac61
 //   Submodules:       Entity-Cards: cb340d9, AID-Getopt: 8a26b1c
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 20:38:18 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 20:48:55 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "c56a860";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "c56a860", buildTime: "2026-11-11 20:38:18 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (c56a860)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "e09ac61";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "e09ac61", buildTime: "2026-11-11 20:48:55 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (e09ac61)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -2272,7 +2272,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 }
                 text = `/IE status -> ${statusLines}`;
             } else {
-                text = `/IE help -> Inner Entity Commands:\n` +
+                text = `/IE help [args: ${JSON.stringify(argsStr)}] -> Inner Entity Commands:\n` +
                        `  /ie -s, --status, --list    List active simulated character minds & thoughts\n` +
                        `  /ie -i, --info, --diag      Display cognitive engine diagnostics\n` +
                        `  /ie -c, --characters        List configured scenario NPCs\n` +

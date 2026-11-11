@@ -2263,7 +2263,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 }
                 text = `/IE status -> ${statusLines}`;
             } else {
-                text = `/IE help -> Inner Entity Commands:\n` +
+                text = `/IE help [args: ${JSON.stringify(argsStr)}] -> Inner Entity Commands:\n` +
                        `  /ie -s, --status, --list    List active simulated character minds & thoughts\n` +
                        `  /ie -i, --info, --diag      Display cognitive engine diagnostics\n` +
                        `  /ie -c, --characters        List configured scenario NPCs\n` +

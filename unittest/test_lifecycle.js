@@ -133,7 +133,7 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     // Input hook: /ie -h command
     s.text = "/ie -h";
     s.InnerEntity("input");
-    if (!s.text.includes("/IE help -> Inner Entity Commands:")) throw new Error(`/ie -h failed: got '${s.text}'`);
+    if (!s.text.includes("/IE help") || !s.text.includes("Inner Entity Commands:")) throw new Error(`/ie -h failed: got '${s.text}'`);
     console.log("   ✔ Input hook processed /ie -h (help guide)");
 
     // Input hook: /ie -i diagnostics command
