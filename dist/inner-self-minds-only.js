@@ -4,8 +4,8 @@
 //
 //                      Inner Self Minds-Only (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-11 06:26:13 UTC
-//   Git Commit:       12870e2
+//   Build Generation: 2026-11-11 06:26:27 UTC
+//   Git Commit:       0e5d635
 //   Submodules:       AID-Getopt: 8a26b1c
 //   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 06:26:13 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 06:26:27 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "minds-only";
-globalThis.INNER_ENTITY_GIT_HASH = "12870e2";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "12870e2", buildTime: "2026-11-11 06:26:13 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (12870e2)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "0e5d635";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "0e5d635", buildTime: "2026-11-11 06:26:27 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (0e5d635)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
