@@ -141,7 +141,26 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     s.InnerEntity("input");
     if (!s.text.includes("/IE info -> Inner Entity Diagnostics:")) throw new Error(`/ie -i failed: got '${s.text}'`);
     if (!s.text.includes("Configured NPCs:")) throw new Error("/ie -i missing Configured NPCs");
+    if (!s.text.includes("Lookback Distance: 5 turns")) throw new Error(`/ie -i invalid Lookback Distance: got '${s.text}'`);
     console.log("   ✔ Input hook processed /ie -i (cognitive engine diagnostics)");
+
+    // Input hook: verify Do mode and smart dashes for /ie
+    const ieVariants = [
+        { text: "> You /ie -i.", expected: "/IE info -> Inner Entity Diagnostics:" },
+        { text: "> You /ie –i.", expected: "/IE info -> Inner Entity Diagnostics:" },
+        { text: "> You /ie —diag.", expected: "/IE info -> Inner Entity Diagnostics:" },
+        { text: "> You /ie −info.", expected: "/IE info -> Inner Entity Diagnostics:" },
+        { text: 'You says, "/ie -v."', expected: "/IE version -> Inner Entity" },
+        { text: '> You /ie -c.', expected: "/IE characters -> Configured Scenario NPCs:" }
+    ];
+    for (const v of ieVariants) {
+        s.text = v.text;
+        s.InnerEntity("input");
+        if (!s.text.includes(v.expected)) {
+            throw new Error(`Variant '${v.text}' failed: expected '${v.expected}', got '${s.text}'`);
+        }
+    }
+    console.log("   ✔ Input hook handled Do/Say mode, smart dashes (–, —, −), and trailing punctuation for /ie commands");
 
     // Input hook: /ie -c characters command
     s.text = "/ie -c";

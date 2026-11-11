@@ -2206,11 +2206,14 @@ The key must already exist and the thought is erased permanently. Choose the mos
         if (doMatch) str = doMatch[1].trim();
         // 3. Trailing punctuation stripping
         str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+        // 4. Smart dash / typographical dash normalization
+        str = str.replace(/[\u2010-\u2015\u2212]/g, "-");
 
-        // 4. Match /ie or /is
+        // 5. Match /ie or /is
         const ieMatch = str.match(/^\/\s*(?:i\s*e|i\s*s)\b(.*)$/i);
         if (ieMatch) {
-            const argsStr = ieMatch[1].trim();
+            let argsStr = ieMatch[1].trim().replace(/[\u2010-\u2015\u2212]/g, "-");
+            argsStr = argsStr.replace(/(?<=\S)[.!?,;:)]+$/, "").trim();
             const config = Config.get();
             let agents = Array.isArray(config.agents) ? config.agents.map(a => String(a).trim()).filter(a => a && !a.startsWith("[")) : [];
             if (agents.length === 0 && config.card && typeof config.card.description === "string") {
@@ -2225,21 +2228,21 @@ The key must already exist and the thought is erased permanently. Choose the mos
             const gitHash = globalThis.INNER_ENTITY_GIT_HASH || "unknown";
             const flavor = globalThis.INNER_ENTITY_FLAVOR || "entity";
 
-            if (/^(?:-v|--version|version)\b/i.test(argsStr)) {
+            if (/^(?:[-—–−]{1,2}v|version)\b/i.test(argsStr)) {
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
-            } else if (/^(?:-i|--info|--diag|info|diag)\b/i.test(argsStr)) {
+            } else if (/^(?:[-—–−]{1,2}(?:i|info|diag)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
                        `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
                        `  Thought Chance: ${config.chance ?? S.THOUGHT_FORMATION_CHANCE_PER_TURN}%\n` +
-                       `  Lookback Distance: ${config.lookback ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
+                       `  Lookback Distance: ${config.distance ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
                        `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
-            } else if (/^(?:-c|--characters|characters)\b/i.test(argsStr)) {
+            } else if (/^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
-            } else if (/^(?:-s|--status|--list|status|list)\b/i.test(argsStr)) {
+            } else if (/^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
                 const allCards = (typeof storyCards !== "undefined" && Array.isArray(storyCards)) ? storyCards : [];
                 const brainCards = allCards.filter(c => c && (
                     String(c.type) === "brain" || 
