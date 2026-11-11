@@ -4,8 +4,8 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-11 06:26:27 UTC
-//   Git Commit:       0e5d635
+//   Build Generation: 2026-11-11 06:34:55 UTC
+//   Git Commit:       133121c
 //   Submodules:       Entity-Cards: cb340d9, AID-Getopt: 8a26b1c
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 06:26:27 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 06:34:55 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "0e5d635";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "0e5d635", buildTime: "2026-11-11 06:26:27 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (0e5d635)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "133121c";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "133121c", buildTime: "2026-11-11 06:34:55 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (133121c)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -1381,6 +1381,11 @@ function InnerSelf(hook) {
     // This is where (half) of the magic happens: Inner Self injects brains and tasks into context
     // Infer the current lifecycle hook
     if ((hook === "context") || (!hook && Number.isInteger(info.maxChars))) {
+        // If an Inner Entity slash command was processed on input, halt model generation
+        if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
+            globalThis.stop = true;
+            return;
+        }
         // Calculate the player's context limit with a small buffer
         const limit = Math.max((Math.min(text.length, info.maxChars) - 10), 4500);
         // Ensure stop variable exists (the AID script sandbox is silly)
@@ -2260,7 +2265,11 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  /ie -h, --help              Show command help`;
             }
 
-            try { state.message = text; } catch (_) {}
+            try {
+                state.message = text;
+                state.InnerEntity ??= {};
+                state.InnerEntity.commandOutput = text;
+            } catch (_) {}
             return;
         }
 
@@ -2287,6 +2296,13 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     }
     // ==================== OUTPUT HOOK ====================
+    // If an Inner Entity slash command was processed on input, deliver its output cleanly
+    if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
+        const cmdOut = state.InnerEntity.commandOutput;
+        delete state.InnerEntity.commandOutput;
+        text = cmdOut ? `${cmdOut.trim()}\n` : "\n";
+        return;
+    }
     // Process model output and implement brain operations
     /** @type {config} */
     const config = Config.get();

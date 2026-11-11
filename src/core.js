@@ -1372,6 +1372,11 @@ function InnerSelf(hook) {
     // This is where (half) of the magic happens: Inner Self injects brains and tasks into context
     // Infer the current lifecycle hook
     if ((hook === "context") || (!hook && Number.isInteger(info.maxChars))) {
+        // If an Inner Entity slash command was processed on input, halt model generation
+        if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
+            globalThis.stop = true;
+            return;
+        }
         // Calculate the player's context limit with a small buffer
         const limit = Math.max((Math.min(text.length, info.maxChars) - 10), 4500);
         // Ensure stop variable exists (the AID script sandbox is silly)
@@ -2251,7 +2256,11 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  /ie -h, --help              Show command help`;
             }
 
-            try { state.message = text; } catch (_) {}
+            try {
+                state.message = text;
+                state.InnerEntity ??= {};
+                state.InnerEntity.commandOutput = text;
+            } catch (_) {}
             return;
         }
 
@@ -2278,6 +2287,13 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     }
     // ==================== OUTPUT HOOK ====================
+    // If an Inner Entity slash command was processed on input, deliver its output cleanly
+    if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
+        const cmdOut = state.InnerEntity.commandOutput;
+        delete state.InnerEntity.commandOutput;
+        text = cmdOut ? `${cmdOut.trim()}\n` : "\n";
+        return;
+    }
     // Process model output and implement brain operations
     /** @type {config} */
     const config = Config.get();
