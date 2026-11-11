@@ -785,7 +785,7 @@ function InnerSelf(hook) {
         /**
          * Factory function that creates builder/setter pairs for config fields
          * Handles both boolean and integer settings with validation
-         * This makes me NOT want to die every time I need to add a new setting
+         * This simplifies the workflow every time I need to add a new setting
          * @param {string} key - Config property name
          * @param {*} setting - Default value from scenario settings
          * @param {Object} int - Integer constraints (lower, upper, suffix)

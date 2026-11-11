@@ -4,8 +4,8 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-11 20:52:26 UTC
-//   Git Commit:       e886e84
+//   Build Generation: 2026-11-11 21:17:29 UTC
+//   Git Commit:       697d024
 //   Submodules:       Entity-Cards: cb340d9, AID-Getopt: 8a26b1c
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 20:52:26 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-11 21:17:29 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "e886e84";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "e886e84", buildTime: "2026-11-11 20:52:26 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (e886e84)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "697d024";
+try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "697d024", buildTime: "2026-11-11 21:17:29 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (697d024)" }; } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -794,7 +794,7 @@ function InnerSelf(hook) {
         /**
          * Factory function that creates builder/setter pairs for config fields
          * Handles both boolean and integer settings with validation
-         * This makes me NOT want to die every time I need to add a new setting
+         * This simplifies the workflow every time I need to add a new setting
          * @param {string} key - Config property name
          * @param {*} setting - Default value from scenario settings
          * @param {Object} int - Integer constraints (lower, upper, suffix)
