@@ -2230,7 +2230,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
 
             if (/^(?:[-—–−]{1,2}v|version)\b/i.test(argsStr)) {
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
-            } else if (/^(?:[-—–−]{1,2}(?:i|info|diag)|info|diag)\b/i.test(argsStr)) {
+            } else if (/^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
@@ -2263,7 +2263,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 }
                 text = `/IE status -> ${statusLines}`;
             } else {
-                text = `/IE help [args: ${JSON.stringify(argsStr)}] -> Inner Entity Commands:\n` +
+                text = `/IE help -> Inner Entity Commands:\n` +
                        `  /ie -s, --status, --list    List active simulated character minds & thoughts\n` +
                        `  /ie -i, --info, --diag      Display cognitive engine diagnostics\n` +
                        `  /ie -c, --characters        List configured scenario NPCs\n` +
