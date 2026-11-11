@@ -123,6 +123,44 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     if (!s.text.includes("Story Model:") || !s.text.includes("Optimize Context:")) throw new Error("/ec -i missing environment section");
     console.log("   ✔ Input hook processed /ec -i (system diagnostics)");
 
+    // Input hook: /ie -v command
+    s.text = "/ie -v";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE version -> Inner Entity")) throw new Error(`/ie -v failed: got '${s.text}'`);
+    if (!s.text.includes("git:")) throw new Error("/ie -v missing git hash");
+    console.log("   ✔ Input hook processed /ie -v (version & git metadata)");
+
+    // Input hook: /ie -h command
+    s.text = "/ie -h";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE help -> Inner Entity Commands:")) throw new Error(`/ie -h failed: got '${s.text}'`);
+    console.log("   ✔ Input hook processed /ie -h (help guide)");
+
+    // Input hook: /ie -i diagnostics command
+    s.text = "/ie -i";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE info -> Inner Entity Diagnostics:")) throw new Error(`/ie -i failed: got '${s.text}'`);
+    if (!s.text.includes("Configured NPCs:")) throw new Error("/ie -i missing Configured NPCs");
+    console.log("   ✔ Input hook processed /ie -i (cognitive engine diagnostics)");
+
+    // Input hook: /ie -c characters command
+    s.text = "/ie -c";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE characters -> Configured Scenario NPCs: Hakari, Karane")) throw new Error(`/ie -c failed: got '${s.text}'`);
+    console.log("   ✔ Input hook processed /ie -c (configured NPC list)");
+
+    // Input hook: /ie -s status command
+    s.text = "/ie -s";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE status -> Active Minds")) throw new Error(`/ie -s failed: got '${s.text}'`);
+    console.log("   ✔ Input hook processed /ie -s (active minds status)");
+
+    // Input hook: /is -v alias
+    s.text = "/is -v";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE version -> Inner Entity")) throw new Error(`/is -v failed: got '${s.text}'`);
+    console.log("   ✔ Input hook processed legacy /is alias");
+
     // Input hook: verify bareword "Info" generates card rather than triggering diagnostics
     s.text = "/ec Info";
     s.InnerEntity("input");
@@ -197,6 +235,14 @@ runSuite("SUITE 3: Mind-Only Inner Self (Pure Cognition, Zero Card Engine)", pat
     s.InnerEntity("context");
     s.InnerEntity("output");
     console.log("   ✔ Pure character cognition executed cleanly without card engine");
+
+    // In minds-only mode, /ie commands still function cleanly!
+    s.text = "/ie -v";
+    s.InnerEntity("input");
+    if (!s.text.includes("/IE version -> Inner Entity") || !s.text.includes("[minds-only]")) {
+        throw new Error(`/ie -v failed in minds-only: got '${s.text}'`);
+    }
+    console.log("   ✔ In-game /ie commands function in standalone minds-only build");
 });
 
 // ----------------------------------------------------------------------------

@@ -1080,15 +1080,31 @@ function InnerSelf(hook) {
         ["entry", "description"].map(source => [source, (
             (typeof config.card[source] === "string")
             // Split on >, filter for lines with colons, extract key-value pairs
-            ? Object.fromEntries((config.card[source]
+            ? ((parsed) => {
+                // If description contains plain name lines without >, extract them for agent names
+                if (source === "description") {
+                    const plainNames = config.card.description.split("\n")
+                        .map(l => l.trim())
+                        .filter(l => l && !l.startsWith("[") && !l.startsWith("Please") && !l.startsWith("Inner Self") && !l.startsWith("Write") && !l.startsWith(">") && !l.startsWith("#") && !l.startsWith("==="));
+                    if (plainNames.length > 0) {
+                        parsed[simplify("Write the first name of every intelligent story character on separate lines below, listed from highest to lowest trigger priority:")] = plainNames.join("\n");
+                    }
+                }
+                return parsed;
+            })(Object.fromEntries((config.card[source]
                 .split(/\s*>[\s>]*/)
                 .filter(block => block.includes(":"))
                 .map(block => block.split(/\s*:[\s:]*/, 2))
-            ).map(pair => [simplify(pair[0]), pair[1].trimEnd()])) : {}
-        )]).forEach(([source, extractive]) => template[source].forEach(cfg => (
+            ).map(pair => [simplify(pair[0]), pair[1].trimEnd()]))) : {}
+        )]).forEach(([source, extractive]) => template[source].forEach(cfg => {
             // Try to set each config value from extracted content (fallible mode)
-            cfg.setter?.(extractive[simplify(cfg.message)], true)
-        )));
+            const extractedVal = extractive[simplify(cfg.message)] ?? (
+                cfg.message.includes("intelligent story character")
+                ? (extractive["characternames"] ?? extractive[simplify("Character names")])
+                : undefined
+            );
+            cfg.setter?.(extractedVal, true);
+        }));
         // Merge all discovered agents: config, brain card metadata, and "@" pending
         config.agents = [...new Set([...(config.agents ?? fallback.agents), ...agents, ...pending])];
         if (IS.AC.forced) {
@@ -2175,6 +2191,70 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
+        const rawInput = (typeof text === "string") ? text.trim() : "";
+        const ieMatch = rawInput.match(/^\/\s*(?:i\s*e|i\s*s)\b(.*)$/i);
+        if (ieMatch) {
+            const argsStr = ieMatch[1].trim();
+            const config = Config.get();
+            let agents = Array.isArray(config.agents) ? config.agents.map(a => String(a).trim()).filter(a => a && !a.startsWith("[")) : [];
+            if (agents.length === 0 && config.card && typeof config.card.description === "string") {
+                const descLines = config.card.description.split("\n")
+                    .map(l => l.trim())
+                    .filter(l => l && !l.startsWith("[") && !l.startsWith("Please") && !l.startsWith("Inner Self") && !l.startsWith("Write") && !l.startsWith(">") && !l.startsWith("===") && !l.startsWith("#"));
+                if (descLines.length > 0) {
+                    agents = descLines;
+                }
+            }
+            const buildVer = globalThis.INNER_ENTITY_BUILD || "Ver.2_8_0-IE";
+            const gitHash = globalThis.INNER_ENTITY_GIT_HASH || "unknown";
+            const flavor = globalThis.INNER_ENTITY_FLAVOR || "entity";
+
+            if (/^(?:-v|--version|version)\b/i.test(argsStr)) {
+                text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
+            } else if (/^(?:-i|--info|--diag|info|diag)\b/i.test(argsStr)) {
+                text = `/IE info -> Inner Entity Diagnostics:\n` +
+                       `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
+                       `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
+                       `  Thought Chance: ${config.chance ?? S.THOUGHT_FORMATION_CHANCE_PER_TURN}%\n` +
+                       `  Lookback Distance: ${config.lookback ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
+                       `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
+                       `  Prompt Cache: ${info?.useCacheEfficient ? "Optimized Context" : "Standard"}\n` +
+                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
+            } else if (/^(?:-c|--characters|characters)\b/i.test(argsStr)) {
+                text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
+            } else if (/^(?:-s|--status|--list|status|list)\b/i.test(argsStr)) {
+                const brainCards = (Array.isArray(storyCards) ? storyCards : [])
+                    .filter(c => c && (
+                        String(c.type) === "brain" || 
+                        String(c.title).includes(config.indicator || "🎭") ||
+                        agents.some(a => a && String(c.title).toLowerCase().includes(a.toLowerCase()))
+                    ) && !String(c.title).includes("Configure"));
+
+                let statusLines = `Active Minds (${brainCards.length}):`;
+                if (brainCards.length === 0) {
+                    statusLines += "\n  (No active character mind cards yet. Introduce an NPC in story prose to trigger brain formation!)";
+                } else {
+                    for (const bc of brainCards) {
+                        const title = bc.title ? bc.title.replace(/\n/g, " ").trim() : "Unknown";
+                        const notes = (bc.description || "").trim();
+                        const preview = notes.length > 80 ? notes.slice(0, 80) + "..." : (notes || "(empty thoughts)");
+                        statusLines += `\n  • ${title}: ${preview}`;
+                    }
+                }
+                text = `/IE status -> ${statusLines}`;
+            } else {
+                text = `/IE help -> Inner Entity Commands:\n` +
+                       `  /ie -s, --status, --list    List active simulated character minds & thoughts\n` +
+                       `  /ie -i, --info, --diag      Display cognitive engine diagnostics\n` +
+                       `  /ie -c, --characters        List configured scenario NPCs\n` +
+                       `  /ie -v, --version           Show script build version & git hash\n` +
+                       `  /ie -h, --help              Show command help`;
+            }
+
+            try { state.message = text; } catch (_) {}
+            return;
+        }
+
         // Check for /AC command to force-enable Auto-Cards
         if (IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
             // Normal input processing

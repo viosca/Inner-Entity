@@ -3,6 +3,10 @@
 </p>
 
 # Inner Entity 🎭
+
+[![Specification: AMS v1.1.0](https://img.shields.io/badge/spec-AMS%20v1.1.0-purple.svg)](https://github.com/viosca/aid-modules/blob/main/SPECIFICATION.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 ### *Giving characters minds of their own with Entity Cards~*
 Originally created as **Inner Self** by **LewdLeah** ❤️  
 Optimized Context patch by **XloSky**  
@@ -107,6 +111,15 @@ When your adventure begins, the script generates:
    - Allows live editing of the YAML generation templates right inside the card notes.
 
 ### Slash Commands
+
+#### 🎭 Inner Entity Commands (`/ie` or `/is`)
+- `/ie -s`, `/ie --status`, `/ie --list`: Display all simulated character minds, recent thoughts, and cognitive state.
+- `/ie -i`, `/ie --info`, `/ie --diag`: Output complete cognitive engine diagnostics (active NPCs, thought chance, trigger lookback distance, visual indicator, prompt caching tier).
+- `/ie -c`, `/ie --characters`: List configured scenario NPCs registered to develop minds.
+- `/ie -v`, `/ie --version`: Display script build version, flavor (`entity`, `classic`, `minds-only`), and git commit hash.
+- `/ie -h`, `/ie --help`: Display the in-game command help listing.
+
+#### 🗃️ Entity Cards Commands (`/ec` or `/ac`)
 
 You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
 - `/ec <Title>`: Instantly generate an entity card, bypassing common filters.

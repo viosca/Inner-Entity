@@ -280,7 +280,7 @@ ${submodulesLine}
 
     processed = processed.replace(
         'globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";',
-        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";\nglobalThis.INNER_ENTITY_GIT_HASH = "${gitHash}";\ntry { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "InnerEntity", version: "2.8.0", flavor: "${flavorTag}", gitHash: "${gitHash}", buildTime: "${timestamp}", diag: () => "Inner Entity Ver.2_8_0-IE [${flavorTag}] (${gitHash})" }; } catch (_) {}`
+        `globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";\nglobalThis.INNER_ENTITY_BUILD_TIME = "${timestamp}";\nglobalThis.INNER_ENTITY_FLAVOR = "${flavorTag}";\nglobalThis.INNER_ENTITY_GIT_HASH = "${gitHash}";\ntry { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "${flavorTag}", gitHash: "${gitHash}", buildTime: "${timestamp}", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\\n  /ie -s, --status, --list    List active simulated character minds & thoughts\\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\\n  /ie -c, --characters        List configured scenario NPCs\\n  /ie -v, --version           Show script build version & git hash\\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [${flavorTag}] (${gitHash})" }; } catch (_) {}`
     );
 
     return processed;
