@@ -2196,8 +2196,18 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
-        const rawInput = (typeof text === "string") ? text.trim() : "";
-        const ieMatch = rawInput.match(/^\/\s*(?:i\s*e|i\s*s)\b(.*)$/i);
+        let str = (typeof text === "string") ? text.trim() : "";
+        // 1. Say mode dialogue unwrapping (e.g. Joe says, "/ie -v.")
+        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
+        if (sayMatch) str = sayMatch[1].trim();
+        // 2. Do mode action unwrapping (e.g. > You /ie -v. or You /ie -v)
+        const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
+        if (doMatch) str = doMatch[1].trim();
+        // 3. Trailing punctuation stripping
+        str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+
+        // 4. Match /ie or /is
+        const ieMatch = str.match(/^\/\s*(?:i\s*e|i\s*s)\b(.*)$/i);
         if (ieMatch) {
             const argsStr = ieMatch[1].trim();
             const config = Config.get();
