@@ -2,19 +2,23 @@
 
 ![Inner Entity Hero Banner](assets/hero-banner.png)
 
+### *Giving characters minds of their own with Entity Cards~*
+
+[![Based on Inner Self](https://img.shields.io/badge/minds-Inner%20Self%20by%20LewdLeah-ff69b4.svg)](https://github.com/LewdLeah/Inner-Self)
+[![Engine: Auto-Cards](https://img.shields.io/badge/lore-Auto--Cards%20by%20LewdLeah-ff69b4.svg)](https://github.com/LewdLeah/Auto-Cards)
 [![Specification: AMS v1.1.0](https://img.shields.io/badge/spec-AMS%20v1.1.0-purple.svg)](https://github.com/viosca/aid-modules/blob/main/SPECIFICATION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-### *Giving characters minds of their own with Entity Cards~*
-Originally created as **Inner Self** by **LewdLeah** ❤️  
-Optimized Context patch by **XloSky**  
-Expanded with **Entity Cards (NER)** and maintained by **Randy Viosca** ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable))  
+* **Cognitive Minds:** Originally created as **Inner Self** by **LewdLeah** ❤️  
+* **World Lore Engine:** Powered by **LewdLeah's Auto-Cards** extended with **NER Entities**  
+* **Prompt Caching:** Optimized Context patch by **XloSky**  
+* **Maintainer:** Expanded with **Entity Cards (NER)** and maintained by **Randy Viosca** ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable))  
 
 ---
 
 ## Overview
 
-**Inner Entity** combines the character-mind simulation of LewdLeah's **Inner Self** with the structured Named Entity Recognition (NER) and token-dense YAML world-building of Randy Viosca's ([@Random_Variable](https://play.aidungeon.com/profile/Random_Variable)) **Entity Cards**, fully updated with XloSky's **Optimized Context** compatibility patch.
+**Inner Entity** combines the character-mind simulation of LewdLeah's **Inner Self** with LewdLeah's **Auto-Cards** engine extended with structured Named Entity Recognition (NER) (**Entity Cards**), fully updated with XloSky's **Optimized Context** compatibility patch.
 
 Simulated NPCs build, reflect upon, and maintain their own mental state (goals, secrets, opinions, private plans) while the world around them is dynamically indexed into token-calibrated Entity Cards across 5 types: **Person**, **Location**, **Organization**, **Thing**, and **Event**.
 
