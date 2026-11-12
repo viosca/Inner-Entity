@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="assets/cover_inner_entity.png" width="800">
-</p>
-
 # Inner Entity 🎭
+
+![Inner Entity Hero Banner](assets/hero-banner.png)
 
 [![Specification: AMS v1.1.0](https://img.shields.io/badge/spec-AMS%20v1.1.0-purple.svg)](https://github.com/viosca/aid-modules/blob/main/SPECIFICATION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
