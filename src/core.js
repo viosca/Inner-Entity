@@ -2295,8 +2295,13 @@ The key must already exist and the thought is erased permanently. Choose the mos
         }
         text ||= "\u200B";
         return;
-    } else if ((text.includes(">>>") && text.includes("<<<")) || (3000 < text.length)) {
-        // Output contains an Auto-Cards thingy or is suspiciously long
+    } else if (
+        (text.includes(">>>") && text.includes("<<<")) ||
+        (3000 < text.length) ||
+        (typeof state !== "undefined" && (state?.GetoptSandbox?.isCommandOutput || state?._aid_system_command)) ||
+        (text.trim().startsWith("===") && text.includes("=================================================================="))
+    ) {
+        // Output contains an Auto-Cards thingy, upstream system command output, or is suspiciously long
         // Safer to leave untouched
         IS.agent = "";
         return;

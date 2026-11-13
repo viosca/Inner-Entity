@@ -218,6 +218,44 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     s.InnerEntity("output");
     console.log("   ✔ Output hook executed");
 
+    // Output hook: System command output passthrough (e.g. AID-Getopt / AID-Modules)
+    const systemHelp = [
+        "==================================================================",
+        "  ⚙️ /aid-getopt Command Manual",
+        "==================================================================",
+        "Usage: /aid-getopt [options] [diag|test|version|help]",
+        "Aliases: /aid-getopts",
+        "Options:",
+        "  --diag, -d     Run comprehensive runtime & state diagnostics",
+        "  --test, -t     Run in-engine automated self-diagnostic test suite",
+        "  --version, -v  Display engine build version, git commit, and runtime",
+        "  --help, -h     Display this manual",
+        "Diagnostics Options (use with --diag):",
+        "  -c, --context  Inspect model context payload received",
+        "  -m, --memory   Inspect state.memory structure",
+        "  -s, --state    Inspect active state keys and types",
+        "  -i, --info     Inspect info object (model settings, maxChars)",
+        "  -a, --all      Full diagnostic dump of state and environment",
+        "Self-Test Options (use with --test):",
+        "  --verbose      Display detailed individual test descriptions",
+        "=================================================================="
+    ].join("\n");
+
+    s.text = systemHelp;
+    s.state.GetoptSandbox = { isCommandOutput: true };
+    s.InnerEntity("output");
+    if (s.text !== systemHelp) {
+        throw new Error("InnerEntity modified upstream system command output (isCommandOutput flag)!");
+    }
+
+    delete s.state.GetoptSandbox;
+    s.text = systemHelp;
+    s.InnerEntity("output");
+    if (s.text !== systemHelp) {
+        throw new Error("InnerEntity modified banner-delimited system command output!");
+    }
+    console.log("   ✔ Output hook safely passes upstream system command outputs untouched");
+
     // Verify backward compatibility: calling InnerSelf directly
     s.InnerSelf("input");
     s.InnerSelf("context");
