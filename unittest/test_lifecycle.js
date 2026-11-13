@@ -152,7 +152,12 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
         { text: "> You /ie —diag.", expected: "/IE info -> Inner Entity Diagnostics:" },
         { text: "> You /ie −info.", expected: "/IE info -> Inner Entity Diagnostics:" },
         { text: 'You says, "/ie -v."', expected: "/IE version -> Inner Entity" },
-        { text: '> You /ie -c.', expected: "/IE characters -> Configured Scenario NPCs:" }
+        { text: '> You /ie -c.', expected: "/IE characters -> Configured Scenario NPCs:" },
+        { text: "> Jonathon /ie -s.", expected: "/IE status -> Active Minds" },
+        { text: "> Jonathon /ie -v", expected: "/IE version -> Inner Entity" },
+        { text: 'Hakari says, "/ie -h"', expected: "/IE help -> Inner Entity Commands:" },
+        { text: "[AI, polish and write this author's input into the story:] Author as Jonathon /ie -i", expected: "/IE info -> Inner Entity Diagnostics:" },
+        { text: "> [AI, instruction] Author as Jonathon /ie -c", expected: "/IE characters -> Configured Scenario NPCs:" }
     ];
     for (const v of ieVariants) {
         s.text = v.text;

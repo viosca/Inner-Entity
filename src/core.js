@@ -2202,19 +2202,35 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
-        let str = (typeof text === "string") ? text.trim() : "";
-        // 1. Say mode dialogue unwrapping (e.g. Joe says, "/ie -v.")
-        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
-        if (sayMatch) str = sayMatch[1].trim();
-        // 2. Do mode action unwrapping (e.g. > You /ie -v. or You /ie -v)
-        const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
-        if (doMatch) str = doMatch[1].trim();
-        // 3. Trailing punctuation stripping
-        str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
-        // 4. Smart dash / typographical dash normalization
-        str = str.replace(/[\u2010-\u2015\u2212]/g, "-");
+        const rawInput = (typeof text === "string") ? text.trim() : "";
+        const unwrap = (typeof globalThis.AIDGetopt?.unwrapCommandInput === "function")
+            ? globalThis.AIDGetopt.unwrapCommandInput
+            : (typeof globalThis.GetoptAID?.unwrapCommandInput === "function")
+                ? globalThis.GetoptAID.unwrapCommandInput
+                : (s) => {
+                    if (!s || typeof s !== "string") return "";
+                    let str = s.trim();
+                    const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:[^\n"“]+?)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
+                    if (sayMatch) {
+                        str = sayMatch[1].trim();
+                    } else {
+                        const doMatchWithGt = str.match(/^(?:>\s*)(?:[^\n/]+?\s+)?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
+                        if (doMatchWithGt) {
+                            str = doMatchWithGt[1].trim();
+                        } else {
+                            const doMatchRaw = str.match(/^(?:(?:\[[^\]]*\]\s*)*(?:Author\s+as\s+[^\n/]+?\s+)?|(?:You:?\s+))?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
+                            if (doMatchRaw) str = doMatchRaw[1].trim();
+                        }
+                    }
+                    if (str !== "-?" && str !== "--?") {
+                        str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+                    }
+                    return str.replace(/[\u2010-\u2015\u2212]/g, "-");
+                };
 
-        // 5. Match /ie or /is
+        let str = unwrap(rawInput);
+
+        // Match /ie or /is
         const ieMatch = str.match(/^\/\s*(?:i\s*e|i\s*s)\b(.*)$/i);
         if (ieMatch) {
             let argsStr = ieMatch[1].trim().replace(/[\u2010-\u2015\u2212]/g, "-");
@@ -2233,9 +2249,23 @@ The key must already exist and the thought is erased permanently. Choose the mos
             const gitHash = globalThis.INNER_ENTITY_GIT_HASH || "unknown";
             const flavor = globalThis.INNER_ENTITY_FLAVOR || "entity";
 
-            if (/^(?:[-—–−]{1,2}v|version)\b/i.test(argsStr)) {
+            const ieSpec = {
+                "version|v": { type: "boolean", description: "Show script build version & git hash" },
+                "info|i|diag|you": { type: "boolean", description: "Display cognitive engine diagnostics" },
+                "characters|c": { type: "boolean", description: "List configured scenario NPCs" },
+                "status|s|list": { type: "boolean", description: "List active simulated character minds & thoughts" },
+                "help|h": { type: "boolean", description: "Show command help" }
+            };
+
+            const cli = (typeof globalThis.AIDGetopt?.getopt === "function")
+                ? globalThis.AIDGetopt.getopt(argsStr, ieSpec)
+                : (typeof globalThis.GetoptAID?.getopt === "function")
+                    ? globalThis.GetoptAID.getopt(argsStr, ieSpec)
+                    : null;
+
+            if (cli ? cli.hasFlag("version") : /^(?:[-—–−]{1,2}v|version)\b/i.test(argsStr)) {
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
-            } else if (/^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
+            } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
@@ -2245,9 +2275,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
                        `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
-            } else if (/^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
+            } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
-            } else if (/^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
+            } else if (cli ? cli.hasFlag("status") : /^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
                 const allCards = (typeof storyCards !== "undefined" && Array.isArray(storyCards)) ? storyCards : [];
                 const brainCards = allCards.filter(c => c && (
                     String(c.type) === "brain" || 
@@ -2280,6 +2310,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 state.message = text;
                 state.InnerEntity ??= {};
                 state.InnerEntity.commandOutput = text;
+                if (typeof state !== "undefined") {
+                    state._aid_system_command = true;
+                }
             } catch (_) {}
             return;
         }

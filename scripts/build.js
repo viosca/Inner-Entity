@@ -17,6 +17,10 @@ const EC_SIBLING_PATH2 = path.join(ROOT_DIR, "..", "Entity-Cards", "src", "libra
 const EC_REMOTE_URL = "https://raw.githubusercontent.com/viosca/Entity-Cards/main/src/library.js";
 const AC_REMOTE_URL = "https://raw.githubusercontent.com/LewdLeah/Auto-Cards/main/src/library.js";
 
+const GETOPT_SUBMODULE_PATH = path.join(ROOT_DIR, "submodules", "aid-getopt", "library-aid-getopt.js");
+const GETOPT_SIBLING_PATH = path.join(ROOT_DIR, "..", "aid-getopt", "library-aid-getopt.js");
+const GETOPT_REMOTE_URL = "https://raw.githubusercontent.com/viosca/aid-getopt/main/library-aid-getopt.js";
+
 function fetchHttps(url) {
     return new Promise((resolve, reject) => {
         https.get(url, (res) => {
@@ -218,6 +222,19 @@ async function loadEngine(engine) {
     return await fetchHttps(EC_REMOTE_URL);
 }
 
+async function loadGetopt() {
+    if (fs.existsSync(GETOPT_SUBMODULE_PATH) && fs.statSync(GETOPT_SUBMODULE_PATH).size > 1000) {
+        console.log(`   Loading AID-Getopt from submodule: ${path.relative(ROOT_DIR, GETOPT_SUBMODULE_PATH)}`);
+        return fs.readFileSync(GETOPT_SUBMODULE_PATH, "utf8");
+    }
+    if (fs.existsSync(GETOPT_SIBLING_PATH)) {
+        console.log(`   Loading AID-Getopt from sibling repo: ${GETOPT_SIBLING_PATH}`);
+        return fs.readFileSync(GETOPT_SIBLING_PATH, "utf8");
+    }
+    console.log("   Submodule empty or not initialized. Fetching viosca/aid-getopt via HTTPS...");
+    return await fetchHttps(GETOPT_REMOTE_URL);
+}
+
 function getGitHash(dir) {
     try {
         const { execSync } = require("child_process");
@@ -299,6 +316,10 @@ async function buildTarget(engine) {
     const timestamp = new Date().toISOString().replace("T", " ").replace(/\..+/, "") + " UTC";
     const gitHash = getGitHash(ROOT_DIR);
 
+    const rawGetopt = await loadGetopt();
+    const getoptCode = rawGetopt.replace(/^\/\/\s*={60,}[\s\S]*?\/\/\s*={60,}\s*/, "").trim();
+    const getoptSection = `\n\n// ============================================================================\n// BUNDLED COMMAND PARSER (AID-GETOPT)\n// ============================================================================\n\n${getoptCode}\n`;
+
     let combined;
     let outPaths = [];
 
@@ -307,15 +328,15 @@ async function buildTarget(engine) {
     }
 
     if (engine === "minds" || engine === "none") {
-        combined = `${coreCode}\n`;
+        combined = `${coreCode}${getoptSection}`;
         outPaths = [path.join(DIST_DIR, "inner-self-minds-only.js")];
     } else if (engine === "ac") {
         const engineCode = (await loadEngine(engine)).trimStart();
-        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (CLASSIC AUTO-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
+        combined = `${coreCode}${getoptSection}\n// ============================================================================\n// BUNDLED CARD ENGINE (CLASSIC AUTO-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
         outPaths = [path.join(DIST_DIR, "inner-self-classic.js")];
     } else {
         const engineCode = (await loadEngine(engine)).trimStart();
-        combined = `${coreCode}\n\n// ============================================================================\n// BUNDLED CARD ENGINE (ENTITY-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
+        combined = `${coreCode}${getoptSection}\n// ============================================================================\n// BUNDLED CARD ENGINE (ENTITY-CARDS)\n// ============================================================================\n\n${engineCode}\n`;
         // Flagship outputs to BOTH src/library.js (AID tab standard) and dist/inner-entity.js (dist lineup)
         outPaths = [OUTPUT_PATH, path.join(DIST_DIR, "inner-entity.js")];
     }
