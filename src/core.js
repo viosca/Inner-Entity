@@ -648,6 +648,11 @@ function InnerSelf(hook) {
             event: false
         }
     });
+    try {
+        if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
+            (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
+        }
+    } catch (_) {}
     /**
      * Checks if Auto-Cards is available in the global scope
      * @returns {boolean} true if Auto-Cards is installed and callable

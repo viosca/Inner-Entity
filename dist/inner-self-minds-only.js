@@ -4,8 +4,8 @@
 //
 //                      Inner Self Minds-Only (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-13 20:19:05 UTC
-//   Git Commit:       5d52f84
+//   Build Generation: 2026-11-13 21:38:08 UTC
+//   Git Commit:       b222803
 //   Submodules:       AID-Getopt: 8a26b1c
 //   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-13 20:19:05 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-13 21:38:08 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "minds-only";
-globalThis.INNER_ENTITY_GIT_HASH = "5d52f84";
-try { (globalThis.AID_MODULES ??= {})["inner-entity"] = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "5d52f84", buildTime: "2026-11-13 20:19:05 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (5d52f84)" }; } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "b222803";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "b222803", buildTime: "2026-11-13 21:38:08 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (b222803)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -657,6 +657,11 @@ function InnerSelf(hook) {
             event: false
         }
     });
+    try {
+        if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
+            (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
+        }
+    } catch (_) {}
     /**
      * Checks if Auto-Cards is available in the global scope
      * @returns {boolean} true if Auto-Cards is installed and callable
