@@ -160,3 +160,7 @@ Hook: onInput
    * `globalThis` is completely reset on every turn by QuickJS.
    * `state` is the **only** object serialized and persisted across turns in the database.
    * To allow Slot 0's `/aid-modules` command to discover Slot 1 and Slot 2, downstream modules register their manifest into `state._aid_modules`. Slot 0 reads `state._aid_modules` on subsequent turns, achieving full two-way discovery across the ecosystem.
+
+---
+
+> 🔄 **Detailed Flowcharts:** For granular phase-by-phase state diagrams and edge conditionals across Input, Context, Inference, and Output hooks, see the [Execution Flow & Lifecycle Guide](EXECUTION_FLOW.md).
