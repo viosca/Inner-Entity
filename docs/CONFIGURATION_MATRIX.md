@@ -23,7 +23,8 @@ This document provides a comprehensive guide to the builds, deployment topologie
 | **`inner-self-classic.js`**<br>*(Inner Self Classic)* | **IE + Classic AC**<br>*(Minds + Prose Cards)* | ~220 KB<br>(~4,500 lines) | Single Slot | **Yes**<br>*(Embedded in Core)* | **Vintage narrative play.** Character minds paired with LewdLeah’s classic paragraph card generation instead of YAML/NER schemas. |
 | **`Entity-Cards/src/library.js`**<br>*(Entity Cards Standalone)* | **EC + AC Modes**<br>*(NER + Prose Cards)* | ~400 KB<br>(~8,000 lines) | Slot 1 (Modular)<br>or Single Slot | **Yes**<br>*(Embedded `getoptLong`)* | **Dedicated lore tracking.** Worldbuilding and entity logging without NPC thought simulation. Switchable between NER and Classic modes via config card. |
 | **`Auto-Cards v1.1.3`**<br>*(Classic Upstream)* | **Classic AC Only**<br>*(Prose Paragraphs)* | ~75 KB<br>(~1,500 lines) | Single Slot or Slot 1 | **No**<br>*(Regex only)* | **Ultra-lightweight play.** Minimalist prose card generator with minimal QuickJS memory footprint. |
-| **`library-sandbox.js`**<br>*(AID-Getopt Router)* | **Getopts + AMS + Output Sandbox** | ~65 KB<br>(~1,300 lines) | **Slot 0**<br>*(Master Router)* | **Native**<br>*(Full Engine)* | **Master utility.** Unwraps 3rd-person text/actions across all scripts and traps command output so menus/manuals don't consume AI generation tokens. |
+| **`library-aid-getopt.js`**<br>*(AID-Getopt Library)* | **Getopts Option Parser** | ~40 KB<br>(~1,100 lines) | Optional Developer Slot | **Native**<br>*(Full Engine)* | **Developer utility.** Standard POSIX/GNU flag parser and tokenizer for scenario creators building custom script commands. *(Note: `examples/library-sandbox.js` is an example demo scenario, not a required runtime slot).* |
+| **`library-aid-modules.js`**<br>*(AID-Modules Registry)* | **AMS Registry & Discovery** | ~20 KB<br>(~500 lines) | Optional Utility Slot | **No**<br>*(Registry only)* | **Module inspector.** Optional utility exposing `/aid-modules` to list and verify all installed scripts across turns. |
 
 ---
 
@@ -53,31 +54,41 @@ flowchart TD
 
 ---
 
-### Topology B: The Modular Multi-Slot Trio (Pro Setup)
-Three dedicated slots working together sequentially down the AI Dungeon waterfall.
+### Topology B: The Modular Two-Slot Pair (Standard Modular Setup)
+The recommended setup when a player or creator wants to keep worldbuilding and character cognition in separate slots for independent updating.
 
 ```mermaid
 flowchart TD
-    Player["Player Action / Prompt"] --> S0["Slot 0: AID-Getopt Router (Master CLI & Sandbox)"]
-    S0 -->|"Clean unwrapped input"| S1["Slot 1: Entity Cards (NER & Story Cards)"]
+    Player["Player Action / Prompt"] --> S1["Slot 1: Entity Cards (NER & Story Cards)"]
     S1 -->|"globalThis.AutoCards available"| S2["Slot 2: Inner Entity (Minds-Only)"]
     S2 -->|"Calls getAutoCards()"| S1
 ```
 
-* **Slot 0:** `AID-Getopt Router` (Scenario: `Ka2D5sBoDFnn`)
-* **Slot 1:** `Entity Cards (NER)` (Scenario: `05_w3s9zrrvt`)
-* **Slot 2:** `Inner Entity (Minds)` (Scenario: `bL_qS9DsI5wI`)
+* **Slot 1:** `Entity Cards (NER)` (Scenario: `05_w3s9zrrvt` / `Entity-Cards/src/library.js`)
+* **Slot 2:** `Inner Entity (Minds)` (Scenario: `bL_qS9DsI5wI` / `dist/inner-self-minds-only.js`)
 
 * **Pros:**
-  * **Zero LLM token waste:** Slot 0 traps commands (`/aid-getopt`, `/aid-modules`, etc.) and renders menus via `state.message`, preventing AI model generation from firing.
-  * **Universal 3rd-person support:** Slot 0 unwraps author tags (`[AI, polish...] Author as Jonathon /ie -s`) and character action prefixes (`> Jonathon /ec -s`) before downstream scripts receive the input.
-  * **Independent upgradability:** You can upgrade or tune Entity Cards without touching character mind simulation, or vice-versa.
-  * **Cross-script discovery:** `/aid-modules` in Slot 0 tracks all attached scripts via `state._aid_modules`.
+  * **Zero middleware required:** No need for a separate router or sandbox slot. Both scripts have `aid-getopt` embedded directly inside them.
+  * **Full 3rd-person & authoring support:** Both `/ec` and `/ie` unwrap character prefixes (`> Jonathon /ie -s`) and authoring prompts independently.
+  * **Independent upgradability:** You can update or tune Entity Cards without touching character mind simulation, or vice-versa.
+  * **Clean separation of concerns:** Slot 1 owns lore, NER, and story cards; Slot 2 owns character brains, reflection, and thought simulation.
 * **Cons:**
-  * Requires managing three script slots in the adventure's Script Manager.
+  * Requires managing two script slots in the adventure's Script Manager instead of one.
 * **Dependencies:**
   * Slot 2 calls Slot 1 via `globalThis.AutoCards`.
-  * Downstream scripts sync metadata to `state._aid_modules` for Slot 0 discovery.
+  * Neither script has any external dependencies on `aid-getopt` or `aid-modules`—all option parsing and unwrapping is built right in.
+
+---
+
+### Topology C: The Optional Developer / Inspector Utilities (Add-Ons)
+Scenarios like `AID-Modules` or `AID-Getopt` can be added optionally as slot add-ons:
+
+* **`AID-Modules` (Scenario: `jHwEbn7_bYGC` / `library-aid-modules.js`):**
+  * An optional module manager. If added, exposes `/aid-modules` to discover and report versions, git hashes, and health across all attached scripts.
+* **`AID-Getopt` (Scenario: `library-aid-getopt.js`):**
+  * A standalone developer library for script creators building their own custom slash commands (e.g. `/roll`, `/inventory`, `/stat`).
+* **`AID-Getopt Example Sandbox` (`examples/library-sandbox.js`):**
+  * A showcase demo scenario illustrating how developers can write custom RPG slash commands with getopt routing and output sandboxing. **Not required for standard gameplay.**
 
 ---
 
