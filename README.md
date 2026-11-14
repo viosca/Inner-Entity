@@ -39,7 +39,10 @@ Simulated NPCs build, reflect upon, and maintain their own mental state (goals, 
 | **Real-Time Editors** | View or edit any NPC brain in story card notes, and customize live prompt templates in the companion card |
 | **100% Backward Compatible** | Works with legacy `InnerSelf()` hooks and allows 1-click toggling back to Classic Auto-Cards |
 
-> 🧭 **Architecture & Builds:** See the [Configuration Matrix & Architecture Guide](docs/CONFIGURATION_MATRIX.md) for details on builds (`inner-entity.js`, `inner-self-minds-only.js`, `inner-self-classic.js`), deployment topologies, slot waterfall execution, and dependency management. For step-by-step state diagrams and edge conditionals across each turn phase, see the [Execution Flow & Lifecycle Guide](docs/EXECUTION_FLOW.md).
+> 🧭 **Architecture & Documentation:**
+> * [Configuration Matrix & Architecture Guide](docs/CONFIGURATION_MATRIX.md): Detailed comparison of builds (`inner-entity.js`, `inner-self-minds-only.js`, `inner-self-classic.js`), topologies, and dependencies.
+> * [Standalone vs. All-in-One Combinations Matrix](docs/STANDALONE_VS_ALL_IN_ONE_MATRIX.md): Complete analysis of all 16 mathematical combinations across Modules, Getopt, Entity-Cards, and Inner-Entity.
+> * [Execution Flow & Lifecycle Guide](docs/EXECUTION_FLOW.md): Step-by-step state diagrams and edge conditionals across each turn phase.
 
 ---
 

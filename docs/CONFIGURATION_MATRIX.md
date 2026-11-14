@@ -163,4 +163,6 @@ Hook: onInput
 
 ---
 
-> 🔄 **Detailed Flowcharts:** For granular phase-by-phase state diagrams and edge conditionals across Input, Context, Inference, and Output hooks, see the [Execution Flow & Lifecycle Guide](EXECUTION_FLOW.md).
+> 🔄 **Related Guides:**
+> * [Standalone vs. All-in-One Combinations Matrix](STANDALONE_VS_ALL_IN_ONE_MATRIX.md): Comprehensive analysis of all 16 possible component combinations.
+> * [Execution Flow & Lifecycle Guide](EXECUTION_FLOW.md): Granular phase-by-phase state diagrams and edge conditionals across Input, Context, Inference, and Output hooks.
