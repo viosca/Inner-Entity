@@ -257,9 +257,9 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
         flavorDesc = "Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)";
         flavorTag = "classic";
     } else {
-        flavorTitle = "Inner Entity Flagship";
-        flavorDesc = "Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)";
-        flavorTag = "entity";
+        flavorTitle = "Inner Entity Flagship (All-in-One)";
+        flavorDesc = "All-in-One Flagship: Character Minds + Entity Cards (NER & Classic) + Getopt";
+        flavorTag = "all-in-one";
     }
 
     const ecHash = getGitHash(path.join(ROOT_DIR, "submodules", "Entity-Cards"));
