@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-13 23:11:52 UTC
-//   Git Commit:       8afcf7f
-//   Submodules:       Entity-Cards: cb340d9, AID-Getopt: 3c2ee7e
+//   Build Generation: 2026-11-18 22:32:20 UTC
+//   Git Commit:       dd2c043
+//   Submodules:       Entity-Cards: 9933643, AID-Getopt: 3c2ee7e
 //   Engine Flavor:    Entity-Cards (Flagship: Character Minds + Entity Cards NER & YAML)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-13 23:11:52 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-18 22:32:20 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "entity";
-globalThis.INNER_ENTITY_GIT_HASH = "8afcf7f";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "8afcf7f", buildTime: "2026-11-13 23:11:52 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (8afcf7f)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "dd2c043";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "entity", gitHash: "dd2c043", buildTime: "2026-11-18 22:32:20 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [entity] (dd2c043)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -11809,7 +11809,7 @@ const EntityCards = AutoCards;
 try { globalThis.AutoCards = AutoCards; } catch (_) {}
 try { globalThis.EntityCards = AutoCards; } catch (_) {}
 try {
-    (globalThis.AID_MODULES ??= {})["entity-cards"] = {
+    const _ecm = {
         name: "EntityCards",
         version: typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0",
         gitHash: typeof EC_BUILD_GIT_HASH === "string" ? EC_BUILD_GIT_HASH : "f4cfb67",
@@ -11820,8 +11820,11 @@ try {
         description: "Autonomous story cards and named entity recognition for characters & lore",
         helpSummary: "Autonomous story cards and lore generation (/ec <title>, /ec redo, /ec info)",
         help: () => "Entity Cards Commands:\n  /ec <Title> [-<type>]       Generate card with optional entity type\n  /ec <Title> / {Details}     Generate card with custom guidance\n  /ec -r, --redo <Title>      Regenerate an existing card\n  /ec -R, --redo-all          Regenerate all automatic story cards\n  /ec -m, --mode <mode>       Switch mode: entity | classic\n  /ec -P, --preset <name>     Switch schema: standard | lite | authoring | custom\n  /ec -i, --info              Display system, script & memory diagnostics\n  /ec -v, --version           Show script build version & git hash\n  /ec -h, --help              Show command help",
-        diag: () => `EntityCards Ver.${typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0"}-EC`
+        diag: () => `EntityCards Ver.${typeof EC_BUILD_VERSION === "string" ? EC_BUILD_VERSION : "2.8.0"}-EC (${typeof EC_BUILD_GIT_HASH === "string" ? EC_BUILD_GIT_HASH : "f293890"})`
     };
+    (globalThis.AID_MODULES ??= {})["entity-cards"] = _ecm;
+    if (typeof state !== "undefined") (state._aid_modules ??= {})["entity-cards"] = _ecm;
+    if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_ecm);
 } catch (_) {}
 function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
