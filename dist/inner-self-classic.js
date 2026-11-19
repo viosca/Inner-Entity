@@ -4,9 +4,9 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-18 22:40:45 UTC
-//   Git Commit:       53349dc
-//   Submodules:       Entity-Cards: 9933643, AID-Getopt: 3c2ee7e
+//   Build Generation: 2026-11-19 03:19:20 UTC
+//   Git Commit:       3a868fa
+//   Submodules:       Entity-Cards: 23ac7ed, AID-Getopt: 8a26b1c
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-18 22:40:45 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 03:19:20 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "53349dc";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "53349dc", buildTime: "2026-11-18 22:40:45 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (53349dc)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "3a868fa";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "3a868fa", buildTime: "2026-11-19 03:19:20 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (3a868fa)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -668,8 +668,12 @@ function InnerSelf(hook) {
      */
     const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
     const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
+    const isDoubleEngine = () => Boolean(
+        (typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
+        (typeof state === "object" && state?._aid_double_engine_detected)
+    );
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
-    if (IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
+    if (!isDoubleEngine() && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
             text = getAutoCards()(hook, text);
@@ -1410,7 +1414,7 @@ function InnerSelf(hook) {
         }
         const unzero = () => ((text = text.replace(/[\u200B-\u200D]+/g, "") || " "), (IS.encoding = ""));
         // Handle Auto-Cards integration when enabled
-        if (config.auto && hasAutoCards()) {
+        if (!isDoubleEngine() && config.auto && hasAutoCards()) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
@@ -2276,6 +2280,12 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
+                const doubleEngine = (typeof globalThis._AID_DOUBLE_ENGINE_DETECTED !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) || (typeof state === "object" && state?._aid_double_engine_detected);
+                const doubleEngineBlock = doubleEngine
+                    ? `\n  ⚠️ [DOUBLE ENGINE WARNING]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n` +
+                      `     -> Duplicate card engine automatically bypassed to protect story cards.\n` +
+                      `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot.`
+                    : "";
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
                        `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
@@ -2283,7 +2293,8 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Lookback Distance: ${config.distance ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
-                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
+                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}` +
+                       doubleEngineBlock;
             } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
             } else if (cli ? cli.hasFlag("status") : /^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
@@ -2327,7 +2338,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
         }
 
         // Check for /AC command to force-enable Auto-Cards
-        if (IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
+        if (isDoubleEngine() || IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
             // Normal input processing
             // Append a linebreak to the opening because I said so
             text = (history.length === 0) ? `${text.trimEnd()}\n\n` : text || "\u200B";
@@ -3100,54 +3111,9 @@ globalThis.InnerEntity = InnerEntity;
 })(typeof globalThis !== "undefined" ? globalThis : this, function() {
     "use strict";
 
-    const VERSION = "1.0.1";
-    const GIT_HASH = "8a26b1c";
-    const BUILD_TIME = "2026-11-13 20:18:54 UTC";
-
-    /**
-     * Unwraps player input across Say, Do, and Story modes in AI Dungeon.
-     * Supports:
-     * - 2nd-person Do/Say (e.g. "> You /cmd.", "> You say, '/cmd'")
-     * - 3rd-person Do/Say with single/multi-word character names (e.g. "> Jonathon /cmd.", "> Jonathan GrandCox says, '/cmd'")
-     * - Multiplayer actor prefixes (e.g. "> PlayerOne /cmd.")
-     * - Authoring mode & prompt-wrapper prefixes (e.g. "> [AI, polish...] Author as Jonathon /cmd")
-     * - Trailing punctuation cleaning (.!?,;:)) while preserving option flags like -?
-     *
-     * @param {string} input Raw input string
-     * @returns {string} Unwrapped command line string
-     */
-    function unwrapCommandInput(input) {
-        if (!input || typeof input !== "string") return "";
-
-        let str = input.trim();
-
-        // 1. Dialogue wrapper unpacking (Say mode: 2nd person, 3rd person, multiplayer, or authoring prefix)
-        // Matches: > You say, "..." / Jonathon asks, "..." / > [AI...] Author as X says, "..."
-        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:[^\n"“]+?)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
-        if (sayMatch) {
-            str = sayMatch[1].trim();
-        } else {
-            // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd", "> Jonathon /cmd", "> [AI...] Author as Jonathon /cmd")
-            // When input starts with ">", unwrap the actor prefix (which can be any character name / prompt wrapper before the slash command)
-            const doMatchWithGt = str.match(/^(?:>\s*)(?:[^\n/]+?\s+)?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
-            if (doMatchWithGt) {
-                str = doMatchWithGt[1].trim();
-            } else {
-                // Story mode or raw input without ">": allow optional bracketed AI instructions, "Author as...", or "You:"
-                const doMatchRaw = str.match(/^(?:(?:\[[^\]]*\]\s*)*(?:Author\s+as\s+[^\n/]+?\s+)?|(?:You:?\s+))?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
-                if (doMatchRaw) {
-                    str = doMatchRaw[1].trim();
-                }
-            }
-        }
-
-        // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
-        if (str !== "-?" && str !== "--?") {
-            str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
-        }
-
-        return str;
-    }
+    const VERSION = "1.0.0";
+    const GIT_HASH = "f4e216f";
+    const BUILD_TIME = "2026-11-11 05:12:29 UTC";
 
     /**
      * Tokenizes a command line string respecting single/double/smart quotes,
@@ -3159,7 +3125,21 @@ globalThis.InnerEntity = InnerEntity;
     function tokenize(input) {
         if (!input || typeof input !== "string") return [];
 
-        const str = unwrapCommandInput(input);
+        let str = input.trim();
+        // 1. Dialogue wrapper unpacking (Say mode: e.g. > You say, "..." or Joe says, "...")
+        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
+        if (sayMatch) {
+            str = sayMatch[1].trim();
+        }
+        // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd" or "You /cmd" or "> You: /cmd")
+        const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
+        if (doMatch) {
+            str = doMatch[1].trim();
+        }
+        // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
+        if (str !== "-?" && str !== "--?") {
+            str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+        }
 
         const tokens = [];
         const tokenRegex = /"([^"]*)"|'([^']*)'|“([^”]*?)”|‘([^’]*?)’|(\S+)/g;
@@ -3487,10 +3467,24 @@ globalThis.InnerEntity = InnerEntity;
                 return { matched: false, text: input };
             }
 
-            const str = unwrapCommandInput(input);
+            let str = input.trim();
+            // 1. Dialogue wrapper unpacking (Say mode: e.g. > You say, "..." or Joe says, "...")
+            const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
+            if (sayMatch) {
+                str = sayMatch[1].trim();
+            }
+            // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd" or "You /cmd" or "> You: /cmd")
+            const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
+            if (doMatch) {
+                str = doMatch[1].trim();
+            }
+            // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
+            if (str !== "-?" && str !== "--?") {
+                str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+            }
 
             // Check if input begins with a slash command: e.g. /roll or /ec
-            const cmdMatch = str.match(/^\/([a-zA-Z][a-zA-Z0-9_-]*)(?:\s+([\s\S]*)|$)/);
+            const cmdMatch = str.match(/^\/([a-zA-Z0-9_-]+)(?:\s+([\s\S]*)|$)/);
             if (!cmdMatch) {
                 return { matched: false, text: input };
             }
@@ -3640,8 +3634,8 @@ globalThis.InnerEntity = InnerEntity;
             if (res.target !== "Dragon") throw new Error(`Expected target Dragon, got ${res.target}`);
         });
 
-        // Test 9: Dialogue unwrapping across 2nd/3rd person, multiplayer, and authoring mode
-        run("Say/Do dialogue & 3rd-person unwrapping", () => {
+        // Test 9: Dialogue unwrapping in Say/Do mode
+        run("Say/Do dialogue unwrapping", () => {
             const testApp = cli();
             testApp.command("check", {
                 options: { "val|v=i": 0 },
@@ -3651,12 +3645,6 @@ globalThis.InnerEntity = InnerEntity;
             if (!r1.matched || r1.flags.val !== 42) throw new Error("Dialogue with trailing period inside quote failed");
             const r2 = testApp.dispatch('> You say, "/check -v 99".');
             if (!r2.matched || r2.flags.val !== 99) throw new Error("Dialogue with trailing period outside quote failed");
-            const r3 = testApp.dispatch('> Jonathon /check -v 100.');
-            if (!r3.matched || r3.flags.val !== 100) throw new Error("3rd-person Do mode with custom character name failed");
-            const r4 = testApp.dispatch('> Jonathan GrandCox /check -v 101.');
-            if (!r4.matched || r4.flags.val !== 101) throw new Error("3rd-person Do mode with multi-word character name failed");
-            const r5 = testApp.dispatch('> [AI, polish...] Author as Jonathon /check -v 200.');
-            if (!r5.matched || r5.flags.val !== 200) throw new Error("Authoring mode bracketed wrapper failed");
         });
 
         // Test 10: Multi-script pipeline passthrough
@@ -3797,6 +3785,7 @@ General-purpose usefulness and compatibility with other scenarios/scripts were m
 Auto-Cards is fully open-source, please copy for use within your own projects! ❤️
 */
 function AutoCards(inHook, inText, inStop) {
+    if (AutoCards._isBypassed) { if (inHook === "context") return [inText, inStop]; return inText; }
     "use strict";
     /*
     Default Auto-Cards settings
@@ -9878,11 +9867,38 @@ function AutoCards(inHook, inText, inStop) {
         return codomain;
     }
 }
-if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity !== "function") {
-    AutoCards(null);
+{
+    const isBundledWithIE = (typeof globalThis.InnerSelf === "function" || typeof globalThis.InnerEntity === "function" || typeof globalThis.INNER_ENTITY_BUILD === "string");
+    if (!isBundledWithIE) {
+        if (globalThis._AID_BUNDLED_EC === true || globalThis._AID_STANDALONE_EC === true || (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state !== "undefined") state._aid_double_engine_detected = true;
+            AutoCards._isBypassed = true;
+        } else {
+            globalThis._AID_STANDALONE_EC = true;
+            globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            AutoCards(null);
+        }
+    } else {
+        if (globalThis._AID_STANDALONE_EC === true || globalThis._AID_BUNDLED_EC === true || (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state !== "undefined") state._aid_double_engine_detected = true;
+            AutoCards._isBypassed = true;
+        } else {
+            globalThis._AID_BUNDLED_EC = true;
+            globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+        }
+    }
+    if (AutoCards._isBypassed) {
+        if (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function") {
+            globalThis.AutoCards = globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE;
+            globalThis.EntityCards = globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE;
+        }
+    } else {
+        globalThis.AutoCards = AutoCards;
+        globalThis.EntityCards = AutoCards;
+    }
 }
-globalThis.AutoCards = AutoCards;
-globalThis.EntityCards = AutoCards;
 function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }
 
 // Your other library scripts go here

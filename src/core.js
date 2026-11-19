@@ -659,8 +659,12 @@ function InnerSelf(hook) {
      */
     const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
     const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
+    const isDoubleEngine = () => Boolean(
+        (typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
+        (typeof state === "object" && state?._aid_double_engine_detected)
+    );
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
-    if (IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
+    if (!isDoubleEngine() && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
             text = getAutoCards()(hook, text);
@@ -1401,7 +1405,7 @@ function InnerSelf(hook) {
         }
         const unzero = () => ((text = text.replace(/[\u200B-\u200D]+/g, "") || " "), (IS.encoding = ""));
         // Handle Auto-Cards integration when enabled
-        if (config.auto && hasAutoCards()) {
+        if (!isDoubleEngine() && config.auto && hasAutoCards()) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
@@ -2267,6 +2271,12 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
+                const doubleEngine = (typeof globalThis._AID_DOUBLE_ENGINE_DETECTED !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) || (typeof state === "object" && state?._aid_double_engine_detected);
+                const doubleEngineBlock = doubleEngine
+                    ? `\n  ⚠️ [DOUBLE ENGINE WARNING]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n` +
+                      `     -> Duplicate card engine automatically bypassed to protect story cards.\n` +
+                      `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot.`
+                    : "";
                 text = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
                        `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
@@ -2274,7 +2284,8 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Lookback Distance: ${config.distance ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
-                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}`;
+                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}` +
+                       doubleEngineBlock;
             } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
             } else if (cli ? cli.hasFlag("status") : /^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
@@ -2318,7 +2329,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
         }
 
         // Check for /AC command to force-enable Auto-Cards
-        if (IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
+        if (isDoubleEngine() || IS.AC.enabled || !/\/\s*(?:A|E)\s*C/i.test(text) || !hasAutoCards()) {
             // Normal input processing
             // Append a linebreak to the opening because I said so
             text = (history.length === 0) ? `${text.trimEnd()}\n\n` : text || "\u200B";

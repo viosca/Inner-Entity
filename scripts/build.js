@@ -44,6 +44,10 @@ function bridgeClassicAutoCards(rawCode) {
 
     // 1. Scoped let instead of const DEFAULT_
     code = code.replace(/const DEFAULT_/g, "let DEFAULT_");
+    code = code.replace(
+        "function AutoCards(inHook, inText, inStop) {",
+        "function AutoCards(inHook, inText, inStop) {\n    if (AutoCards._isBypassed) { if (inHook === \"context\") return [inText, inStop]; return inText; }"
+    );
 
     // 2. Insert MainSettings override block before divider
     const divider = "//—————————————————————————————————————————————————————————————————————————————————";
@@ -177,11 +181,38 @@ ${divider}`;
     // 4. Update trailing invocation and global export
     const trailingOld = "} AutoCards(null); function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }";
     const trailingNew = `}
-if (typeof globalThis.InnerSelf !== "function" && typeof globalThis.InnerEntity !== "function") {
-    AutoCards(null);
+{
+    const isBundledWithIE = (typeof globalThis.InnerSelf === "function" || typeof globalThis.InnerEntity === "function" || typeof globalThis.INNER_ENTITY_BUILD === "string");
+    if (!isBundledWithIE) {
+        if (globalThis._AID_BUNDLED_EC === true || globalThis._AID_STANDALONE_EC === true || (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state !== "undefined") state._aid_double_engine_detected = true;
+            AutoCards._isBypassed = true;
+        } else {
+            globalThis._AID_STANDALONE_EC = true;
+            globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            AutoCards(null);
+        }
+    } else {
+        if (globalThis._AID_STANDALONE_EC === true || globalThis._AID_BUNDLED_EC === true || (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state !== "undefined") state._aid_double_engine_detected = true;
+            AutoCards._isBypassed = true;
+        } else {
+            globalThis._AID_BUNDLED_EC = true;
+            globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+        }
+    }
+    if (AutoCards._isBypassed) {
+        if (typeof globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE === "function") {
+            globalThis.AutoCards = globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE;
+            globalThis.EntityCards = globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE;
+        }
+    } else {
+        globalThis.AutoCards = AutoCards;
+        globalThis.EntityCards = AutoCards;
+    }
 }
-globalThis.AutoCards = AutoCards;
-globalThis.EntityCards = AutoCards;
 function isolateLSIv2(code, log, text, stop) { const console = Object.freeze({log}); try { eval(code); return [null, text, stop]; } catch (error) { return [error, text, stop]; } }`;
 
     if (code.includes(trailingOld)) {
