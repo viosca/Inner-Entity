@@ -246,6 +246,156 @@ const initialIEConfigCard = {
     console.log("   ✔ Test 5 passed: Dynamic reconfiguration clears warnings when duplicate is resolved mid-adventure");
 }
 
+// ----------------------------------------------------------------------------
+// Test 6: True Multi-VM Adventure Mode (Isolated globalThis & Per-Slot state,
+//         Live Slot Reordering, Removal, and Modular Replacement)
+// ----------------------------------------------------------------------------
+{
+    // Simulates AI Dungeon's exact server-side QuickJS multi-script architecture:
+    // - Each attached script has its own persistent state: gameState.scripts[slotId]
+    // - Each hook invocation creates a brand-new isolated VM context (globalThis is NOT shared!)
+    // - Only storyCards, text, stop, history, and info are shared across slots.
+    const sharedCards = [{ ...initialIEConfigCard }];
+    const sharedHistory = [
+        { text: "Karane said, \"Hakari's probably in the classroom.\"", type: "say" },
+        { text: "Hakari stepped into the room and greeted Karane.", type: "story" }
+    ];
+    const sharedInfo = {
+        maxChars: 64000,
+        actionCount: 10,
+        useCacheEfficient: false,
+        storyModel: { name: "DeepSeek", version: "v3" }
+    };
+    const perSlotStates = {
+        slotEC: {},
+        slotIEAll: {},
+        slotIEMinds: {}
+    };
+
+    function runSlotHookInIsolatedVM(slotCode, entryFnName, slotState, hook, textVal, stopVal = false) {
+        const sandbox = {
+            log: () => {},
+            console: { log: () => {}, error: console.error },
+            Math, String, Array, Object, Number, RegExp, Set, Map, JSON,
+            parseInt, parseFloat, isNaN, isFinite, Date,
+            text: textVal,
+            stop: stopVal,
+            history: sharedHistory,
+            storyCards: sharedCards,
+            info: sharedInfo,
+            state: slotState,
+            addStoryCard(...args) {
+                let card = (args.length === 1)
+                    ? { title: args[0], entry: "", keys: "", type: "class", description: "" }
+                    : { keys: args[0], entry: args[1], type: args[2], title: args[3], description: args[4] };
+                sharedCards.push(card);
+                return card;
+            },
+            removeStoryCard(index) {
+                sharedCards.splice(index, 1);
+            }
+        };
+        sandbox.globalThis = sandbox;
+        const isolatedCtx = vm.createContext(sandbox);
+        vm.runInContext(slotCode, isolatedCtx);
+
+        if (entryFnName === "AutoCards") {
+            if (hook === "context") {
+                const [t, s] = sandbox.AutoCards("context", sandbox.text, sandbox.stop);
+                return { text: t, stop: s };
+            }
+            return { text: sandbox.AutoCards(hook, sandbox.text), stop: sandbox.stop };
+        } else {
+            sandbox.InnerEntity(hook);
+            return { text: sandbox.text, stop: sandbox.stop };
+        }
+    }
+
+    function runWaterfallHook(activeSlots, hook, initialText, initialStop = false) {
+        let curText = initialText;
+        let curStop = initialStop;
+        for (const slot of activeSlots) {
+            const res = runSlotHookInIsolatedVM(slot.code, slot.fn, slot.state, hook, curText, curStop);
+            curText = res.text;
+            curStop = res.stop;
+        }
+        return { text: curText, stop: curStop };
+    }
+
+    const slotEC = { id: "05_w3s9zrrvt", code: ecCode, fn: "AutoCards", state: perSlotStates.slotEC };
+    const slotIEAll = { id: "ie_all_in_one", code: ieAllCode, fn: "InnerEntity", state: perSlotStates.slotIEAll };
+    const slotIEMinds = { id: "bL_qS9DsI5wI", code: ieMindsCode, fn: "InnerEntity", state: perSlotStates.slotIEMinds };
+
+    // --- Phase A: Order 1 [Slot 1: Standalone EC -> Slot 2: All-in-One IE] in separate VMs ---
+    let activeOrder = [slotEC, slotIEAll];
+
+    // 1. Test /ec -i across separate VMs
+    let res = runWaterfallHook(activeOrder, "input", "/ec -i");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Order 1: /ec -i must include double engine warning");
+
+    // 2. Test /ie -i across separate VMs
+    res = runWaterfallHook(activeOrder, "input", "/ie -i");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Order 1: /ie -i must include double engine warning");
+
+    // 3. Test /ec -v across separate VMs (Slot 2 must NOT re-parse '/EC version ->' as a card title!)
+    res = runWaterfallHook(activeOrder, "input", "/ec -v");
+    assert(res.text.includes("/EC version ->"), "Multi-VM Order 1: /ec -v must preserve version output");
+    assert(!res.text.includes("Generating card"), "Multi-VM Order 1: Slot 2 must not re-parse /EC version output as a card title");
+
+    // 4. Test Context & Output turn across separate VMs
+    sharedInfo.actionCount = 11;
+    sharedHistory.push({ text: "Hakari looked at Karane.", type: "story" });
+    delete perSlotStates.slotIEAll.AutoCards;
+    runWaterfallHook(activeOrder, "context", "Recent Story:\nHakari looked at Karane.");
+    runWaterfallHook(activeOrder, "output", "Karane blushed and looked away.");
+
+    assert(perSlotStates.slotEC.AutoCards, "Multi-VM Order 1: Primary Slot 1 (Standalone EC) must execute and populate its state.AutoCards");
+    assert.strictEqual(perSlotStates.slotIEAll.AutoCards, undefined, "Multi-VM Order 1: Secondary Slot 2 (All-in-One IE) bundled card engine must be completely bypassed during context & output");
+
+    const acCardsAfterPhaseA = sharedCards.filter(c => c.title && c.title.includes("Auto-Cards"));
+    assert.strictEqual(acCardsAfterPhaseA.length, 1, "Multi-VM Order 1: Exactly 1 Auto-Cards control card must exist");
+
+    // --- Phase B: Player Reorders Scripts Mid-Adventure [Slot 1: All-in-One IE -> Slot 2: Standalone EC] ---
+    activeOrder = [slotIEAll, slotEC];
+    sharedInfo.actionCount = 12;
+    sharedHistory.push({ text: "They walked down the hallway.", type: "story" });
+
+    res = runWaterfallHook(activeOrder, "input", "/ec -i");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Reordered: /ec -i must still show warning");
+
+    res = runWaterfallHook(activeOrder, "input", "/ie -i");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Reordered: /ie -i must still show warning");
+
+    runWaterfallHook(activeOrder, "context", "Recent Story:\nThey walked down the hallway.");
+    runWaterfallHook(activeOrder, "output", "The bell rang loudly.");
+
+    const acCardsAfterPhaseB = sharedCards.filter(c => c.title && c.title.includes("Auto-Cards"));
+    assert.strictEqual(acCardsAfterPhaseB.length, 1, "Multi-VM Reordered: Still exactly 1 Auto-Cards control card");
+
+    // --- Phase C: Player Fixes Setup Mid-Adventure by Swapping to [Slot 1: Standalone EC -> Slot 2: Minds-Only IE] ---
+    activeOrder = [slotEC, slotIEMinds];
+    sharedInfo.actionCount = 13;
+    sharedHistory.push({ text: "Hakari opened the door.", type: "story" });
+
+    res = runWaterfallHook(activeOrder, "input", "/ec -i");
+    assert(!res.text.includes("DOUBLE ENGINE DETECTED"), "Multi-VM Resolved: /ec -i warning must clear immediately");
+
+    res = runWaterfallHook(activeOrder, "input", "/ie -i");
+    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Resolved: /ie -i warning must clear immediately");
+    assert(res.text.includes("Auto-Cards Linked: Yes"), "Multi-VM Resolved: Minds-Only in VM #2 must detect Standalone EC in VM #1");
+
+    // --- Phase D: Player Reorders Modular Pair [Slot 1: Minds-Only IE -> Slot 2: Standalone EC] ---
+    activeOrder = [slotIEMinds, slotEC];
+    sharedInfo.actionCount = 14;
+    sharedHistory.push({ text: "Karane followed behind.", type: "story" });
+
+    res = runWaterfallHook(activeOrder, "input", "/ie -i");
+    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Inverted Modular: No false double engine warning");
+    assert(res.text.includes("Auto-Cards Linked: Yes"), "Multi-VM Inverted Modular: Auto-Cards Linked is Yes");
+
+    console.log("   ✔ Test 6 passed: Multi-VM Adventure Mode (isolated VMs & states, live reordering, removal & modular linking) verified");
+}
+
 console.log("==================================================================");
 console.log("  🎉 ALL INNER-ENTITY DOUBLE ENGINE TESTS PASSED (100%)");
 console.log("==================================================================");

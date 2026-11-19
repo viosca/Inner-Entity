@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (All-in-One) (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-19 04:27:11 UTC
-//   Git Commit:       d4f2931
-//   Submodules:       Entity-Cards: 4aa6e6d, AID-Getopt: 8a26b1c
+//   Build Generation: 2026-11-19 06:49:23 UTC
+//   Git Commit:       6e2f0c1
+//   Submodules:       Entity-Cards: 33134ae, AID-Getopt: 8a26b1c
 //   Engine Flavor:    All-in-One Flagship: Character Minds + Entity Cards (NER & Classic) + Getopt
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 04:27:11 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 06:49:23 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "all-in-one";
-globalThis.INNER_ENTITY_GIT_HASH = "d4f2931";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "d4f2931", buildTime: "2026-11-19 04:27:11 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [all-in-one] (d4f2931)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "6e2f0c1";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "6e2f0c1", buildTime: "2026-11-19 06:49:23 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [all-in-one] (6e2f0c1)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -671,12 +671,86 @@ function InnerSelf(hook) {
      */
     const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
     const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
-    const isDoubleEngine = () => Boolean(
-        (typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
-        (typeof state === "object" && state?._aid_double_engine_detected)
-    );
+    const STAMP_START = "\u200D\u200C\u200D";
+    const STAMP_END = "\u200D\u200B\u200D";
+    const EC_INPUT_HANDSHAKE = "\u200D\u200B\u200C\u200B\u200D";
+    const hasExternalAutoCardsCard = () => {
+        if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return false;
+        return storyCards.some(c => c && typeof c.title === "string" && (
+            c.title === "Configure \nAuto-Cards"
+            || c.title === "Edit to enable \nAuto-Cards"
+            || c.title === "Configure \nEntity Cards"
+        ));
+    };
+    const readCrossSlotStamp = () => {
+        try {
+            if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return null;
+            for (const c of storyCards) {
+                if (!c || typeof c !== "object" || typeof c.keys !== "string" || !c.keys.includes(STAMP_START)) continue;
+                const sIdx = c.keys.indexOf(STAMP_START);
+                const eIdx = c.keys.indexOf(STAMP_END, sIdx + STAMP_START.length);
+                if (eIdx === -1) continue;
+                const bits = c.keys.slice(sIdx + STAMP_START.length, eIdx);
+                if (bits.length === 0 || (bits.length % 8) !== 0) continue;
+                let json = "";
+                for (let i = 0; i < bits.length; i += 8) {
+                    let byte = 0;
+                    for (let b = 0; b < 8; b++) {
+                        byte = (byte << 1) | (bits[i + b] === "\u200C" ? 1 : 0);
+                    }
+                    json += String.fromCharCode(byte);
+                }
+                const parsed = JSON.parse(json);
+                if (parsed && typeof parsed === "object") return parsed;
+            }
+        } catch (_) {}
+        return null;
+    };
+    const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+    let hasUpstreamECSlot = false;
+    if (hook === "input" && typeof text === "string") {
+        if (text.includes(EC_INPUT_HANDSHAKE)) {
+            text = text.replace(/\u200D\u200B\u200C\u200B\u200D/g, "");
+            hasUpstreamECSlot = true;
+            if (hasAutoCards()) {
+                globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            }
+        }
+        if (/^\s*\/(?:EC|AC)\b[^\n]*->/i.test(text)) {
+            hasUpstreamECSlot = true;
+            if (hasAutoCards()) {
+                globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+                if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") && !text.includes("DOUBLE ENGINE DETECTED")) {
+                    const warnBanner = `  ⚠️ [DOUBLE ENGINE DETECTED]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
+                        + `     -> Only ONE card engine is active (duplicate was automatically bypassed to protect story cards).\n`
+                        + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot to optimize memory.\n`;
+                    text = text.replace(
+                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
+                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
+                    );
+                }
+            }
+        }
+    }
+    const isDoubleEngine = (phase) => {
+        if ((typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
+            (typeof state === "object" && state?._aid_double_engine_detected)) {
+            return true;
+        }
+        if (hasAutoCards()) {
+            const stamp = readCrossSlotStamp();
+            const myUid = (typeof state === "object" && state?._aid_slot_uid) || (hasAutoCards() && getAutoCards()?._instanceUid);
+            if (stamp && stamp.t === turnKey) {
+                if (stamp.c === 1) return true;
+                if (stamp.u && myUid && stamp.u !== myUid && (!phase || stamp.p === phase)) return true;
+            }
+        }
+        return false;
+    };
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
-    if (!isDoubleEngine() && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
+    if (!isDoubleEngine(hook) && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
             text = getAutoCards()(hook, text);
@@ -1140,7 +1214,10 @@ function InnerSelf(hook) {
         config.card.entry = build(template.entry, "\n");
         config.card.description = `[build ${globalThis.INNER_SELF_OC_BUILD}]\n`
             + build(template.description, "\n\n");
-        config.card.keys = u;
+        const existingStamp = (typeof config.card.keys === "string" && config.card.keys.includes(STAMP_START))
+            ? config.card.keys.slice(config.card.keys.indexOf(STAMP_START))
+            : "";
+        config.card.keys = u + existingStamp;
         return config;
     } }
     /**
@@ -1417,7 +1494,7 @@ function InnerSelf(hook) {
         }
         const unzero = () => ((text = text.replace(/[\u200B-\u200D]+/g, "") || " "), (IS.encoding = ""));
         // Handle Auto-Cards integration when enabled
-        if (!isDoubleEngine() && config.auto && hasAutoCards()) {
+        if (!isDoubleEngine("context") && config.auto && hasAutoCards()) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
@@ -2218,6 +2295,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
+        if (typeof text === "string" && /^\s*\/(?:EC|AC)\b[^\n]*->/i.test(text)) {
+            return;
+        }
         const rawInput = (typeof text === "string") ? text.trim() : "";
         const unwrap = (typeof globalThis.AIDGetopt?.unwrapCommandInput === "function")
             ? globalThis.AIDGetopt.unwrapCommandInput
@@ -2283,7 +2363,8 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
-                const doubleEngine = (typeof globalThis._AID_DOUBLE_ENGINE_DETECTED !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) || (typeof state === "object" && state?._aid_double_engine_detected);
+                const doubleEngine = isDoubleEngine();
+                const acLinked = hasAutoCards() || hasUpstreamECSlot || hasExternalAutoCardsCard();
                 const doubleEngineBlock = doubleEngine
                     ? `\n  ⚠️ [DOUBLE ENGINE WARNING]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n` +
                       `     -> Duplicate card engine automatically bypassed to protect story cards.\n` +
@@ -2296,7 +2377,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Lookback Distance: ${config.distance ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
-                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}` +
+                       `  Auto-Cards Linked: ${acLinked ? "Yes" : "No"}` +
                        doubleEngineBlock;
             } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
@@ -3823,6 +3904,164 @@ function AutoCards(inHook, inText, inStop) {
             return [inText, inStop];
         }
         return inText;
+    }
+    // Cross-Slot & Cross-VM Coordination Helpers (for AI Dungeon Multi-Script Adventure Mode)
+    const STAMP_START = "\u200D\u200C\u200D";
+    const STAMP_END = "\u200D\u200B\u200D";
+    const EC_INPUT_HANDSHAKE = "\u200D\u200B\u200C\u200B\u200D";
+    function stripCrossSlotStamp(str) {
+        if (typeof str !== "string") return "";
+        const idx = str.indexOf(STAMP_START);
+        return idx === -1 ? str : str.slice(0, idx);
+    }
+    function extractCrossSlotStampRaw(str) {
+        if (typeof str !== "string") return "";
+        const idx = str.indexOf(STAMP_START);
+        return idx === -1 ? "" : str.slice(idx);
+    }
+    function encodeCrossSlotStamp(obj) {
+        try {
+            const json = JSON.stringify(obj);
+            let bits = "";
+            for (let i = 0; i < json.length; i++) {
+                const code = json.charCodeAt(i) & 0xFF;
+                for (let b = 7; b >= 0; b--) {
+                    bits += ((code >> b) & 1) ? "\u200C" : "\u200B";
+                }
+            }
+            return STAMP_START + bits + STAMP_END;
+        } catch (_) {
+            return "";
+        }
+    }
+    function decodeCrossSlotStamp(str) {
+        try {
+            if (typeof str !== "string") return null;
+            const sIdx = str.indexOf(STAMP_START);
+            if (sIdx === -1) return null;
+            const eIdx = str.indexOf(STAMP_END, sIdx + STAMP_START.length);
+            if (eIdx === -1) return null;
+            const bits = str.slice(sIdx + STAMP_START.length, eIdx);
+            if (bits.length === 0 || (bits.length % 8) !== 0) return null;
+            let json = "";
+            for (let i = 0; i < bits.length; i += 8) {
+                let byte = 0;
+                for (let b = 0; b < 8; b++) {
+                    byte = (byte << 1) | (bits[i + b] === "\u200C" ? 1 : 0);
+                }
+                json += String.fromCharCode(byte);
+            }
+            return JSON.parse(json);
+        } catch (_) {
+            return null;
+        }
+    }
+    function isControlCardForStamp(c) {
+        if (!c || typeof c !== "object" || typeof c.title !== "string") return false;
+        return c.title === "Configure \nAuto-Cards"
+            || c.title === "Edit to enable \nAuto-Cards"
+            || c.title === "Configure \nEntity Cards"
+            || (c.title.includes("Configure") && (c.title.includes("Inner Entity") || c.title.includes("Inner Self")));
+    }
+    function readCrossSlotStamp() {
+        if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return null;
+        for (const c of storyCards) {
+            if (isControlCardForStamp(c) && typeof c.keys === "string" && c.keys.includes(STAMP_START)) {
+                const parsed = decodeCrossSlotStamp(c.keys);
+                if (parsed && typeof parsed === "object") return parsed;
+            }
+        }
+        return null;
+    }
+    function writeCrossSlotStamp(obj) {
+        if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return;
+        const encoded = encodeCrossSlotStamp(obj);
+        if (!encoded) return;
+        for (const c of storyCards) {
+            if (isControlCardForStamp(c) && typeof c.keys === "string") {
+                c.keys = stripCrossSlotStamp(c.keys) + encoded;
+            }
+        }
+    }
+    const isBundledInstance = (typeof globalThis.InnerSelf === "function" || typeof globalThis.InnerEntity === "function" || typeof globalThis.INNER_ENTITY_BUILD === "string");
+    AutoCards._instanceUid ??= (isBundledInstance ? "ie-" : "ec-") + Math.random().toString(36).slice(2, 8);
+    const slotUid = (typeof state === "object" && state !== null)
+        ? (state._aid_slot_uid ??= AutoCards._instanceUid)
+        : AutoCards._instanceUid;
+    const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+
+    if (inHook === "input") {
+        const rawCheck = typeof inText === "string" ? inText : (typeof text === "string" ? text : "");
+        // 1. Did an upstream card engine slot already process an /ec or /ac command?
+        if (/^\s*\/(?:EC|AC)\b[^\n]*->/i.test(rawCheck)) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            writeCrossSlotStamp({ t: turnKey, p: "input", u: "upstream", c: 1 });
+            if (rawCheck.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") && !rawCheck.includes("DOUBLE ENGINE DETECTED")) {
+                const warnBanner = `  ⚠️ [DOUBLE ENGINE DETECTED]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
+                    + `     -> Only ONE card engine is active (duplicate was automatically bypassed to protect story cards).\n`
+                    + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot to optimize memory.\n`;
+                return rawCheck.replace(
+                    "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
+                    "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
+                );
+            }
+            return rawCheck;
+        }
+        // 2. Did an upstream Inner-Entity slot already process /ie -i (while we are a downstream Standalone EC slot)?
+        if (!isBundledInstance && /^\s*\/(?:IE|IS)\s+info\s*->/i.test(rawCheck)) {
+            if (/\[(all-in-one|classic)\]/i.test(rawCheck)) {
+                globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+                writeCrossSlotStamp({ t: turnKey, p: "input", u: "upstream-ie", c: 1 });
+                if (!rawCheck.includes("DOUBLE ENGINE WARNING")) {
+                    const ieWarn = `\n  ⚠️ [DOUBLE ENGINE WARNING]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
+                        + `     -> Duplicate card engine automatically bypassed to protect story cards.\n`
+                        + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot.`;
+                    return rawCheck + ieWarn;
+                }
+                return rawCheck;
+            } else if (/\[minds-only\]/i.test(rawCheck)) {
+                return rawCheck.replace("Auto-Cards Linked: No", "Auto-Cards Linked: Yes");
+            }
+        }
+        // 3. Check shared storyCards stamp for same-turn input collision across VMs
+        const prevInStamp = readCrossSlotStamp();
+        if (prevInStamp && prevInStamp.t === turnKey && prevInStamp.p === "input" && prevInStamp.u && prevInStamp.u !== slotUid) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            writeCrossSlotStamp({ ...prevInStamp, c: 1 });
+            return inText;
+        }
+        writeCrossSlotStamp({ t: turnKey, p: "input", u: slotUid, e: isBundledInstance ? "ie" : "ec", c: 0 });
+    } else if (inHook === "context" || inHook === "output") {
+        const prevStamp = readCrossSlotStamp();
+        if (prevStamp && prevStamp.t === turnKey && prevStamp.p === inHook && prevStamp.u && prevStamp.u !== slotUid) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            writeCrossSlotStamp({ ...prevStamp, c: 1 });
+            if (inHook === "context") return [inText, inStop];
+            return inText;
+        }
+        if (!globalThis._AID_BUNDLED_EC || !globalThis._AID_STANDALONE_EC) {
+            if (typeof state === "object" && state && !globalThis._AID_DOUBLE_ENGINE_DETECTED) {
+                delete state._aid_double_engine_detected;
+            }
+        }
+        writeCrossSlotStamp({
+            t: turnKey,
+            p: inHook,
+            u: slotUid,
+            e: isBundledInstance ? "ie" : "ec",
+            c: (prevStamp && prevStamp.t === turnKey && prevStamp.c === 1) ? 1 : 0
+        });
+    } else if (inHook === null && typeof text === "string" && /Recent\s*Story\s*:/i.test(text)) {
+        const prevStamp = readCrossSlotStamp();
+        if (prevStamp && prevStamp.t === turnKey && prevStamp.p === "context" && prevStamp.u && prevStamp.u !== slotUid) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            return null;
+        }
     }
     const EC_BUILD_VERSION = "2.8.0";
     const EC_BUILD_TIMESTAMP = "2026-11-06 05:45 UTC";
@@ -10310,23 +10549,24 @@ description: {1 concise sentence narrative summary}
         const excessCards = [];
         for (const card of storyCards) {
             O.s(card);
+            const cleanKeys = stripCrossSlotStamp(card.keys);
             if (singletonCard === null) {
-                if ((card.title === templateCard.title) || (card.keys === templateCard.keys)) {
+                if ((card.title === templateCard.title) || (cleanKeys === templateCard.keys)) {
                     // The first potentially valid singleton card candidate to be found
                     singletonCard = card;
                 }
             } else if (card.title === templateCard.title) {
-                if (card.keys === templateCard.keys) {
+                if (cleanKeys === templateCard.keys) {
                     excessCards.push(singletonCard);
                     singletonCard = card;
                 } else {
                     eraseInferiorDuplicate();
                 }
-            } else if (card.keys === templateCard.keys) {
+            } else if (cleanKeys === templateCard.keys) {
                 eraseInferiorDuplicate();
             }
             function eraseInferiorDuplicate() {
-                if ((singletonCard.title === templateCard.title) && (singletonCard.keys === templateCard.keys)) {
+                if ((singletonCard.title === templateCard.title) && (stripCrossSlotStamp(singletonCard.keys) === templateCard.keys)) {
                     excessCards.push(card);
                 } else {
                     excessCards.push(singletonCard);
@@ -10346,12 +10586,13 @@ description: {1 concise sentence narrative summary}
                 singletonCard = constructCard(templateCard);
             }
         } else {
+            const rawStamp = extractCrossSlotStampRaw(singletonCard.keys);
             if (singletonCard.title !== templateCard.title) {
                 // Repair any damage to the singleton card's title
                 singletonCard.title = templateCard.title;
-            } else if (singletonCard.keys !== templateCard.keys) {
-                // Repair any damage to the singleton card's keys
-                singletonCard.keys = templateCard.keys;
+            } else if (stripCrossSlotStamp(singletonCard.keys) !== templateCard.keys) {
+                // Repair any damage to the singleton card's keys while preserving cross-slot stamp
+                singletonCard.keys = templateCard.keys + rawStamp;
             }
             for (const card of excessCards) {
                 // Erase all excess singleton card candidates
@@ -11474,6 +11715,14 @@ description: {1 concise sentence narrative summary}
                 "entity cards task",
                 "inner entity task",
                 "inner self task",
+                "configure inner entity",
+                "configure inner self",
+                "configure entity cards",
+                "configure auto-cards",
+                "inner",
+                "self",
+                "entity",
+                "agent",
                 "\uD83D\uDDC2\uFE0F entity cards task — do not edit",
                 "\uD83E\uDDE0 inner entity task — do not edit",
                 "\uD83E\uDDE0 inner self task — do not edit",
@@ -11801,6 +12050,19 @@ description: {1 concise sentence narrative summary}
         }
     }
     // This is the only return point within the parent scope of AutoCards
+    if (inHook === "context" || inHook === "output" || inHook === "input") {
+        const latestStamp = readCrossSlotStamp();
+        writeCrossSlotStamp({
+            t: turnKey,
+            p: inHook,
+            u: slotUid,
+            e: isBundledInstance ? "ie" : "ec",
+            c: (latestStamp && latestStamp.t === turnKey && latestStamp.c === 1) ? 1 : 0
+        });
+    }
+    if (inHook === "input" && !isBundledInstance && typeof codomain === "string" && /\/\s*(?:i\s*[es]|a\s*i\s*d)\b/i.test(codomain) && !codomain.includes(EC_INPUT_HANDSHAKE)) {
+        return codomain + EC_INPUT_HANDSHAKE;
+    }
     if (stopPackaged === false) {
         return [codomain, STOP];
     } else {

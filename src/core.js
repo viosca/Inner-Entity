@@ -662,12 +662,86 @@ function InnerSelf(hook) {
      */
     const hasAutoCards = () => (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
     const getAutoCards = () => (typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards);
-    const isDoubleEngine = () => Boolean(
-        (typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
-        (typeof state === "object" && state?._aid_double_engine_detected)
-    );
+    const STAMP_START = "\u200D\u200C\u200D";
+    const STAMP_END = "\u200D\u200B\u200D";
+    const EC_INPUT_HANDSHAKE = "\u200D\u200B\u200C\u200B\u200D";
+    const hasExternalAutoCardsCard = () => {
+        if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return false;
+        return storyCards.some(c => c && typeof c.title === "string" && (
+            c.title === "Configure \nAuto-Cards"
+            || c.title === "Edit to enable \nAuto-Cards"
+            || c.title === "Configure \nEntity Cards"
+        ));
+    };
+    const readCrossSlotStamp = () => {
+        try {
+            if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return null;
+            for (const c of storyCards) {
+                if (!c || typeof c !== "object" || typeof c.keys !== "string" || !c.keys.includes(STAMP_START)) continue;
+                const sIdx = c.keys.indexOf(STAMP_START);
+                const eIdx = c.keys.indexOf(STAMP_END, sIdx + STAMP_START.length);
+                if (eIdx === -1) continue;
+                const bits = c.keys.slice(sIdx + STAMP_START.length, eIdx);
+                if (bits.length === 0 || (bits.length % 8) !== 0) continue;
+                let json = "";
+                for (let i = 0; i < bits.length; i += 8) {
+                    let byte = 0;
+                    for (let b = 0; b < 8; b++) {
+                        byte = (byte << 1) | (bits[i + b] === "\u200C" ? 1 : 0);
+                    }
+                    json += String.fromCharCode(byte);
+                }
+                const parsed = JSON.parse(json);
+                if (parsed && typeof parsed === "object") return parsed;
+            }
+        } catch (_) {}
+        return null;
+    };
+    const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+    let hasUpstreamECSlot = false;
+    if (hook === "input" && typeof text === "string") {
+        if (text.includes(EC_INPUT_HANDSHAKE)) {
+            text = text.replace(/\u200D\u200B\u200C\u200B\u200D/g, "");
+            hasUpstreamECSlot = true;
+            if (hasAutoCards()) {
+                globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            }
+        }
+        if (/^\s*\/(?:EC|AC)\b[^\n]*->/i.test(text)) {
+            hasUpstreamECSlot = true;
+            if (hasAutoCards()) {
+                globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+                if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") && !text.includes("DOUBLE ENGINE DETECTED")) {
+                    const warnBanner = `  ⚠️ [DOUBLE ENGINE DETECTED]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
+                        + `     -> Only ONE card engine is active (duplicate was automatically bypassed to protect story cards).\n`
+                        + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot to optimize memory.\n`;
+                    text = text.replace(
+                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
+                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
+                    );
+                }
+            }
+        }
+    }
+    const isDoubleEngine = (phase) => {
+        if ((typeof globalThis !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) ||
+            (typeof state === "object" && state?._aid_double_engine_detected)) {
+            return true;
+        }
+        if (hasAutoCards()) {
+            const stamp = readCrossSlotStamp();
+            const myUid = (typeof state === "object" && state?._aid_slot_uid) || (hasAutoCards() && getAutoCards()?._instanceUid);
+            if (stamp && stamp.t === turnKey) {
+                if (stamp.c === 1) return true;
+                if (stamp.u && myUid && stamp.u !== myUid && (!phase || stamp.p === phase)) return true;
+            }
+        }
+        return false;
+    };
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
-    if (!isDoubleEngine() && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
+    if (!isDoubleEngine(hook) && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
             text = getAutoCards()(hook, text);
@@ -1131,7 +1205,10 @@ function InnerSelf(hook) {
         config.card.entry = build(template.entry, "\n");
         config.card.description = `[build ${globalThis.INNER_SELF_OC_BUILD}]\n`
             + build(template.description, "\n\n");
-        config.card.keys = u;
+        const existingStamp = (typeof config.card.keys === "string" && config.card.keys.includes(STAMP_START))
+            ? config.card.keys.slice(config.card.keys.indexOf(STAMP_START))
+            : "";
+        config.card.keys = u + existingStamp;
         return config;
     } }
     /**
@@ -1408,7 +1485,7 @@ function InnerSelf(hook) {
         }
         const unzero = () => ((text = text.replace(/[\u200B-\u200D]+/g, "") || " "), (IS.encoding = ""));
         // Handle Auto-Cards integration when enabled
-        if (!isDoubleEngine() && config.auto && hasAutoCards()) {
+        if (!isDoubleEngine("context") && config.auto && hasAutoCards()) {
             try {
                 if (!IS.AC.enabled) {
                     // It's my first time enabling AC, please be gentle :3
@@ -2209,6 +2286,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
         return;
     } else if (hook === "input") {
         // ==================== INPUT HOOK ====================
+        if (typeof text === "string" && /^\s*\/(?:EC|AC)\b[^\n]*->/i.test(text)) {
+            return;
+        }
         const rawInput = (typeof text === "string") ? text.trim() : "";
         const unwrap = (typeof globalThis.AIDGetopt?.unwrapCommandInput === "function")
             ? globalThis.AIDGetopt.unwrapCommandInput
@@ -2274,7 +2354,8 @@ The key must already exist and the thought is erased permanently. Choose the mos
                 text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
-                const doubleEngine = (typeof globalThis._AID_DOUBLE_ENGINE_DETECTED !== "undefined" && globalThis._AID_DOUBLE_ENGINE_DETECTED) || (typeof state === "object" && state?._aid_double_engine_detected);
+                const doubleEngine = isDoubleEngine();
+                const acLinked = hasAutoCards() || hasUpstreamECSlot || hasExternalAutoCardsCard();
                 const doubleEngineBlock = doubleEngine
                     ? `\n  ⚠️ [DOUBLE ENGINE WARNING]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n` +
                       `     -> Duplicate card engine automatically bypassed to protect story cards.\n` +
@@ -2287,7 +2368,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Lookback Distance: ${config.distance ?? S.NUMBER_OF_ACTIONS_TO_LOOK_BACK_FOR_TRIGGERS} turns\n` +
                        `  Visual Indicator: ${config.indicator ?? S.ACTIVE_CHARACTERS_VISUAL_INDICATOR_SYMBOL}\n` +
                        `  Prompt Cache: ${isOC ? "Optimized Context" : "Standard"}\n` +
-                       `  Auto-Cards Linked: ${hasAutoCards() ? "Yes" : "No"}` +
+                       `  Auto-Cards Linked: ${acLinked ? "Yes" : "No"}` +
                        doubleEngineBlock;
             } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
                 text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
