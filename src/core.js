@@ -652,6 +652,9 @@ function InnerSelf(hook) {
         if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
             (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
         }
+        if (typeof state !== "undefined" && !hasAutoCards()) {
+            delete state._aid_double_engine_detected;
+        }
     } catch (_) {}
     /**
      * Checks if Auto-Cards is available in the global scope

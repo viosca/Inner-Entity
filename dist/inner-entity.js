@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (All-in-One) (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-19 03:19:19 UTC
-//   Git Commit:       3a868fa
-//   Submodules:       Entity-Cards: 23ac7ed, AID-Getopt: 8a26b1c
+//   Build Generation: 2026-11-19 04:27:11 UTC
+//   Git Commit:       d4f2931
+//   Submodules:       Entity-Cards: 4aa6e6d, AID-Getopt: 8a26b1c
 //   Engine Flavor:    All-in-One Flagship: Character Minds + Entity Cards (NER & Classic) + Getopt
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 03:19:19 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 04:27:11 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "all-in-one";
-globalThis.INNER_ENTITY_GIT_HASH = "3a868fa";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "3a868fa", buildTime: "2026-11-19 03:19:19 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [all-in-one] (3a868fa)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "d4f2931";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "d4f2931", buildTime: "2026-11-19 04:27:11 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [all-in-one] (d4f2931)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -660,6 +660,9 @@ function InnerSelf(hook) {
     try {
         if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
             (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
+        }
+        if (typeof state !== "undefined" && !hasAutoCards()) {
+            delete state._aid_double_engine_detected;
         }
     } catch (_) {}
     /**
@@ -11822,6 +11825,8 @@ description: {1 concise sentence narrative summary}
             // Primary standalone engine
             globalThis._AID_STANDALONE_EC = true;
             globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = false;
+            if (typeof state !== "undefined") delete state._aid_double_engine_detected;
             AutoCards(null);
         }
     } else {
@@ -11839,6 +11844,8 @@ description: {1 concise sentence narrative summary}
             // Primary bundled engine
             globalThis._AID_BUNDLED_EC = true;
             globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = false;
+            if (typeof state !== "undefined") delete state._aid_double_engine_detected;
         }
     }
 

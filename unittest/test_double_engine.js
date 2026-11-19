@@ -184,7 +184,7 @@ const initialIEConfigCard = {
     vm.runInContext(ieMindsCode, ctx);
 
     // Assert NO collision detected
-    assert.strictEqual(sandbox._AID_DOUBLE_ENGINE_DETECTED, undefined, "No collision in intended modular setup");
+    assert.strictEqual(Boolean(sandbox._AID_DOUBLE_ENGINE_DETECTED), false, "No collision in intended modular setup");
     assert.strictEqual(sandbox.state._aid_double_engine_detected, undefined);
 
     // Verify minds-only links to Slot 1's AutoCards
@@ -219,6 +219,31 @@ const initialIEConfigCard = {
     assert.strictEqual(sandbox.AutoCards, slot1EC, "globalThis.AutoCards preserved as Slot 1 engine");
 
     console.log("   ✔ Test 4 passed: Classic All-in-One collision with Standalone EC safely guarded");
+}
+
+// ----------------------------------------------------------------------------
+// Test 5: Dynamic Reconfiguration Mid-Adventure: Removing duplicate script clears warning
+// ----------------------------------------------------------------------------
+{
+    const { sandbox, ctx, cards } = createMockAIDContext([{ ...initialIEConfigCard }]);
+    // Persistent state carries collision flag from previous turn
+    sandbox.state._aid_double_engine_detected = true;
+
+    // Turn 2: Player resolved the duplicate by keeping ONLY All-in-One in Slot 1
+    vm.runInContext(ieAllCode, ctx);
+
+    // Primary engine automatically clears stale double engine flag
+    assert.strictEqual(sandbox._AID_DOUBLE_ENGINE_DETECTED, false, "Double engine flag reset to false");
+    assert.strictEqual(sandbox.state._aid_double_engine_detected, undefined, "state flag removed");
+
+    sandbox.text = "/ie -i";
+    sandbox.InnerEntity("input");
+    assert(!sandbox.text.includes("DOUBLE ENGINE WARNING"), "Warning must clear once duplicate script is removed");
+
+    const ecOut = sandbox.AutoCards("input", "/ec -i");
+    assert(!ecOut.includes("DOUBLE ENGINE DETECTED"), "Warning must clear in /ec -i as well");
+
+    console.log("   ✔ Test 5 passed: Dynamic reconfiguration clears warnings when duplicate is resolved mid-adventure");
 }
 
 console.log("==================================================================");

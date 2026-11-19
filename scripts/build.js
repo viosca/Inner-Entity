@@ -191,6 +191,8 @@ ${divider}`;
         } else {
             globalThis._AID_STANDALONE_EC = true;
             globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = false;
+            if (typeof state !== "undefined") delete state._aid_double_engine_detected;
             AutoCards(null);
         }
     } else {
@@ -201,6 +203,8 @@ ${divider}`;
         } else {
             globalThis._AID_BUNDLED_EC = true;
             globalThis._AID_ACTIVE_CARD_ENGINE_INSTANCE = AutoCards;
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = false;
+            if (typeof state !== "undefined") delete state._aid_double_engine_detected;
         }
     }
     if (AutoCards._isBypassed) {
