@@ -27,6 +27,39 @@ globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
 /**
+ * Cross-Slot Coordination Protocol (CSCP) v1.1.0 bootstrapper.
+ * Decodes the 16-Variation-Selector (\uFE00..\uFE0F) CSCP client DLL exported
+ * by AID-Modules into storyCards[i].keys and hydrates globalThis.AID_CSCP.
+ */
+function loadCSCP() {
+    const root = typeof globalThis !== "undefined" ? globalThis : this;
+    if (root.AID_CSCP) return root.AID_CSCP;
+    const sc = (typeof storyCards !== "undefined" && Array.isArray(storyCards))
+        ? storyCards
+        : (Array.isArray(root.storyCards) ? root.storyCards : null);
+    if (sc) {
+        for (const c of sc) {
+            const k = c && c.keys;
+            const s = typeof k === "string" ? k.indexOf("\u200D\uFE00\u200D") : -1;
+            if (s !== -1) {
+                const e = k.indexOf("\u200D\uFE0F\u200D", s + 3);
+                if (e !== -1 && ((e - (s + 3)) % 2 === 0)) {
+                    let js = "";
+                    for (let i = s + 3; i < e; i += 2) {
+                        js += String.fromCharCode(((k.charCodeAt(i) & 15) << 4) | (k.charCodeAt(i + 1) & 15));
+                    }
+                    return (0, eval)(js + ";globalThis.AID_CSCP;");
+                }
+            }
+        }
+    }
+    return null;
+}
+if (typeof globalThis !== "undefined") {
+    globalThis.loadCSCP = loadCSCP;
+}
+
+/**
  * Main control panel for scenario creator convenience
  * Settings defined here will override their counterparts elsewhere
  * Most AC and Inner Self settings are included
@@ -698,6 +731,51 @@ function InnerSelf(hook) {
         return null;
     };
     const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+    let cscpActive = false;
+    try {
+        const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
+        if (cscp && typeof cscp.announce === "function") {
+            const isBundled = hasAutoCards();
+            const flavor = (typeof globalThis !== "undefined" && globalThis.INNER_ENTITY_FLAVOR)
+                ? globalThis.INNER_ENTITY_FLAVOR
+                : (isBundled ? "all-in-one" : "minds-only");
+            const provides = isBundled ? ["inner-entity", "entity-cards"] : ["inner-entity"];
+            const buildType = isBundled ? "all-in-one" : "modular";
+            const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
+            const hookPhase = (typeof hook === "string" && ["input", "context", "output"].includes(hook)) ? hook : "init";
+            const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+                || (typeof state === "object" && state?._aid_ie_slot_uid)
+                || ("ie-" + Math.random().toString(36).slice(2, 8));
+            if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
+            if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
+
+            const res = cscp.announce({
+                name: "inner-entity",
+                displayName: isBundled ? `Inner-Entity [${flavor}]` : "Inner-Entity [minds-only]",
+                version: "2.8.0",
+                buildType,
+                provides,
+                prefix: "/ie",
+                aliases: ["/is"],
+                commands: cmds,
+                description: "Character mind simulation, monologues, and personality tracking",
+                helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
+            }, { phase: hookPhase, slotUid: myUid });
+
+            if (res) {
+                cscpActive = true;
+                if (Array.isArray(res.yielded) && res.yielded.includes("entity-cards")) {
+                    globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                    if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+                    if (isBundled && getAutoCards()) {
+                        getAutoCards()._isBypassed = true;
+                        getAutoCards()._bypassReason = "Bundled Entity-Cards bypassed: Upstream slot claimed 'entity-cards' capability.";
+                    }
+                }
+            }
+        }
+    } catch (_) {}
+
     let hasUpstreamECSlot = false;
     if (hook === "input" && typeof text === "string") {
         if (text.includes(EC_INPUT_HANDSHAKE)) {
@@ -713,14 +791,21 @@ function InnerSelf(hook) {
             if (hasAutoCards()) {
                 globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
                 if (typeof state === "object" && state) state._aid_double_engine_detected = true;
-                if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") && !text.includes("DOUBLE ENGINE DETECTED")) {
+                if ((text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") || text.includes("=== ENTITY CARDS DIAGNOSTICS ===")) && !text.includes("DOUBLE ENGINE DETECTED")) {
                     const warnBanner = `  ⚠️ [DOUBLE ENGINE DETECTED]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
                         + `     -> Only ONE card engine is active (duplicate was automatically bypassed to protect story cards).\n`
                         + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot to optimize memory.\n`;
-                    text = text.replace(
-                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
-                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
-                    );
+                    if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n")) {
+                        text = text.replace(
+                            "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
+                            "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
+                        );
+                    } else if (text.includes("=== ENTITY CARDS DIAGNOSTICS ===\n")) {
+                        text = text.replace(
+                            "=== ENTITY CARDS DIAGNOSTICS ===\n",
+                            "=== ENTITY CARDS DIAGNOSTICS ===\n" + warnBanner
+                        );
+                    }
                 }
             }
         }
@@ -3157,3 +3242,45 @@ I hope you will have lots of fun!
 function InnerEntity(hook) { return InnerSelf(hook); }
 globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
+
+// Announce to Cross-Slot Coordination Protocol (CSCP) at startup if available
+try {
+    const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
+    if (cscp && typeof cscp.announce === "function") {
+        const isBundled = (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
+        const flavor = (typeof globalThis !== "undefined" && globalThis.INNER_ENTITY_FLAVOR)
+            ? globalThis.INNER_ENTITY_FLAVOR
+            : (isBundled ? "all-in-one" : "minds-only");
+        const provides = isBundled ? ["inner-entity", "entity-cards"] : ["inner-entity"];
+        const buildType = isBundled ? "all-in-one" : "modular";
+        const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
+        const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+            || (typeof state === "object" && state?._aid_ie_slot_uid)
+            || ("ie-" + Math.random().toString(36).slice(2, 8));
+        if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
+        if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
+
+        const res = cscp.announce({
+            name: "inner-entity",
+            displayName: isBundled ? `Inner-Entity [${flavor}]` : "Inner-Entity [minds-only]",
+            version: "2.8.0",
+            buildType,
+            provides,
+            prefix: "/ie",
+            aliases: ["/is"],
+            commands: cmds,
+            description: "Character mind simulation, monologues, and personality tracking",
+            helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
+        }, { phase: "init", slotUid: myUid });
+
+        if (res && Array.isArray(res.yielded) && res.yielded.includes("entity-cards")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            const ac = typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards;
+            if (ac) {
+                ac._isBypassed = true;
+                ac._bypassReason = "Bundled Entity-Cards bypassed: Upstream slot claimed 'entity-cards' capability.";
+            }
+        }
+    }
+} catch (_) {}

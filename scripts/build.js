@@ -239,18 +239,18 @@ async function loadEngine(engine) {
         return bridgeClassicAutoCards(rawAC);
     }
 
-    // Default: Entity-Cards (via submodule, sibling repo, or HTTPS)
-    if (fs.existsSync(EC_SUBMODULE_PATH) && fs.statSync(EC_SUBMODULE_PATH).size > 1000) {
-        console.log(`   Loading Entity-Cards from submodule: ${path.relative(ROOT_DIR, EC_SUBMODULE_PATH)}`);
-        return fs.readFileSync(EC_SUBMODULE_PATH, "utf8");
+    // Default: Entity-Cards (via sibling repo, submodule, or HTTPS)
+    if (fs.existsSync(EC_SIBLING_PATH2)) {
+        console.log(`   Loading Entity-Cards from sibling repo: ${EC_SIBLING_PATH2}`);
+        return fs.readFileSync(EC_SIBLING_PATH2, "utf8");
     }
     if (fs.existsSync(EC_SIBLING_PATH1)) {
         console.log(`   Loading Entity-Cards from sibling repo: ${EC_SIBLING_PATH1}`);
         return fs.readFileSync(EC_SIBLING_PATH1, "utf8");
     }
-    if (fs.existsSync(EC_SIBLING_PATH2)) {
-        console.log(`   Loading Entity-Cards from sibling repo: ${EC_SIBLING_PATH2}`);
-        return fs.readFileSync(EC_SIBLING_PATH2, "utf8");
+    if (fs.existsSync(EC_SUBMODULE_PATH) && fs.statSync(EC_SUBMODULE_PATH).size > 1000) {
+        console.log(`   Loading Entity-Cards from submodule: ${path.relative(ROOT_DIR, EC_SUBMODULE_PATH)}`);
+        return fs.readFileSync(EC_SUBMODULE_PATH, "utf8");
     }
 
     console.log("   Submodule empty or not initialized. Fetching viosca/Entity-Cards via HTTPS...");
@@ -258,13 +258,13 @@ async function loadEngine(engine) {
 }
 
 async function loadGetopt() {
-    if (fs.existsSync(GETOPT_SUBMODULE_PATH) && fs.statSync(GETOPT_SUBMODULE_PATH).size > 1000) {
-        console.log(`   Loading AID-Getopt from submodule: ${path.relative(ROOT_DIR, GETOPT_SUBMODULE_PATH)}`);
-        return fs.readFileSync(GETOPT_SUBMODULE_PATH, "utf8");
-    }
     if (fs.existsSync(GETOPT_SIBLING_PATH)) {
         console.log(`   Loading AID-Getopt from sibling repo: ${GETOPT_SIBLING_PATH}`);
         return fs.readFileSync(GETOPT_SIBLING_PATH, "utf8");
+    }
+    if (fs.existsSync(GETOPT_SUBMODULE_PATH) && fs.statSync(GETOPT_SUBMODULE_PATH).size > 1000) {
+        console.log(`   Loading AID-Getopt from submodule: ${path.relative(ROOT_DIR, GETOPT_SUBMODULE_PATH)}`);
+        return fs.readFileSync(GETOPT_SUBMODULE_PATH, "utf8");
     }
     console.log("   Submodule empty or not initialized. Fetching viosca/aid-getopt via HTTPS...");
     return await fetchHttps(GETOPT_REMOTE_URL);
@@ -297,8 +297,10 @@ function applyBuildHeader(code, engine, timestamp, gitHash) {
         flavorTag = "all-in-one";
     }
 
-    const ecHash = getGitHash(path.join(ROOT_DIR, "submodules", "Entity-Cards"));
-    const getoptHash = getGitHash(path.join(ROOT_DIR, "submodules", "aid-getopt"));
+    const ecDir = fs.existsSync(EC_SIBLING_PATH2) ? path.resolve(ROOT_DIR, "..", "Entity-Cards") : path.join(ROOT_DIR, "submodules", "Entity-Cards");
+    const getoptDir = fs.existsSync(GETOPT_SIBLING_PATH) ? path.resolve(ROOT_DIR, "..", "aid-getopt") : path.join(ROOT_DIR, "submodules", "aid-getopt");
+    const ecHash = getGitHash(ecDir);
+    const getoptHash = getGitHash(getoptDir);
     const submodulesLine = (engine === "minds" || engine === "none")
         ? `//   Submodules:       AID-Getopt: ${getoptHash}`
         : `//   Submodules:       Entity-Cards: ${ecHash}, AID-Getopt: ${getoptHash}`;

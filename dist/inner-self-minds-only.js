@@ -4,9 +4,9 @@
 //
 //                      Inner Self Minds-Only (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-19 06:49:23 UTC
-//   Git Commit:       6e2f0c1
-//   Submodules:       AID-Getopt: 8a26b1c
+//   Build Generation: 2026-11-20 05:46:54 UTC
+//   Git Commit:       437f5e5
+//   Submodules:       AID-Getopt: 44db699
 //   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,12 +28,45 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-19 06:49:23 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-20 05:46:54 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "minds-only";
-globalThis.INNER_ENTITY_GIT_HASH = "6e2f0c1";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "6e2f0c1", buildTime: "2026-11-19 06:49:23 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (6e2f0c1)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "437f5e5";
+try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "437f5e5", buildTime: "2026-11-20 05:46:54 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [minds-only] (437f5e5)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
+
+/**
+ * Cross-Slot Coordination Protocol (CSCP) v1.1.0 bootstrapper.
+ * Decodes the 16-Variation-Selector (\uFE00..\uFE0F) CSCP client DLL exported
+ * by AID-Modules into storyCards[i].keys and hydrates globalThis.AID_CSCP.
+ */
+function loadCSCP() {
+    const root = typeof globalThis !== "undefined" ? globalThis : this;
+    if (root.AID_CSCP) return root.AID_CSCP;
+    const sc = (typeof storyCards !== "undefined" && Array.isArray(storyCards))
+        ? storyCards
+        : (Array.isArray(root.storyCards) ? root.storyCards : null);
+    if (sc) {
+        for (const c of sc) {
+            const k = c && c.keys;
+            const s = typeof k === "string" ? k.indexOf("\u200D\uFE00\u200D") : -1;
+            if (s !== -1) {
+                const e = k.indexOf("\u200D\uFE0F\u200D", s + 3);
+                if (e !== -1 && ((e - (s + 3)) % 2 === 0)) {
+                    let js = "";
+                    for (let i = s + 3; i < e; i += 2) {
+                        js += String.fromCharCode(((k.charCodeAt(i) & 15) << 4) | (k.charCodeAt(i + 1) & 15));
+                    }
+                    return (0, eval)(js + ";globalThis.AID_CSCP;");
+                }
+            }
+        }
+    }
+    return null;
+}
+if (typeof globalThis !== "undefined") {
+    globalThis.loadCSCP = loadCSCP;
+}
 
 /**
  * Main control panel for scenario creator convenience
@@ -707,6 +740,51 @@ function InnerSelf(hook) {
         return null;
     };
     const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+    let cscpActive = false;
+    try {
+        const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
+        if (cscp && typeof cscp.announce === "function") {
+            const isBundled = hasAutoCards();
+            const flavor = (typeof globalThis !== "undefined" && globalThis.INNER_ENTITY_FLAVOR)
+                ? globalThis.INNER_ENTITY_FLAVOR
+                : (isBundled ? "all-in-one" : "minds-only");
+            const provides = isBundled ? ["inner-entity", "entity-cards"] : ["inner-entity"];
+            const buildType = isBundled ? "all-in-one" : "modular";
+            const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
+            const hookPhase = (typeof hook === "string" && ["input", "context", "output"].includes(hook)) ? hook : "init";
+            const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+                || (typeof state === "object" && state?._aid_ie_slot_uid)
+                || ("ie-" + Math.random().toString(36).slice(2, 8));
+            if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
+            if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
+
+            const res = cscp.announce({
+                name: "inner-entity",
+                displayName: isBundled ? `Inner-Entity [${flavor}]` : "Inner-Entity [minds-only]",
+                version: "2.8.0",
+                buildType,
+                provides,
+                prefix: "/ie",
+                aliases: ["/is"],
+                commands: cmds,
+                description: "Character mind simulation, monologues, and personality tracking",
+                helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
+            }, { phase: hookPhase, slotUid: myUid });
+
+            if (res) {
+                cscpActive = true;
+                if (Array.isArray(res.yielded) && res.yielded.includes("entity-cards")) {
+                    globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+                    if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+                    if (isBundled && getAutoCards()) {
+                        getAutoCards()._isBypassed = true;
+                        getAutoCards()._bypassReason = "Bundled Entity-Cards bypassed: Upstream slot claimed 'entity-cards' capability.";
+                    }
+                }
+            }
+        }
+    } catch (_) {}
+
     let hasUpstreamECSlot = false;
     if (hook === "input" && typeof text === "string") {
         if (text.includes(EC_INPUT_HANDSHAKE)) {
@@ -722,14 +800,21 @@ function InnerSelf(hook) {
             if (hasAutoCards()) {
                 globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
                 if (typeof state === "object" && state) state._aid_double_engine_detected = true;
-                if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") && !text.includes("DOUBLE ENGINE DETECTED")) {
+                if ((text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===") || text.includes("=== ENTITY CARDS DIAGNOSTICS ===")) && !text.includes("DOUBLE ENGINE DETECTED")) {
                     const warnBanner = `  ⚠️ [DOUBLE ENGINE DETECTED]: Both standalone Entity-Cards and All-in-One Inner-Entity are loaded!\n`
                         + `     -> Only ONE card engine is active (duplicate was automatically bypassed to protect story cards).\n`
                         + `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot to optimize memory.\n`;
-                    text = text.replace(
-                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
-                        "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
-                    );
+                    if (text.includes("=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n")) {
+                        text = text.replace(
+                            "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n",
+                            "=== INNER ENTITY / AUTO-CARDS DIAGNOSTICS ===\n" + warnBanner
+                        );
+                    } else if (text.includes("=== ENTITY CARDS DIAGNOSTICS ===\n")) {
+                        text = text.replace(
+                            "=== ENTITY CARDS DIAGNOSTICS ===\n",
+                            "=== ENTITY CARDS DIAGNOSTICS ===\n" + warnBanner
+                        );
+                    }
                 }
             }
         }
@@ -3167,6 +3252,48 @@ function InnerEntity(hook) { return InnerSelf(hook); }
 globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
 
+// Announce to Cross-Slot Coordination Protocol (CSCP) at startup if available
+try {
+    const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
+    if (cscp && typeof cscp.announce === "function") {
+        const isBundled = (typeof globalThis.AutoCards === "function" || typeof globalThis.EntityCards === "function");
+        const flavor = (typeof globalThis !== "undefined" && globalThis.INNER_ENTITY_FLAVOR)
+            ? globalThis.INNER_ENTITY_FLAVOR
+            : (isBundled ? "all-in-one" : "minds-only");
+        const provides = isBundled ? ["inner-entity", "entity-cards"] : ["inner-entity"];
+        const buildType = isBundled ? "all-in-one" : "modular";
+        const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
+        const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+            || (typeof state === "object" && state?._aid_ie_slot_uid)
+            || ("ie-" + Math.random().toString(36).slice(2, 8));
+        if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
+        if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
+
+        const res = cscp.announce({
+            name: "inner-entity",
+            displayName: isBundled ? `Inner-Entity [${flavor}]` : "Inner-Entity [minds-only]",
+            version: "2.8.0",
+            buildType,
+            provides,
+            prefix: "/ie",
+            aliases: ["/is"],
+            commands: cmds,
+            description: "Character mind simulation, monologues, and personality tracking",
+            helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
+        }, { phase: "init", slotUid: myUid });
+
+        if (res && Array.isArray(res.yielded) && res.yielded.includes("entity-cards")) {
+            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
+            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
+            const ac = typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards;
+            if (ac) {
+                ac._isBypassed = true;
+                ac._bypassReason = "Bundled Entity-Cards bypassed: Upstream slot claimed 'entity-cards' capability.";
+            }
+        }
+    }
+} catch (_) {}
+
 // ============================================================================
 // BUNDLED COMMAND PARSER (AID-GETOPT)
 // ============================================================================
@@ -3195,9 +3322,54 @@ globalThis.InnerEntity = InnerEntity;
 })(typeof globalThis !== "undefined" ? globalThis : this, function() {
     "use strict";
 
-    const VERSION = "1.0.0";
-    const GIT_HASH = "f4e216f";
-    const BUILD_TIME = "2026-11-11 05:12:29 UTC";
+    const VERSION = "1.0.1";
+    const GIT_HASH = "76163e1";
+    const BUILD_TIME = "2026-11-20 05:06:16 UTC";
+
+    /**
+     * Unwraps player input across Say, Do, and Story modes in AI Dungeon.
+     * Supports:
+     * - 2nd-person Do/Say (e.g. "> You /cmd.", "> You say, '/cmd'")
+     * - 3rd-person Do/Say with single/multi-word character names (e.g. "> Jonathon /cmd.", "> Jonathan GrandCox says, '/cmd'")
+     * - Multiplayer actor prefixes (e.g. "> PlayerOne /cmd.")
+     * - Authoring mode & prompt-wrapper prefixes (e.g. "> [AI, polish...] Author as Jonathon /cmd")
+     * - Trailing punctuation cleaning (.!?,;:)) while preserving option flags like -?
+     *
+     * @param {string} input Raw input string
+     * @returns {string} Unwrapped command line string
+     */
+    function unwrapCommandInput(input) {
+        if (!input || typeof input !== "string") return "";
+
+        let str = input.trim();
+
+        // 1. Dialogue wrapper unpacking (Say mode: 2nd person, 3rd person, multiplayer, or authoring prefix)
+        // Matches: > You say, "..." / Jonathon asks, "..." / > [AI...] Author as X says, "..."
+        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:[^\n"“]+?)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
+        if (sayMatch) {
+            str = sayMatch[1].trim();
+        } else {
+            // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd", "> Jonathon /cmd", "> [AI...] Author as Jonathon /cmd")
+            // When input starts with ">", unwrap the actor prefix (which can be any character name / prompt wrapper before the slash command)
+            const doMatchWithGt = str.match(/^(?:>\s*)(?:[^\n/]+?\s+)?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
+            if (doMatchWithGt) {
+                str = doMatchWithGt[1].trim();
+            } else {
+                // Story mode or raw input without ">": allow optional bracketed AI instructions, "Author as...", or "You:"
+                const doMatchRaw = str.match(/^(?:(?:\[[^\]]*\]\s*)*(?:Author\s+as\s+[^\n/]+?\s+)?|(?:You:?\s+))?(\/[a-zA-Z][a-zA-Z0-9_-]*(?:[\s\S]*?)?)[.!?,;:)]*$/i);
+                if (doMatchRaw) {
+                    str = doMatchRaw[1].trim();
+                }
+            }
+        }
+
+        // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
+        if (str !== "-?" && str !== "--?") {
+            str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
+        }
+
+        return str;
+    }
 
     /**
      * Tokenizes a command line string respecting single/double/smart quotes,
@@ -3209,21 +3381,7 @@ globalThis.InnerEntity = InnerEntity;
     function tokenize(input) {
         if (!input || typeof input !== "string") return [];
 
-        let str = input.trim();
-        // 1. Dialogue wrapper unpacking (Say mode: e.g. > You say, "..." or Joe says, "...")
-        const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
-        if (sayMatch) {
-            str = sayMatch[1].trim();
-        }
-        // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd" or "You /cmd" or "> You: /cmd")
-        const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
-        if (doMatch) {
-            str = doMatch[1].trim();
-        }
-        // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
-        if (str !== "-?" && str !== "--?") {
-            str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
-        }
+        const str = unwrapCommandInput(input);
 
         const tokens = [];
         const tokenRegex = /"([^"]*)"|'([^']*)'|“([^”]*?)”|‘([^’]*?)’|(\S+)/g;
@@ -3551,24 +3709,10 @@ globalThis.InnerEntity = InnerEntity;
                 return { matched: false, text: input };
             }
 
-            let str = input.trim();
-            // 1. Dialogue wrapper unpacking (Say mode: e.g. > You say, "..." or Joe says, "...")
-            const sayMatch = str.match(/(?:^|\n)(?:>\s*)?(?:You|[A-Za-z0-9_]+)\s*(?:says?|asks?|exclaims?|shouts?),?\s*["“]([\s\S]*?)["”][\s.!?]*$/i);
-            if (sayMatch) {
-                str = sayMatch[1].trim();
-            }
-            // 2. Action prefix unpacking (Do mode: e.g. "> You /cmd" or "You /cmd" or "> You: /cmd")
-            const doMatch = str.match(/^(?:>\s*)?(?:You:?\s+)?(\/[\s\S]*)/i);
-            if (doMatch) {
-                str = doMatch[1].trim();
-            }
-            // 3. Clean trailing speech/sentence punctuation at end of command (preserving -? and closing quotes)
-            if (str !== "-?" && str !== "--?") {
-                str = str.replace(/(?<=\S)[.!?,;:)]+$/, "");
-            }
+            const str = unwrapCommandInput(input);
 
             // Check if input begins with a slash command: e.g. /roll or /ec
-            const cmdMatch = str.match(/^\/([a-zA-Z0-9_-]+)(?:\s+([\s\S]*)|$)/);
+            const cmdMatch = str.match(/^\/([a-zA-Z][a-zA-Z0-9_-]*)(?:\s+([\s\S]*)|$)/);
             if (!cmdMatch) {
                 return { matched: false, text: input };
             }
@@ -3607,9 +3751,11 @@ globalThis.InnerEntity = InnerEntity;
 
         /**
          * Generates formatted command help reference.
+         * @param {Object} [options]
+         * @param {boolean} [options.cscp=true] Include cross-slot commands discovered via CSCP
          * @returns {string} Formatted help listing
          */
-        help() {
+        help(options = {}) {
             let out = "Commands:\n";
             const seen = new Set();
             for (const [_, cmd] of this.commands) {
@@ -3619,6 +3765,35 @@ globalThis.InnerEntity = InnerEntity;
                 const descStr = cmd.description ? ` - ${cmd.description}` : "";
                 out += `  /${cmd.name}${aliasStr}${descStr}\n`;
             }
+
+            if (options.cscp !== false) {
+                try {
+                    const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
+                    const pkt = cscp && typeof cscp.read === "function" ? cscp.read() : null;
+                    if (pkt && pkt.modules && typeof pkt.modules === "object") {
+                        let headerAdded = false;
+                        for (const [mName, mod] of Object.entries(pkt.modules)) {
+                            if (!mod || typeof mod !== "object") continue;
+                            const cmds = Array.isArray(mod.commands) && mod.commands.length > 0
+                                ? mod.commands
+                                : (mod.prefix ? [mod.prefix] : []);
+                            for (const c of cmds) {
+                                const clean = String(c).toLowerCase().replace(/^\/+/, "");
+                                if (clean && !seen.has(clean)) {
+                                    seen.add(clean);
+                                    if (!headerAdded) {
+                                        out += "\nCross-Slot Commands (CSCP):\n";
+                                        headerAdded = true;
+                                    }
+                                    const desc = mod.helpSummary || mod.description ? ` - ${mod.helpSummary || mod.description}` : "";
+                                    out += `  /${clean}${desc}\n`;
+                                }
+                            }
+                        }
+                    }
+                } catch (_) {}
+            }
+
             return out;
         }
     }
@@ -3718,8 +3893,8 @@ globalThis.InnerEntity = InnerEntity;
             if (res.target !== "Dragon") throw new Error(`Expected target Dragon, got ${res.target}`);
         });
 
-        // Test 9: Dialogue unwrapping in Say/Do mode
-        run("Say/Do dialogue unwrapping", () => {
+        // Test 9: Dialogue unwrapping across 2nd/3rd person, multiplayer, and authoring mode
+        run("Say/Do dialogue & 3rd-person unwrapping", () => {
             const testApp = cli();
             testApp.command("check", {
                 options: { "val|v=i": 0 },
@@ -3729,6 +3904,12 @@ globalThis.InnerEntity = InnerEntity;
             if (!r1.matched || r1.flags.val !== 42) throw new Error("Dialogue with trailing period inside quote failed");
             const r2 = testApp.dispatch('> You say, "/check -v 99".');
             if (!r2.matched || r2.flags.val !== 99) throw new Error("Dialogue with trailing period outside quote failed");
+            const r3 = testApp.dispatch('> Jonathon /check -v 100.');
+            if (!r3.matched || r3.flags.val !== 100) throw new Error("3rd-person Do mode with custom character name failed");
+            const r4 = testApp.dispatch('> Jonathan GrandCox /check -v 101.');
+            if (!r4.matched || r4.flags.val !== 101) throw new Error("3rd-person Do mode with multi-word character name failed");
+            const r5 = testApp.dispatch('> [AI, polish...] Author as Jonathon /check -v 200.');
+            if (!r5.matched || r5.flags.val !== 200) throw new Error("Authoring mode bracketed wrapper failed");
         });
 
         // Test 10: Multi-script pipeline passthrough
@@ -3800,6 +3981,38 @@ globalThis.InnerEntity = InnerEntity;
     }
 
     /**
+     * Dynamic StoryCard DLL Bootstrapper for AI Dungeon.
+     * Decodes the 16-Variation-Selector (\uFE00..\uFE0F) CSCP client DLL exported
+     * by AID-Modules into storyCards[i].keys and hydrates globalThis.AID_CSCP.
+     *
+     * @returns {Object|null} AID_CSCP client instance or null if unavailable
+     */
+    function loadCSCP() {
+        const root = typeof globalThis !== "undefined" ? globalThis : this;
+        if (root.AID_CSCP) return root.AID_CSCP;
+        const sc = (typeof storyCards !== "undefined" && Array.isArray(storyCards))
+            ? storyCards
+            : (Array.isArray(root.storyCards) ? root.storyCards : null);
+        if (sc) {
+            for (const c of sc) {
+                const k = c && c.keys;
+                const s = typeof k === "string" ? k.indexOf("\u200D\uFE00\u200D") : -1;
+                if (s !== -1) {
+                    const e = k.indexOf("\u200D\uFE0F\u200D", s + 3);
+                    if (e !== -1 && ((e - (s + 3)) % 2 === 0)) {
+                        let js = "";
+                        for (let i = s + 3; i < e; i += 2) {
+                            js += String.fromCharCode(((k.charCodeAt(i) & 15) << 4) | (k.charCodeAt(i + 1) & 15));
+                        }
+                        return (0, eval)(js + ";globalThis.AID_CSCP;");
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * One-line summary for calling scripts' /version and /info commands.
      */
     function getDiag() {
@@ -3813,6 +4026,7 @@ globalThis.InnerEntity = InnerEntity;
         buildTime: BUILD_TIME,
         info: getInfo,
         diag: getDiag,
+        loadCSCP,
         // Layer 1: Core Option Parser
         tokenize,
         getopt,
@@ -3838,6 +4052,7 @@ globalThis.InnerEntity = InnerEntity;
             author: "Randy Viosca (@Random_Variable)",
             prefix: "/aid-getopt",
             aliases: ["/aid-getopts"],
+            commands: ["/help", "/aid-getopt", "/aid-getopts"],
             description: "POSIX/GNU option parser & multi-script slash command router",
             helpSummary: "Router diagnostics and self-test suite (/aid-getopt --diag, /aid-getopt --test)",
             diag: getDiag
@@ -3850,6 +4065,25 @@ globalThis.InnerEntity = InnerEntity;
         if (!globalThis.GetoptAID || globalThis.GetoptAID.version < VERSION) {
             globalThis.GetoptAID = api; // backward compatibility
         }
+        globalThis.loadCSCP = loadCSCP;
+
+        // Announce to Cross-Slot Coordination Protocol (CSCP) if available
+        try {
+            const CSCP = loadCSCP();
+            if (CSCP && typeof CSCP.announce === "function") {
+                CSCP.announce({
+                    name: "aid-getopt",
+                    displayName: "AID-Getopt",
+                    version: VERSION,
+                    provides: ["aid-getopt"],
+                    prefix: "/aid-getopt",
+                    aliases: ["/aid-getopts"],
+                    commands: ["/help", "/aid-getopt", "/aid-getopts"],
+                    description: "POSIX/GNU option parser & multi-script slash command router",
+                    helpSummary: "Router diagnostics and self-test suite (/aid-getopt --diag, /aid-getopt --test)"
+                });
+            }
+        } catch (_) {}
     }
 
     return api;
