@@ -683,7 +683,21 @@ function InnerSelf(hook) {
     });
     try {
         if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
-            (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
+            const _m = globalThis.AID_MODULES["inner-entity"];
+            (state._aid_modules ??= {})["inner-entity"] = {
+                name: _m.name,
+                version: _m.version,
+                flavor: _m.flavor,
+                gitHash: _m.gitHash,
+                buildTime: _m.buildTime,
+                author: _m.author,
+                description: _m.description,
+                prefix: _m.prefix,
+                aliases: _m.aliases,
+                helpSummary: _m.helpSummary,
+                help: typeof _m.help === "function" ? _m.help() : _m.help,
+                diag: typeof _m.diag === "function" ? _m.diag() : _m.diag
+            };
         }
         if (typeof state !== "undefined" && !hasAutoCards()) {
             delete state._aid_double_engine_detected;

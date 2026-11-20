@@ -4,9 +4,9 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-20 05:46:54 UTC
-//   Git Commit:       437f5e5
-//   Submodules:       Entity-Cards: 1e42cb7, AID-Getopt: 44db699
+//   Build Generation: 2026-11-20 21:40:06 UTC
+//   Git Commit:       fc56011
+//   Submodules:       Entity-Cards: 5ad17ac, AID-Getopt: dff3771
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-20 05:46:54 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-20 21:40:06 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "437f5e5";
-try { const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "437f5e5", buildTime: "2026-11-20 05:46:54 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help", diag: () => "Inner Entity Ver.2_8_0-IE [classic] (437f5e5)" }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = _iem; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "fc56011";
+try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [classic] (fc56011)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "fc56011", buildTime: "2026-11-20 21:40:06 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -692,7 +692,21 @@ function InnerSelf(hook) {
     });
     try {
         if (typeof state !== "undefined" && globalThis.AID_MODULES?.["inner-entity"]) {
-            (state._aid_modules ??= {})["inner-entity"] = globalThis.AID_MODULES["inner-entity"];
+            const _m = globalThis.AID_MODULES["inner-entity"];
+            (state._aid_modules ??= {})["inner-entity"] = {
+                name: _m.name,
+                version: _m.version,
+                flavor: _m.flavor,
+                gitHash: _m.gitHash,
+                buildTime: _m.buildTime,
+                author: _m.author,
+                description: _m.description,
+                prefix: _m.prefix,
+                aliases: _m.aliases,
+                helpSummary: _m.helpSummary,
+                help: typeof _m.help === "function" ? _m.help() : _m.help,
+                diag: typeof _m.diag === "function" ? _m.diag() : _m.diag
+            };
         }
         if (typeof state !== "undefined" && !hasAutoCards()) {
             delete state._aid_double_engine_detected;
@@ -3323,8 +3337,8 @@ try {
     "use strict";
 
     const VERSION = "1.0.1";
-    const GIT_HASH = "76163e1";
-    const BUILD_TIME = "2026-11-20 05:06:16 UTC";
+    const GIT_HASH = "44db699";
+    const BUILD_TIME = "2026-11-20 05:50:02 UTC";
 
     /**
      * Unwraps player input across Say, Do, and Story modes in AI Dungeon.
