@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (All-in-One) (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-21 20:09:20 UTC
-//   Git Commit:       13f6a82
-//   Submodules:       Entity-Cards: a1383f7, AID-Getopt: dff3771
+//   Build Generation: 2026-11-21 21:37:27 UTC
+//   Git Commit:       9daf463
+//   Submodules:       Entity-Cards: 38dfd92, AID-Getopt: dff3771
 //   Engine Flavor:    All-in-One Flagship: Character Minds + Entity Cards (NER & Classic) + Getopt
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-21 20:09:20 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-21 21:37:27 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "all-in-one";
-globalThis.INNER_ENTITY_GIT_HASH = "13f6a82";
-try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [all-in-one] (13f6a82)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "13f6a82", buildTime: "2026-11-21 20:09:20 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "9daf463";
+try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [all-in-one] (9daf463)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "9daf463", buildTime: "2026-11-21 21:37:27 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -5576,9 +5576,7 @@ description: {1 concise sentence narrative summary}
             return state.LSIv2;
         } else if (state.AutoCards) {
             // state.AutoCards is prioritized for performance
-            const ac = state.AutoCards;
-            delete state.AutoCards;
-            return ac;
+            return state.AutoCards;
         }
         const dataVariants = getDataVariants();
         data = getSingletonCard(false, O.f({...dataVariants.critical}), O.f({...dataVariants.debug}));
@@ -8504,7 +8502,7 @@ description: {1 concise sentence narrative summary}
                             // The AI signaled the end of the entry.
                             //logEvent("outputModifier: Saw the end sentinel or completed description, skipping end.");
                             // The final cleanup happens in the card generation.
-                            AC.generation.workpiece.type = entityType;
+                            try { AC.generation.workpiece.type = entityType; } catch (_) {}
                             return 0; // Causes a skip to end.
                         }
 
@@ -8513,7 +8511,7 @@ description: {1 concise sentence narrative summary}
                         //logEvent("workpiece length: " + entrySize);
                         if (entrySize > AC.config.defaultEntryLimit ) {
                             //logEvent("outputModifier: Got max entry length, skipping end."); //
-                            AC.generation.workpiece.type = entityType;
+                            try { AC.generation.workpiece.type = entityType; } catch (_) {}
                             return 0;
                         }
                         return skip(estimateRemainingGens());
@@ -8819,21 +8817,39 @@ description: {1 concise sentence narrative summary}
                 } else if (0.5 < similarityScore(textClone, output)) {
                     // To improve Auto-Cards' compatability with other scripts, I only bother to replace the output text when the original and new output texts have a similarity score above a particular threshold. Otherwise, I may safely assume the output text has already been replaced by another script and thus skip this step.
                     const workpiece = AC.generation.workpiece;
-                    const cardTitle = (workpiece && workpiece.title) ? workpiece.title : (AC.compression.titleKey || "");
+                    const isComp = isPendingCompression();
+                    const cardTitle = (workpiece && workpiece.title) ? workpiece.title : (AC.compression.vanityTitle || AC.compression.titleKey || "");
                     const cardType = (workpiece && (workpiece.explicitType || workpiece.type)) ? (workpiece.explicitType || workpiece.type) : "";
                     const typeLabel = cardType ? ` [${cardType}]` : "";
-                    const prefix = cardTitle ? `Generating "${cardTitle}"${typeLabel}: ` : "";
                     const percent = Math.round(ratio * 100);
 
-                    if (AC.config.progressDisplay === "toast") {
-                        if (typeof state === "object" && state) {
-                            state.message = `[Entity-Cards] ${prefix}Progress: ${percent}% (Click Continue)`;
+                    if (percent >= 100) {
+                        const doneLabel = isComp
+                            ? (cardTitle ? `Compressed memories for "${cardTitle}" (100%)!` : `Compressed card memories (100%)!`)
+                            : (cardTitle ? `Generated "${cardTitle}"${typeLabel} (100%): Card added to Story Cards!` : `Generated Story Card (100%)!`);
+
+                        if (AC.config.progressDisplay === "toast") {
+                            if (typeof state === "object" && state) {
+                                state.message = `[Entity-Cards] ${doneLabel} Ready for your next action.`;
+                            }
+                            CODOMAIN.initialize("\n");
+                        } else {
+                            CODOMAIN.initialize(
+                                getPrecedingNewlines() + `>>> ${doneLabel} You may now take your next action (Do, Say, Story). <<<\n\n`
+                            );
                         }
-                        CODOMAIN.initialize("\n");
                     } else {
-                        CODOMAIN.initialize(
-                            getPrecedingNewlines() + `>>> ${prefix}please select "continue" (${percent}%) <<<\n\n`
-                        );
+                        const prefix = cardTitle ? `${isComp ? "Compressing" : "Generating"} "${cardTitle}"${typeLabel}: ` : "";
+                        if (AC.config.progressDisplay === "toast") {
+                            if (typeof state === "object" && state) {
+                                state.message = `[Entity-Cards] ${prefix}Progress: ${percent}% (Click Continue)`;
+                            }
+                            CODOMAIN.initialize("\n");
+                        } else {
+                            CODOMAIN.initialize(
+                                getPrecedingNewlines() + `>>> ${prefix}please select "continue" (${percent}%) <<<\n\n`
+                            );
+                        }
                     }
                 } else {
                     CODOMAIN.initialize(output);
