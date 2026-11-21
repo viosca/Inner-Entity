@@ -137,6 +137,15 @@ runSuite("SUITE 1: Flagship Inner Entity (Minds + Entity Cards)", path.join(ROOT
     if (!s.text.includes("Story Model:") || !s.text.includes("Optimize Context:")) throw new Error("/ec -i missing environment section");
     console.log("   ✔ Input hook preserved prompt and output hook delivered /ec -i");
 
+    // Input hook: /ec -a / --abort / cancel command
+    s.text = "/ec -a";
+    s.InnerEntity("input");
+    if (clean(s.text) !== "/ec -a") throw new Error(`/ec -a failed to preserve prompt: got '${s.text}'`);
+    s.text = "";
+    s.InnerEntity("output");
+    if (!s.text.includes("/EC abort -> No card generation")) throw new Error(`/ec -a failed on output: got '${s.text}'`);
+    console.log("   ✔ Input hook preserved prompt and output hook delivered /ec -a (abort)");
+
     // Input hook: /ie -v command
     s.text = "/ie -v";
     s.InnerEntity("input");
