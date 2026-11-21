@@ -7,7 +7,9 @@ const vm = require("vm");
 const assert = require("assert");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
-const EC_LIB_PATH = path.join(ROOT_DIR, "submodules", "Entity-Cards", "src", "library.js");
+const EC_SIBLING_PATH = path.join(ROOT_DIR, "..", "Entity-Cards", "src", "library.js");
+const EC_SUBMODULE_PATH = path.join(ROOT_DIR, "submodules", "Entity-Cards", "src", "library.js");
+const EC_LIB_PATH = fs.existsSync(EC_SIBLING_PATH) ? EC_SIBLING_PATH : EC_SUBMODULE_PATH;
 const IE_ALL_IN_ONE_PATH = path.join(ROOT_DIR, "dist", "inner-entity.js");
 const IE_MINDS_PATH = path.join(ROOT_DIR, "dist", "inner-self-minds-only.js");
 const IE_CLASSIC_PATH = path.join(ROOT_DIR, "dist", "inner-self-classic.js");
@@ -113,12 +115,17 @@ const initialIEConfigCard = {
     // Slot 2 /ie -i diagnostics must include double engine warning
     sandbox.text = "/ie -i";
     sandbox.InnerEntity("input");
+    assert.strictEqual(sandbox.text, "/ie -i", "Input prompt must be preserved");
+    sandbox.text = "";
+    sandbox.InnerEntity("output");
     const ieInfoOut = sandbox.text;
     assert(ieInfoOut.includes("⚠️ [DOUBLE ENGINE WARNING]"), "/ie -i must display double engine warning block");
     assert(ieInfoOut.includes("Duplicate card engine automatically bypassed"), "/ie -i must explain bypass");
 
     // Slot 1 /ec -i diagnostics must include double engine warning
-    const ecInfoOut = sandbox.AutoCards("input", "/ec -i");
+    const ecPromptIn = sandbox.AutoCards("input", "/ec -i");
+    assert.strictEqual(ecPromptIn.replace(/\u200D\u200B\u200C\u200B\u200D/g, ""), "/ec -i", "Input prompt must be preserved");
+    const ecInfoOut = sandbox.AutoCards("output", "");
     assert(ecInfoOut.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "/ec -i must display double engine warning block");
     assert(ecInfoOut.includes("Only ONE card engine is active"), "/ec -i must explain only one engine is active");
 
@@ -158,9 +165,12 @@ const initialIEConfigCard = {
     // Warnings present in both commands
     sandbox.text = "/ie -i";
     sandbox.InnerEntity("input");
+    sandbox.text = "";
+    sandbox.InnerEntity("output");
     assert(sandbox.text.includes("⚠️ [DOUBLE ENGINE WARNING]"));
 
-    const ecOut = sandbox.AutoCards("input", "/ec -i");
+    sandbox.AutoCards("input", "/ec -i");
+    const ecOut = sandbox.AutoCards("output", "");
     assert(ecOut.includes("⚠️ [DOUBLE ENGINE DETECTED]"));
 
     // No duplicate config cards
@@ -190,11 +200,14 @@ const initialIEConfigCard = {
     // Verify minds-only links to Slot 1's AutoCards
     sandbox.text = "/ie -i";
     sandbox.InnerEntity("input");
+    sandbox.text = "";
+    sandbox.InnerEntity("output");
     const infoOut = sandbox.text;
     assert(infoOut.includes("Auto-Cards Linked: Yes"), "Inner-Entity must recognize Slot 1 Auto-Cards");
     assert(!infoOut.includes("DOUBLE ENGINE WARNING"), "No double engine warning in modular setup");
 
-    const ecInfoOut = sandbox.AutoCards("input", "/ec -i");
+    sandbox.AutoCards("input", "/ec -i");
+    const ecInfoOut = sandbox.AutoCards("output", "");
     assert(!ecInfoOut.includes("DOUBLE ENGINE DETECTED"), "No double engine warning in Slot 1 EC");
 
     console.log("   ✔ Test 3 passed: Modular setup (Slot 1 EC + Slot 2 Minds-Only) links cleanly with zero false warnings");
@@ -238,9 +251,12 @@ const initialIEConfigCard = {
 
     sandbox.text = "/ie -i";
     sandbox.InnerEntity("input");
+    sandbox.text = "";
+    sandbox.InnerEntity("output");
     assert(!sandbox.text.includes("DOUBLE ENGINE WARNING"), "Warning must clear once duplicate script is removed");
 
-    const ecOut = sandbox.AutoCards("input", "/ec -i");
+    sandbox.AutoCards("input", "/ec -i");
+    const ecOut = sandbox.AutoCards("output", "");
     assert(!ecOut.includes("DOUBLE ENGINE DETECTED"), "Warning must clear in /ec -i as well");
 
     console.log("   ✔ Test 5 passed: Dynamic reconfiguration clears warnings when duplicate is resolved mid-adventure");
@@ -330,16 +346,22 @@ const initialIEConfigCard = {
     let activeOrder = [slotEC, slotIEAll];
 
     // 1. Test /ec -i across separate VMs
-    let res = runWaterfallHook(activeOrder, "input", "/ec -i");
-    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Order 1: /ec -i must include double engine warning");
+    let resIn = runWaterfallHook(activeOrder, "input", "/ec -i");
+    assert.strictEqual(resIn.text.replace(/\u200D\u200B\u200C\u200B\u200D/g, ""), "/ec -i", "Multi-VM Order 1: /ec -i must preserve prompt on input");
+    let res = runWaterfallHook(activeOrder, "output", "");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Order 1: /ec -i must include double engine warning on output");
 
     // 2. Test /ie -i across separate VMs
-    res = runWaterfallHook(activeOrder, "input", "/ie -i");
-    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Order 1: /ie -i must include double engine warning");
+    resIn = runWaterfallHook(activeOrder, "input", "/ie -i");
+    assert.strictEqual(resIn.text.replace(/\u200D\u200B\u200C\u200B\u200D/g, ""), "/ie -i", "Multi-VM Order 1: /ie -i must preserve prompt on input");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Order 1: /ie -i must include double engine warning on output");
 
     // 3. Test /ec -v across separate VMs (Slot 2 must NOT re-parse '/EC version ->' as a card title!)
-    res = runWaterfallHook(activeOrder, "input", "/ec -v");
-    assert(res.text.includes("/EC version ->"), "Multi-VM Order 1: /ec -v must preserve version output");
+    resIn = runWaterfallHook(activeOrder, "input", "/ec -v");
+    assert.strictEqual(resIn.text.replace(/\u200D\u200B\u200C\u200B\u200D/g, ""), "/ec -v", "Multi-VM Order 1: /ec -v must preserve prompt on input");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(res.text.includes("/EC version ->"), "Multi-VM Order 1: /ec -v must deliver version output");
     assert(!res.text.includes("Generating card"), "Multi-VM Order 1: Slot 2 must not re-parse /EC version output as a card title");
 
     // 4. Test Context & Output turn across separate VMs
@@ -360,11 +382,13 @@ const initialIEConfigCard = {
     sharedInfo.actionCount = 12;
     sharedHistory.push({ text: "They walked down the hallway.", type: "story" });
 
-    res = runWaterfallHook(activeOrder, "input", "/ec -i");
-    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Reordered: /ec -i must still show warning");
+    runWaterfallHook(activeOrder, "input", "/ec -i");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE DETECTED]"), "Multi-VM Reordered: /ec -i must still show warning on output");
 
-    res = runWaterfallHook(activeOrder, "input", "/ie -i");
-    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Reordered: /ie -i must still show warning");
+    runWaterfallHook(activeOrder, "input", "/ie -i");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(res.text.includes("⚠️ [DOUBLE ENGINE WARNING]"), "Multi-VM Reordered: /ie -i must still show warning on output");
 
     runWaterfallHook(activeOrder, "context", "Recent Story:\nThey walked down the hallway.");
     runWaterfallHook(activeOrder, "output", "The bell rang loudly.");
@@ -377,11 +401,13 @@ const initialIEConfigCard = {
     sharedInfo.actionCount = 13;
     sharedHistory.push({ text: "Hakari opened the door.", type: "story" });
 
-    res = runWaterfallHook(activeOrder, "input", "/ec -i");
-    assert(!res.text.includes("DOUBLE ENGINE DETECTED"), "Multi-VM Resolved: /ec -i warning must clear immediately");
+    runWaterfallHook(activeOrder, "input", "/ec -i");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(!res.text.includes("DOUBLE ENGINE DETECTED"), "Multi-VM Resolved: /ec -i warning must clear immediately on output");
 
-    res = runWaterfallHook(activeOrder, "input", "/ie -i");
-    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Resolved: /ie -i warning must clear immediately");
+    runWaterfallHook(activeOrder, "input", "/ie -i");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Resolved: /ie -i warning must clear immediately on output");
     assert(res.text.includes("Auto-Cards Linked: Yes"), "Multi-VM Resolved: Minds-Only in VM #2 must detect Standalone EC in VM #1");
 
     // --- Phase D: Player Reorders Modular Pair [Slot 1: Minds-Only IE -> Slot 2: Standalone EC] ---
@@ -389,9 +415,10 @@ const initialIEConfigCard = {
     sharedInfo.actionCount = 14;
     sharedHistory.push({ text: "Karane followed behind.", type: "story" });
 
-    res = runWaterfallHook(activeOrder, "input", "/ie -i");
-    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Inverted Modular: No false double engine warning");
-    assert(res.text.includes("Auto-Cards Linked: Yes"), "Multi-VM Inverted Modular: Auto-Cards Linked is Yes");
+    runWaterfallHook(activeOrder, "input", "/ie -i");
+    res = runWaterfallHook(activeOrder, "output", "");
+    assert(!res.text.includes("DOUBLE ENGINE WARNING"), "Multi-VM Inverted Modular: No false double engine warning on output");
+    assert(res.text.includes("Auto-Cards Linked: Yes"), "Multi-VM Inverted Modular: Auto-Cards Linked is Yes on output");
 
     console.log("   ✔ Test 6 passed: Multi-VM Adventure Mode (isolated VMs & states, live reordering, removal & modular linking) verified");
 }

@@ -83,7 +83,10 @@ console.log("\n--- Part 2: Minds-Only Standalone with CSCP (0 Collisions) ---");
 
     slot2.sandbox.text = "/ie -v";
     slot2.sandbox.InnerEntity("input");
-    assert(slot2.sandbox.text.includes("/IE version -> Inner Entity"), "Minds-only processed /ie -v");
+    assert.strictEqual(slot2.sandbox.text, "/ie -v", "Prompt preserved on input");
+    slot2.sandbox.text = "";
+    slot2.sandbox.InnerEntity("output");
+    assert(slot2.sandbox.text.includes("/IE version -> Inner Entity"), "Minds-only processed /ie -v on output");
 
     const cscpPacket = vm.runInContext("loadCSCP().read()", slot2.ctx);
     assert(cscpPacket, "CSCP packet exists");

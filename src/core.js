@@ -699,7 +699,7 @@ function InnerSelf(hook) {
                 diag: typeof _m.diag === "function" ? _m.diag() : _m.diag
             };
         }
-        if (typeof state !== "undefined" && !hasAutoCards()) {
+        if (typeof state === "object" && state && !globalThis._AID_DOUBLE_ENGINE_DETECTED) {
             delete state._aid_double_engine_detected;
         }
     } catch (_) {}
@@ -745,6 +745,14 @@ function InnerSelf(hook) {
         return null;
     };
     const turnKey = `${typeof info === "object" ? (info?.actionCount ?? 0) : 0}:${(typeof history !== "undefined" && Array.isArray(history)) ? history.length : 0}`;
+    const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+        || (typeof state === "object" && (state?._aid_ie_slot_uid || state?._aid_slot_uid))
+        || ("ie-" + Math.random().toString(36).slice(2, 8));
+    if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
+    if (typeof state === "object" && state) {
+        state._aid_ie_slot_uid ??= myUid;
+        state._aid_slot_uid ??= myUid;
+    }
     let cscpActive = false;
     try {
         const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
@@ -757,11 +765,6 @@ function InnerSelf(hook) {
             const buildType = isBundled ? "all-in-one" : "modular";
             const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
             const hookPhase = (typeof hook === "string" && ["input", "context", "output"].includes(hook)) ? hook : "init";
-            const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
-                || (typeof state === "object" && state?._aid_ie_slot_uid)
-                || ("ie-" + Math.random().toString(36).slice(2, 8));
-            if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
-            if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
 
             const res = cscp.announce({
                 name: "inner-entity",
@@ -791,7 +794,7 @@ function InnerSelf(hook) {
     } catch (_) {}
 
     let hasUpstreamECSlot = false;
-    if (hook === "input" && typeof text === "string") {
+    if ((hook === "input" || hook === "output") && typeof text === "string") {
         if (text.includes(EC_INPUT_HANDSHAKE)) {
             text = text.replace(/\u200D\u200B\u200C\u200B\u200D/g, "");
             hasUpstreamECSlot = true;
@@ -831,16 +834,22 @@ function InnerSelf(hook) {
         }
         if (hasAutoCards()) {
             const stamp = readCrossSlotStamp();
-            const myUid = (typeof state === "object" && state?._aid_slot_uid) || (hasAutoCards() && getAutoCards()?._instanceUid);
+            const myUid = (typeof globalThis !== "undefined" && globalThis._aid_slot_uid)
+                || (typeof state === "object" && (state?._aid_slot_uid || state?._aid_ie_slot_uid))
+                || (hasAutoCards() && getAutoCards()?._instanceUid);
             if (stamp && stamp.t === turnKey) {
-                if (stamp.c === 1) return true;
                 if (stamp.u && myUid && stamp.u !== myUid && (!phase || stamp.p === phase)) return true;
             }
         }
         return false;
     };
     const u = "qm`x/`hetofdno/bnl.qsnghmd.MdveMd`i".replace(/./g, c => String.fromCharCode(c.charCodeAt()^1));
-    if (!isDoubleEngine(hook) && IS.AC.enabled && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
+    const isSystemCommandOutput = (hook === "output") && (
+        (typeof state !== "undefined" && Boolean(state?.GetoptSandbox?.isCommandOutput)) ||
+        (typeof text === "string" && text.trim().startsWith("===") && text.includes("==================================================================")) ||
+        (typeof text === "string" && /^\s*\/(?:EC|AC|IE|IS)\b/i.test(text))
+    );
+    if (!isSystemCommandOutput && !isDoubleEngine(hook) && (IS.AC.enabled || IS.AC.forced) && (typeof hook === "string") && (hook !== "context") && hasAutoCards()) {
         // Delegate to Auto-Cards for non-context hooks when enabled
         try {
             text = getAutoCards()(hook, text);
@@ -2388,6 +2397,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
         if (typeof text === "string" && /^\s*\/(?:EC|AC)\b[^\n]*->/i.test(text)) {
             return;
         }
+        if (typeof state !== "undefined" && state?._aid_system_command) {
+            return;
+        }
         const rawInput = (typeof text === "string") ? text.trim() : "";
         const unwrap = (typeof globalThis.AIDGetopt?.unwrapCommandInput === "function")
             ? globalThis.AIDGetopt.unwrapCommandInput
@@ -2449,8 +2461,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
                     ? globalThis.GetoptAID.getopt(argsStr, ieSpec)
                     : null;
 
+            let cmdOutput = "";
             if (cli ? cli.hasFlag("version") : /^(?:[-—–−]{1,2}v|version)\b/i.test(argsStr)) {
-                text = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
+                cmdOutput = `/IE version -> Inner Entity ${buildVer} [${flavor}] (git: ${gitHash})`;
             } else if (cli ? cli.hasFlag("info") : /^(?:[-—–−]{1,2}(?:i|info|diag|you)|info|diag)\b/i.test(argsStr)) {
                 const isOC = (typeof info !== "undefined" && info?.useCacheEfficient) || false;
                 const doubleEngine = isDoubleEngine();
@@ -2460,7 +2473,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                       `     -> Duplicate card engine automatically bypassed to protect story cards.\n` +
                       `     -> Fix: In Script Manager, use 'inner-self-minds-only.js' for the minds slot.`
                     : "";
-                text = `/IE info -> Inner Entity Diagnostics:\n` +
+                cmdOutput = `/IE info -> Inner Entity Diagnostics:\n` +
                        `  Build: ${buildVer} [${flavor}] (git: ${gitHash})\n` +
                        `  Configured NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}\n` +
                        `  Thought Chance: ${config.chance ?? S.THOUGHT_FORMATION_CHANCE_PER_TURN}%\n` +
@@ -2470,7 +2483,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
                        `  Auto-Cards Linked: ${acLinked ? "Yes" : "No"}` +
                        doubleEngineBlock;
             } else if (cli ? cli.hasFlag("characters") : /^(?:[-—–−]{1,2}(?:c|characters)|characters)\b/i.test(argsStr)) {
-                text = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
+                cmdOutput = `/IE characters -> Configured Scenario NPCs: ${agents.length > 0 ? agents.join(", ") : "(none)"}`;
             } else if (cli ? cli.hasFlag("status") : /^(?:[-—–−]{1,2}(?:s|status|list)|status|list)\b/i.test(argsStr)) {
                 const allCards = (typeof storyCards !== "undefined" && Array.isArray(storyCards)) ? storyCards : [];
                 const brainCards = allCards.filter(c => c && (
@@ -2490,9 +2503,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
                         statusLines += `\n  • ${title}: ${preview}`;
                     }
                 }
-                text = `/IE status -> ${statusLines}`;
+                cmdOutput = `/IE status -> ${statusLines}`;
             } else {
-                text = `/IE help -> Inner Entity Commands:\n` +
+                cmdOutput = `/IE help -> Inner Entity Commands:\n` +
                        `  /ie -s, --status, --list    List active simulated character minds & thoughts\n` +
                        `  /ie -i, --info, --diag      Display cognitive engine diagnostics\n` +
                        `  /ie -c, --characters        List configured scenario NPCs\n` +
@@ -2501,9 +2514,9 @@ The key must already exist and the thought is erased permanently. Choose the mos
             }
 
             try {
-                state.message = text;
+                state.message = cmdOutput;
                 state.InnerEntity ??= {};
-                state.InnerEntity.commandOutput = text;
+                state.InnerEntity.commandOutput = cmdOutput;
                 if (typeof state !== "undefined") {
                     state._aid_system_command = true;
                 }
@@ -2527,23 +2540,25 @@ The key must already exist and the thought is erased permanently. Choose the mos
         }
         text ||= "\u200B";
         return;
-    } else if (
-        (text.includes(">>>") && text.includes("<<<")) ||
-        (3000 < text.length) ||
-        (typeof state !== "undefined" && (state?.GetoptSandbox?.isCommandOutput || state?._aid_system_command)) ||
-        (text.trim().startsWith("===") && text.includes("=================================================================="))
-    ) {
-        // Output contains an Auto-Cards thingy, upstream system command output, or is suspiciously long
-        // Safer to leave untouched
-        IS.agent = "";
-        return;
     }
     // ==================== OUTPUT HOOK ====================
     // If an Inner Entity slash command was processed on input, deliver its output cleanly
     if (typeof state !== "undefined" && state?.InnerEntity?.commandOutput) {
         const cmdOut = state.InnerEntity.commandOutput;
         delete state.InnerEntity.commandOutput;
+        delete state._aid_system_command;
         text = cmdOut ? `${cmdOut.trim()}\n` : "\n";
+        return;
+    } else if (
+        (text.includes(">>>") && text.includes("<<<")) ||
+        (3000 < text.length) ||
+        (typeof state !== "undefined" && (state?.GetoptSandbox?.isCommandOutput || state?._aid_system_command)) ||
+        (text.trim().startsWith("===") && text.includes("==================================================================")) ||
+        (/^\s*\/(?:EC|AC|IE|IS)\b/i.test(text))
+    ) {
+        // Output contains an Auto-Cards thingy, upstream system command output, or is suspiciously long
+        // Safer to leave untouched
+        IS.agent = "";
         return;
     }
     // Process model output and implement brain operations
