@@ -4,8 +4,8 @@
 //
 //                      Inner Self Minds-Only (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-21 21:37:27 UTC
-//   Git Commit:       9daf463
+//   Build Generation: 2026-11-21 22:17:23 UTC
+//   Git Commit:       cfe53e9
 //   Submodules:       AID-Getopt: dff3771
 //   Engine Flavor:    Minds-Only (Pure Character Cognition, Zero Card Engine)
 //
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-21 21:37:27 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-21 22:17:23 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "minds-only";
-globalThis.INNER_ENTITY_GIT_HASH = "9daf463";
-try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [minds-only] (9daf463)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "9daf463", buildTime: "2026-11-21 21:37:27 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "cfe53e9";
+try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [minds-only] (cfe53e9)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "minds-only", gitHash: "cfe53e9", buildTime: "2026-11-21 22:17:23 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
