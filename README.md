@@ -37,6 +37,7 @@ Simulated NPCs build, reflect upon, and maintain their own mental state (goals, 
 | **Two-Card Configuration** | Modular configuration split between Master *Configure Auto-Cards* and Companion *Configure Entity Cards* |
 | **Zero Immersion Breaks** | Thought formation and card generation occur naturally without intrusive continue prompts |
 | **Real-Time Editors** | View or edit any NPC brain in story card notes, and customize live prompt templates in the companion card |
+| **CSCP Multi-Slot Negotiation** | Seamlessly detects standalone Entity-Cards in separate slots via CSCP, auto-yielding the card engine to prevent collisions while preserving 100% character minds |
 | **100% Backward Compatible** | Works with legacy `InnerSelf()` hooks and allows 1-click toggling back to Classic Auto-Cards |
 
 > 🧭 **Architecture & Documentation:**
@@ -116,6 +117,7 @@ When your adventure begins, the script generates:
    - Appears when in Entity Cards mode.
    - Displays active preset (`Standard`, `Lite`, `Authoring`, `Custom`).
    - Allows live editing of the YAML generation templates right inside the card notes.
+   - Configures clean prompt options (`cleanPromptOnCardGen`) and progress display format (`progressDisplay: story | toast`).
 
 ### Slash Commands
 
@@ -133,6 +135,7 @@ You can execute commands directly in the AID input bar using `/ec` (or `/ac`):
 - `/ec <Title> -<type>`: Instantly generate an entity card with an explicit type flag (`-p` / `Person`, `-loc` / `Location`, `-org` / `Organization`, `-t` / `Thing`, `-e` / `Event`). Flags can be placed before or after the title (e.g. `/ec -p Molly` or `/ec Molly -p`) and work inside Say mode dialogue quotes (e.g. `Joe says, "/ec -p Molly."`). Strips unused schema branches from the AI prompt to cut prompt tokens by ~80% and eliminate hallucination.
 - `/ec -r <Title> [ -<type> ]`: Regenerate an existing card, optionally overriding its type schema (or legacy `/ec redo <Title>`).
 - `/ec -R` or `/ec --redo-all`: Regenerate all automatic story cards (or legacy `/ec redo all`).
+- `/ec -a`, `/ec --abort`, `/ec cancel`: Terminate active card generation or memory compression in progress, resetting cooldowns and clearing task cards.
 - `/ec -m <mode>` or `/ec --mode <mode>`: Switch operating mode (`-m entity` or `-m classic`).
 - `/ec -P <preset>` or `/ec --preset <preset>`: Switch schema preset on the fly (`-P lite`, `-P standard`, `-P authoring`, `-P custom`).
 - `/ec --header <text>`: Customize the context header replacing `World Lore:` (e.g. `/ec --header "Codex Entities:"`).

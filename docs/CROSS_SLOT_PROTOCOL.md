@@ -294,3 +294,11 @@ const res = cscp.announce({
   - When running upstream of standalone `Entity-Cards`: Standalone `Entity-Cards` detects that `inner-entity` already owns `"entity-cards"` and yields cleanly.
 - **Unified `/help` Directory:** Upstream routers (such as `aid-getopt`) automatically aggregate `/ie`, `/is`, `/ec`, and `/aid-modules` into a single, cohesive command directory for the player.
 
+### 8.4 Cross-Slot Task Synchronization & Thought Suppression
+
+During active card generation or memory compression (whether single-turn or multi-turn continuation):
+1. **Thought Task Suppression:** `Entity-Cards` clears the trigger keys and entry of `Inner-Entity`'s thought task card (`🧠 Inner Entity Task — do not edit`) to ensure that NPC thoughts are not requested from the model while an entity is being generated.
+2. **Event Stamping (`[AC_EVENT_ACTIVE]`):** `Entity-Cards` stamps `[AC_EVENT_ACTIVE]` into shared `storyCards` (on `🗂️ Auto-Cards Task — do not edit`).
+3. **VM Coordination:** When `Inner-Entity` runs its `onModelContext` and `onOutput` hooks in its own isolated VM, `isExternalACEventActive()` inspects `storyCards` for the active event stamp and suppresses NPC thought generation and output replacements for that turn.
+4. **Clean Narration Continuity:** Character monologue and narrative story prose are cleanly prevented from bleeding into `Continue` clicks during multi-turn YAML construction until the card reaches 100% completion.
+
