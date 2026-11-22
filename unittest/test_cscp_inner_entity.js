@@ -302,6 +302,130 @@ console.log("\n--- Part 6: 4-Slot Full Ecosystem Grand Unification ---");
     console.log("   ✔ 4-Slot Ecosystem (Modules + Getopt + EC + IE) verified with 0 collisions and full /help integration");
 }
 
+// ----------------------------------------------------------------------------
+// Test 7: 4-Slot Multi-VM Card Generation Isolation & Ephemeral VM Resilience
+// Verifies:
+//  1) Ephemeral per-hook VMs never self-collide on CSCP 'init' phase
+//  2) Downstream Inner-Entity (Minds-Only) pauses thought tasks & deactivates
+//     its Thought Task Card while upstream Entity-Cards is generating a card
+//  3) Multi-turn continuation preserves ENTITY_BEGIN, merges repeated YAML blocks,
+//     strips stray narrative preambles, and finalizes card at 100%
+// ----------------------------------------------------------------------------
+console.log("\n--- Part 7: 4-Slot Multi-VM Card Generation Isolation & YAML Continuation ---");
+{
+    const sharedCards = [
+        {
+            title: "Configure \nInner Entity",
+            keys: "Edit the entry above to configure Inner Entity",
+            entry: `> Enable Inner Entity: true\n> Show detailed guide: false\n> First name of player character: "Jonathan"\n> Adventure in 1st, 2nd, or 3rd person: 2\n> Max brain size relative to story context: 25%\n> Recent turns searched for name triggers: 10\n> Visual indicator of current NPC triggers: "🎭"\n> Thought formation chance per turn: 100%\n> Half thought chance for Do/Say/Story: false\n> Brain card notes store brains as JSON: false\n> Enable debug mode to see model tasks: false\n> Pin the config card near the top: true\n> Install Auto-Cards: true`,
+            description: "Ingrid\nHilda",
+            type: "class"
+        }
+    ];
+    const sharedInfo = { actionCount: 1, maxChars: 8000, useCacheEfficient: true };
+    const sharedHistory = [
+        {
+            type: "continue",
+            text: `Hilda steps forward, her gray eyes steady on the guards. "Never leave that door unattended," she says.`
+        }
+    ];
+    const slotStates = [{}, {}, {}, {}];
+
+    const aidModulesCode = fs.readFileSync(aidModulesLibPath, "utf8");
+    const aidGetoptCode = fs.readFileSync(aidGetoptLibPath, "utf8");
+    const ecCode = fs.readFileSync(ecLibPath, "utf8");
+
+    // Simulate AI Dungeon creating a fresh VM per hook (where onModelContext state mutations are not persisted)
+    function run4SlotHook(hook, initialText, initialStop = false) {
+        let t = initialText;
+        let s = initialStop;
+        const codes = [aidModulesCode, aidGetoptCode, ecCode, mindsOnlyCode];
+        for (let i = 0; i < 4; i++) {
+            // Clone state for context hook to emulate AI Dungeon's non-persisted context VM state
+            const stateForHook = (hook === "context") ? JSON.parse(JSON.stringify(slotStates[i])) : slotStates[i];
+            const vmSlot = createSlotVM(sharedCards, sharedInfo, sharedHistory, stateForHook);
+            vm.runInContext(codes[i], vmSlot.ctx);
+            vmSlot.sandbox.text = t;
+            vmSlot.sandbox.stop = s;
+            if (i === 0) {
+                const res = vmSlot.sandbox.AID.hook(hook, t, s);
+                if (hook === "context" && Array.isArray(res)) { [t, s] = res; } else if (typeof res === "string") { t = res; }
+            } else if (i === 2) {
+                const res = vmSlot.sandbox.AutoCards(hook, t, s);
+                if (hook === "context" && Array.isArray(res)) { [t, s] = res; } else if (typeof res === "string") { t = res; }
+            } else if (i === 3) {
+                vmSlot.sandbox.InnerEntity(hook);
+                t = vmSlot.sandbox.text;
+                s = vmSlot.sandbox.stop;
+            }
+            if (hook === "context" && i === 2) {
+                // Persist AutoCards state across hooks as AI Dungeon persists state from input/output or data card
+                slotStates[2].AutoCards = stateForHook.AutoCards;
+            }
+        }
+        return hook === "context" ? [t, s] : t;
+    }
+
+    // Turn 1: Normal turn -> Inner-Entity activates 🧠 Inner Entity Task card for Hilda
+    sharedInfo.actionCount = 2;
+    run4SlotHook("context", "World Lore:\n\nRecent Story:\nHilda steps forward.");
+    run4SlotHook("output", "(hilda_guard_order = `I must ensure the western tower remains guarded.`) Both guards snap to attention.");
+    const ieTaskCard = sharedCards.find(c => c.title && c.title.includes("Inner Entity Task"));
+    assert(ieTaskCard, "Inner Entity Task card created on normal NPC turn");
+
+    // Turn 2: Player runs /ec -p brenner (auto-enables EC at 0% and suppresses IE Thought Task Card)
+    sharedInfo.actionCount = 3;
+    const inText = run4SlotHook("input", "\n> You /ec -p brenner.\n");
+    assert(inText.includes("/EC {Brenner} [-person] -> Success!"), "Expected /ec -p brenner to succeed");
+    sharedHistory.push({ type: "do", text: inText });
+
+    run4SlotHook("context", "World Lore:\n\nRecent Story:\nHilda steps forward.\n" + inText);
+    assert.strictEqual(ieTaskCard.keys, "", "IE Thought Task Card keys MUST be cleared even on the 0% auto-enable turn");
+    assert.strictEqual(ieTaskCard.entry, "", "IE Thought Task Card entry MUST be cleared even on the 0% auto-enable turn");
+    const outTurn0 = run4SlotHook("output", "Some ignored output");
+    assert(outTurn0.includes('>>> please select "continue" (0%) <<<'), "Turn 2 output must show 0% continue prompt");
+
+    // Turn 3: Player clicks Continue (no input hook runs on Continue in AI Dungeon!) -> generation starts
+    sharedInfo.actionCount = 4;
+    run4SlotHook("context", "World Lore:\n\nRecent Story:\nHilda steps forward.\n" + inText);
+    // Verify EC Task Card is active AND IE Thought Task Card is deactivated!
+    const ecTaskCard = sharedCards.find(c => c.title && c.title.includes("Auto-Cards Task"));
+    assert(ecTaskCard && ecTaskCard.keys !== "" && ecTaskCard.entry.includes("Brenner"), "EC Task Card must be active during card generation");
+    assert.strictEqual(ieTaskCard.keys, "", "IE Thought Task Card keys MUST be cleared across VMs during EC card generation");
+    assert.strictEqual(ieTaskCard.entry, "", "IE Thought Task Card entry MUST be cleared across VMs during EC card generation");
+
+    // Model outputs first partial chunk on Turn 3
+    const outTurn2 = run4SlotHook("output", "ENTITY_BEGIN\nentity: Brenner\ntype: Person\ncategory: Royal Guard Corporal\nmbti: ISTJ—Logistician\nappearance: Young, early twenties, with a serious, clean-shaven face.");
+    assert(outTurn2.includes('>>> Generating "Brenner" [Person]: please select "continue"'), "Turn 3 output must show generating progress notice");
+
+    // Turn 4: Player clicks Continue (no input hook runs on Continue in AI Dungeon!)
+    sharedInfo.actionCount = 5;
+    run4SlotHook("context", "World Lore:\n\nRecent Story:\nHilda steps forward.");
+    assert(ecTaskCard.entry.includes("ENTITY_BEGIN\nentity: Brenner"), "Continuation prompt must preserve ENTITY_BEGIN sentinel");
+    assert.strictEqual(ieTaskCard.keys, "", "IE Thought Task Card must remain deactivated on Continue turns");
+
+    // Model outputs second chunk with personality
+    const outTurn3 = run4SlotHook("output", "personality: Precise, dutiful, and unflappable; speaks in clipped, respectful tones.");
+    assert(outTurn3.includes('>>> Generating "Brenner" [Person]: please select "continue"'), "Turn 4 output must show generating progress notice");
+
+    // Turn 5: Player clicks Continue; model repeats ENTITY_BEGIN block with narrative preamble (stall/repeat case)
+    sharedInfo.actionCount = 6;
+    run4SlotHook("context", "World Lore:\n\nRecent Story:\nHilda steps forward.");
+    const outTurn4 = run4SlotHook("output", `"Simple fare," she says again. ENTITY_BEGIN\nentity: Brenner\ntype: Person\ncategory: Royal Guard Corporal\nmbti: ISTJ—Logistician\nappearance: Young, early twenties, with a serious, clean-shaven face.\npersonality: Precise, dutiful, and unflappable; speaks in clipped, respectful tones.`);
+    assert(outTurn4.includes('>>> Generated "Brenner" [Person] (100%): Card added to Story Cards!'), "Turn 5 must finalize at 100% and announce card creation");
+
+    const brennerCard = sharedCards.find(c => c.title === "Brenner");
+    assert(brennerCard, "Brenner Story Card must be created in storyCards");
+    assert.strictEqual(brennerCard.type, "Person", "Brenner card type must be Person");
+    assert(brennerCard.entry.includes("category: Royal Guard Corporal"), "Brenner card must contain category");
+    assert(brennerCard.entry.includes("personality: Precise, dutiful"), "Brenner card must contain merged personality");
+    assert(!brennerCard.entry.includes("Simple fare"), "Brenner card must not contain narrative preamble");
+    assert(!brennerCard.entry.includes("ENTITY_BEGIN"), "Brenner card must not contain raw ENTITY_BEGIN sentinel");
+    assert.strictEqual((brennerCard.entry.match(/entity:\s*Brenner/gi) || []).length, 1, "entity: Brenner must appear exactly once");
+
+    console.log("   ✔ 4-Slot Multi-VM card generation isolation, thought card suppression, and YAML continuation verified");
+}
+
 console.log("\n==================================================================");
 console.log("  🎉 ALL INNER-ENTITY CSCP MULTI-VM TESTS PASSED (100% SUCCESS)");
 console.log("==================================================================");

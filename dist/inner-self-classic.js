@@ -4,9 +4,9 @@
 //
 //                      Inner Self Classic (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-21 22:17:23 UTC
-//   Git Commit:       cfe53e9
-//   Submodules:       Entity-Cards: 2c85975, AID-Getopt: dff3771
+//   Build Generation: 2026-11-22 05:29:43 UTC
+//   Git Commit:       7b3f255
+//   Submodules:       Entity-Cards: 78feb21, AID-Getopt: dff3771
 //   Engine Flavor:    Classic Auto-Cards (Character Minds + LewdLeah's Auto-Cards)
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-21 22:17:23 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-22 05:29:43 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "classic";
-globalThis.INNER_ENTITY_GIT_HASH = "cfe53e9";
-try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [classic] (cfe53e9)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "cfe53e9", buildTime: "2026-11-21 22:17:23 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "7b3f255";
+try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [classic] (7b3f255)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "classic", gitHash: "7b3f255", buildTime: "2026-11-22 05:29:43 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -729,6 +729,27 @@ function InnerSelf(hook) {
             || c.title === "Configure \nEntity Cards"
         ));
     };
+    const isExternalACEventActive = () => {
+        if (typeof storyCards !== "undefined" && Array.isArray(storyCards)) {
+            for (const c of storyCards) {
+                if (!c || typeof c !== "object") continue;
+                if (c.title === "\uD83D\uDDC2\uFE0F Auto-Cards Task — do not edit" || c.title === "\uD83D\uDDC2\uFE0F Entity Cards Task — do not edit") {
+                    if ((typeof c.entry === "string" && c.entry.trim() !== "") ||
+                        (typeof c.description === "string" && c.description.includes("[AC_EVENT_ACTIVE]"))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        if ((hook === "context" || (!hook && Number.isInteger(info?.maxChars))) && typeof text === "string") {
+            if (text.includes("#! This is JellyFish (JFSH)") ||
+                text.includes("# Stop the story and ignore previous instructions") ||
+                text.includes("// Auto-Cards OC")) {
+                return true;
+            }
+        }
+        return false;
+    };
     const readCrossSlotStamp = () => {
         try {
             if (typeof storyCards === "undefined" || !Array.isArray(storyCards)) return null;
@@ -763,9 +784,10 @@ function InnerSelf(hook) {
         state._aid_slot_uid ??= myUid;
     }
     let cscpActive = false;
+    const isLifecycleHook = (typeof hook === "string" && ["input", "context", "output"].includes(hook));
     try {
         const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
-        if (cscp && typeof cscp.announce === "function") {
+        if (isLifecycleHook && cscp && typeof cscp.announce === "function") {
             const isBundled = hasAutoCards();
             const flavor = (typeof globalThis !== "undefined" && globalThis.INNER_ENTITY_FLAVOR)
                 ? globalThis.INNER_ENTITY_FLAVOR
@@ -773,7 +795,6 @@ function InnerSelf(hook) {
             const provides = isBundled ? ["inner-entity", "entity-cards"] : ["inner-entity"];
             const buildType = isBundled ? "all-in-one" : "modular";
             const cmds = isBundled ? ["/ie", "/is", "/ec", "/ac"] : ["/ie", "/is"];
-            const hookPhase = (typeof hook === "string" && ["input", "context", "output"].includes(hook)) ? hook : "init";
 
             const res = cscp.announce({
                 name: "inner-entity",
@@ -786,7 +807,7 @@ function InnerSelf(hook) {
                 commands: cmds,
                 description: "Character mind simulation, monologues, and personality tracking",
                 helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
-            }, { phase: hookPhase, slotUid: myUid });
+            }, { phase: hook, slotUid: myUid });
 
             if (res) {
                 cscpActive = true;
@@ -1634,7 +1655,7 @@ function InnerSelf(hook) {
                 config.allow ? unzero() : ((IS.encoding = ""), (text ||= " "));
                 return;
             }
-        } else if (IS.AC.enabled) {
+        } else if (IS.AC.enabled && !isDoubleEngine("context")) {
             IS.AC.enabled = false;
             // AC was just disabled, clean up its cards ;)
             for (let i = storyCards.length - 1; -1 < i; i--) {
@@ -1665,6 +1686,13 @@ function InnerSelf(hook) {
                     storyCards.splice(i, 1);
                 }
             }
+        }
+        if (IS.AC.event || isExternalACEventActive() || (stop === true)) {
+            // Pause NPC thought generation while an upstream or bundled Entity-Cards / Auto-Cards task is active
+            deactivateThoughtCard();
+            IS.agent = "";
+            config.allow ? unzero() : ((IS.encoding = ""), (text ||= " "));
+            return;
         }
         if (!config.allow) {
             // Early exit if Inner Self is disabled
@@ -2559,6 +2587,7 @@ The key must already exist and the thought is erased permanently. Choose the mos
         text = cmdOut ? `${cmdOut.trim()}\n` : "\n";
         return;
     } else if (
+        isExternalACEventActive() ||
         (text.includes(">>>") && text.includes("<<<")) ||
         (3000 < text.length) ||
         (typeof state !== "undefined" && (state?.GetoptSandbox?.isCommandOutput || state?._aid_system_command)) ||
@@ -3281,7 +3310,8 @@ function InnerEntity(hook) { return InnerSelf(hook); }
 globalThis.InnerSelf = InnerSelf;
 globalThis.InnerEntity = InnerEntity;
 
-// Announce to Cross-Slot Coordination Protocol (CSCP) at startup if available
+// Announce primary slot identity to CSCP at startup (before bundled submodules load)
+// Note: Capability yielding (_isBypassed) is evaluated only on active lifecycle hooks ('input', 'context', 'output').
 try {
     const cscp = typeof loadCSCP === "function" ? loadCSCP() : null;
     if (cscp && typeof cscp.announce === "function") {
@@ -3296,9 +3326,12 @@ try {
             || (typeof state === "object" && state?._aid_ie_slot_uid)
             || ("ie-" + Math.random().toString(36).slice(2, 8));
         if (typeof globalThis !== "undefined") globalThis._aid_slot_uid = myUid;
-        if (typeof state === "object" && state && !state._aid_ie_slot_uid) state._aid_ie_slot_uid = myUid;
+        if (typeof state === "object" && state) {
+            state._aid_ie_slot_uid ??= myUid;
+            state._aid_slot_uid ??= myUid;
+        }
 
-        const res = cscp.announce({
+        cscp.announce({
             name: "inner-entity",
             displayName: isBundled ? `Inner-Entity [${flavor}]` : "Inner-Entity [minds-only]",
             version: "2.8.0",
@@ -3310,16 +3343,6 @@ try {
             description: "Character mind simulation, monologues, and personality tracking",
             helpSummary: "NPC mind simulation, internal monologues, and cognitive state"
         }, { phase: "init", slotUid: myUid });
-
-        if (res && Array.isArray(res.yielded) && res.yielded.includes("entity-cards")) {
-            globalThis._AID_DOUBLE_ENGINE_DETECTED = true;
-            if (typeof state === "object" && state) state._aid_double_engine_detected = true;
-            const ac = typeof globalThis.AutoCards === "function" ? globalThis.AutoCards : globalThis.EntityCards;
-            if (ac) {
-                ac._isBypassed = true;
-                ac._bypassReason = "Bundled Entity-Cards bypassed: Upstream slot claimed 'entity-cards' capability.";
-            }
-        }
     }
 } catch (_) {}
 
