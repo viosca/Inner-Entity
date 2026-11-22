@@ -26,13 +26,37 @@ https://github.com/viosca/Inner-Entity
 
 ---
 
-## Part 2: Suggested Edits for the Thread Original Post (OP)
+## Part 2: Improved Original Post (OP) for the Thread
 
-When updating the top post of the thread:
-1. Update version to **v2.8.0-IE**.
-2. Document the three engine flavors (Flagship All-in-One, Minds-Only, Classic Auto-Cards).
-3. Mention CSCP capability yielding when running alongside standalone Entity-Cards.
-4. Link to `DYNAMIC_SLOT_MANAGEMENT_GUIDE.md` for creators.
+*Character count: ~1,960 characters (Discord limit: 2,000)*
+
+```markdown
+🎭 **[RELEASE] Inner Entity v2.8.0 — Autonomous NPC Minds + Entity Cards Lore Engine**
+*Originally created as Inner Self by LewdLeah ❤️ | Optimized Context patch by XloSky | Maintained by Randy Viosca (@Random_Variable)*
+
+The ultimate character simulation and lore engine for AI Dungeon! Inner Entity combines the deep private consciousness of **Inner Self** with the structured world-building of **Entity Cards (NER)**, prompt caching, and cross-slot coordination.
+
+🌟 **Key Capabilities:**
+• **Autonomous Character Minds:** Simulated NPCs build, reflect upon, and maintain private mental states (secrets, goals, opinions, private schemes).
+• **Autonomous Thought Badges:** Active NPCs reflect on scene events in real time, indicated by a `🎭` thought badge.
+• **Cross-VM Thought Suppression:** Inhibits background NPC thoughts while Entity-Cards compiles a card, preventing corrupted story lore!
+• **CSCP Capability Yielding:** Mix All-in-One and Standalone scripts in multi-slot setups without collisions. If upstream Entity-Cards is detected, Inner Entity yields card generation to focus purely on character minds.
+• **Three Modular Flavors:** Available as **All-in-One Flagship**, **Minds-Only** (perfect for multi-slot setups), or **Classic Auto-Cards**.
+• **Optimized Context Ready:** Uses dynamic task card routing, preserving AI Dungeon's prompt caching for fast generations.
+• **Smart Trigger Weighting:** Narration mentions outweigh dialogue mentions (3:1), preventing off-scene characters from thinking when merely referenced in dialogue.
+
+🎮 **Quick Commands:**
+• `/ie -s` — Status of active simulated character minds & thoughts
+• `/ie -c` — List configured scenario NPCs
+• `/ie -i` — Cognitive engine diagnostics & prompt cache status
+• `/ie -v` — Script build version & git commit hash
+
+🔗 **Add to your Scenario (Script Loader):**
+https://play.aidungeon.com/script/bL_qS9DsI5wI
+
+📖 **GitHub & Documentation:**
+https://github.com/viosca/Inner-Entity
+```
 
 ---
 
