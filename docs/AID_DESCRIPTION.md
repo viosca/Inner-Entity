@@ -22,7 +22,7 @@ Inner Entity brings autonomous memory, private goals, secrets, and self-reflecti
 * **Smart Trigger Scoring:** Dialogue and narration mentions are intelligently weighted so off-scene characters do not think out of turn.
 * **Cross-Slot Coordination Protocol (CSCP):** Coordinates seamlessly with upstream **Entity Cards** and **AID-Modules** in multi-slot setups. Dynamically yields card generation capabilities to avoid double-engine collisions.
 * **Cross-VM Thought Suppression:** Inhibits background NPC thoughts while upstream Entity-Cards is conducting multi-turn card generation, preventing corrupted story cards.
-* **Modular Engine Flavors:** Available as All-in-One Flagship (Minds + Entity Cards), Minds-Only (ideal for multi-slot pairing with standalone Entity-Cards), or Classic Auto-Cards.
+* **Modular Engine Flavors:** Available as **All-in-One Flagship** (Minds + Entity Cards) or **Minds-Only** (ideal for multi-slot pairing with standalone Entity-Cards). Classic Auto-Cards mode is also toggleable anytime in-game via the configuration card or `/ec -m classic`.
 
 ---
 

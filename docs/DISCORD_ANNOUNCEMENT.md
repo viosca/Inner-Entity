@@ -28,7 +28,7 @@ https://github.com/viosca/Inner-Entity
 
 ## Part 2: Improved Original Post (OP) for the Thread
 
-*Character count: ~1,960 characters (Discord limit: 2,000)*
+*Character count: ~1,980 characters (Discord limit: 2,000)*
 
 ```markdown
 🎭 **[RELEASE] Inner Entity v2.8.0 — Autonomous NPC Minds + Entity Cards Lore Engine**
@@ -41,9 +41,9 @@ The ultimate character simulation and lore engine for AI Dungeon! Inner Entity c
 • **Autonomous Thought Badges:** Active NPCs reflect on scene events in real time, indicated by a `🎭` thought badge.
 • **Cross-VM Thought Suppression:** Inhibits background NPC thoughts while Entity-Cards compiles a card, preventing corrupted story lore!
 • **CSCP Capability Yielding:** Mix All-in-One and Standalone scripts in multi-slot setups without collisions. If upstream Entity-Cards is detected, Inner Entity yields card generation to focus purely on character minds.
-• **Three Modular Flavors:** Available as **All-in-One Flagship**, **Minds-Only** (perfect for multi-slot setups), or **Classic Auto-Cards**.
-• **Optimized Context Ready:** Uses dynamic task card routing, preserving AI Dungeon's prompt caching for fast generations.
-• **Smart Trigger Weighting:** Narration mentions outweigh dialogue mentions (3:1), preventing off-scene characters from thinking when merely referenced in dialogue.
+• **Two Modular Flavors:** Available as **All-in-One Flagship** or **Minds-Only** (for multi-slot setups). Classic Auto-Cards is toggleable anytime in-game (`/ec -m classic`).
+• **Optimized Context Native:** Dynamic task cards preserve AI Dungeon's prompt caching for fast generations.
+• **Smart Trigger Weighting:** Narration mentions outweigh dialogue mentions (3:1), preventing off-scene characters from thinking when merely referenced in conversation.
 
 🎮 **Quick Commands:**
 • `/ie -s` — Status of active simulated character minds & thoughts
