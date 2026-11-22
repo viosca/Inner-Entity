@@ -41,6 +41,7 @@ Simulated NPCs build, reflect upon, and maintain their own mental state (goals, 
 | **100% Backward Compatible** | Works with legacy `InnerSelf()` hooks and allows 1-click toggling back to Classic Auto-Cards |
 
 > 🧭 **Architecture & Documentation:**
+> * [Dynamic Slot Management & Graceful Degradation Guide](docs/DYNAMIC_SLOT_MANAGEMENT_GUIDE.md): What happens when slots are toggled on/off, reordered, or removed mid-adventure.
 > * [Configuration Matrix & Architecture Guide](docs/CONFIGURATION_MATRIX.md): Detailed comparison of builds (`inner-entity.js`, `inner-self-minds-only.js`, `inner-self-classic.js`), topologies, and dependencies.
 > * [Standalone vs. All-in-One Combinations Matrix](docs/STANDALONE_VS_ALL_IN_ONE_MATRIX.md): Complete analysis of all 16 mathematical combinations across Modules, Getopt, Entity-Cards, and Inner-Entity.
 > * [Execution Flow & Lifecycle Guide](docs/EXECUTION_FLOW.md): Step-by-step state diagrams and edge conditionals across each turn phase.
