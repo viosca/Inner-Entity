@@ -4,9 +4,9 @@
 //
 //                      Inner Entity Flagship (All-in-One) (Ver.2_8_0-IE)
 //
-//   Build Generation: 2026-11-22 05:29:43 UTC
-//   Git Commit:       7b3f255
-//   Submodules:       Entity-Cards: 78feb21, AID-Getopt: dff3771
+//   Build Generation: 2026-11-22 06:01:46 UTC
+//   Git Commit:       c860ff0
+//   Submodules:       Entity-Cards: 384a231, AID-Getopt: dff3771
 //   Engine Flavor:    All-in-One Flagship: Character Minds + Entity Cards (NER & Classic) + Getopt
 //
 //   Paste this whole file as your ENTIRE "Library" tab. Replace what is there,
@@ -28,10 +28,10 @@
 // "Configure Inner Self" card and on the task card, so the version that is
 // actually running can be read off a screenshot instead of inferred.
 globalThis.INNER_ENTITY_BUILD = "Ver.2_8_0-IE";
-globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-22 05:29:43 UTC";
+globalThis.INNER_ENTITY_BUILD_TIME = "2026-11-22 06:01:46 UTC";
 globalThis.INNER_ENTITY_FLAVOR = "all-in-one";
-globalThis.INNER_ENTITY_GIT_HASH = "7b3f255";
-try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [all-in-one] (7b3f255)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "7b3f255", buildTime: "2026-11-22 05:29:43 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
+globalThis.INNER_ENTITY_GIT_HASH = "c860ff0";
+try { const _helpText = "Inner Entity Commands:\n  /ie -s, --status, --list    List active simulated character minds & thoughts\n  /ie -i, --info, --diag      Display cognitive engine diagnostics\n  /ie -c, --characters        List configured scenario NPCs\n  /ie -v, --version           Show script build version & git hash\n  /ie -h, --help              Show command help"; const _diagText = "Inner Entity Ver.2_8_0-IE [all-in-one] (c860ff0)"; const _iem = { name: "inner-entity", version: "2.8.0", flavor: "all-in-one", gitHash: "c860ff0", buildTime: "2026-11-22 06:01:46 UTC", author: "Randy Viosca (@Random_Variable) & LewdLeah", description: "Character mind simulation, monologues, and personality tracking", prefix: "/ie", aliases: ["/is"], helpSummary: "NPC mind simulation, internal monologues, and cognitive state", help: () => _helpText, diag: () => _diagText }; (globalThis.AID_MODULES ??= {})["inner-entity"] = _iem; if (typeof state !== "undefined") (state._aid_modules ??= {})["inner-entity"] = { name: _iem.name, version: _iem.version, flavor: _iem.flavor, gitHash: _iem.gitHash, buildTime: _iem.buildTime, author: _iem.author, description: _iem.description, prefix: _iem.prefix, aliases: _iem.aliases, helpSummary: _iem.helpSummary, help: _helpText, diag: _diagText }; if (typeof globalThis.AID?.register === "function") globalThis.AID.register(_iem); } catch (_) {}
 // Maintained for backward compatibility
 globalThis.INNER_SELF_OC_BUILD = "Ver.2_8_0";
 
@@ -5591,33 +5591,138 @@ description: {1 concise sentence narrative summary}
     let data = null;
     // Validate globalThis.text
     text = ((typeof text === "string") && text) || "\n";
+    function migrateACState(target) {
+        if (!target || typeof target !== "object") return target;
+        let out = target;
+        const ensureRootMutable = () => {
+            if (Object.isFrozen(out) || Object.isSealed(out)) {
+                out = { ...out };
+            }
+        };
+        const ensureSectionKeys = (sectionKey, defaults) => {
+            const sec = out[sectionKey];
+            if (!sec || typeof sec !== "object") return;
+            const missing = Object.keys(defaults).filter(k => !(k in sec));
+            if (missing.length === 0) return;
+            ensureRootMutable();
+            const nextSec = (Object.isSealed(sec) || Object.isFrozen(sec)) ? { ...sec } : sec;
+            for (const k of missing) {
+                nextSec[k] = defaults[k];
+            }
+            out[sectionKey] = nextSec;
+        };
+        try {
+            ensureSectionKeys("config", getDefaultConfig());
+            ensureSectionKeys("signal", {
+                emergencyHalt: false,
+                forceToggle: null,
+                overrideBans: 0,
+                swapControlCards: false,
+                recheckRetryOrErase: false,
+                outputReplacement: "",
+                maxChars: Math.abs(info?.maxChars || 3200),
+                upstreamError: ""
+            });
+            ensureSectionKeys("generation", {
+                cooldown: validateCooldown(underQuarterInteger(validateCooldown(DEFAULT_CARD_CREATION_COOLDOWN))),
+                completed: 0,
+                permitted: 34,
+                workpiece: O.f({}),
+                pending: [],
+                lastConstructed: null
+            });
+            if (out.generation?.workpiece && typeof out.generation.workpiece === "object" && Object.keys(out.generation.workpiece).length > 0) {
+                const wp = out.generation.workpiece;
+                if (!("type" in wp) || !("explicitType" in wp)) {
+                    ensureRootMutable();
+                    const nextGen = (Object.isSealed(out.generation) || Object.isFrozen(out.generation)) ? { ...out.generation } : out.generation;
+                    const nextWp = (Object.isSealed(wp) || Object.isFrozen(wp)) ? { ...wp } : wp;
+                    nextWp.type ??= (out.config?.defaultCardType || "class");
+                    nextWp.explicitType ??= null;
+                    nextGen.workpiece = nextWp;
+                    out.generation = nextGen;
+                }
+            }
+            ensureSectionKeys("compression", {
+                completed: 0,
+                titleKey: "",
+                vanityTitle: "",
+                responseEstimate: 1400,
+                lastConstructIndex: -1,
+                oldMemoryBank: [],
+                newMemoryBank: []
+            });
+            ensureSectionKeys("message", {
+                previous: getStateMessage(),
+                suppress: false,
+                pending: [],
+                event: 0
+            });
+            ensureSectionKeys("chronometer", {
+                turn: getTurn(),
+                step: true,
+                amnesia: 0,
+                postpone: 0
+            });
+            if (out.database && typeof out.database === "object") {
+                const dbTitlesDefaults = {
+                    used: [],
+                    banned: getDefaultConfigBans(),
+                    candidates: [],
+                    lastActionParsed: -1,
+                    lastTextHash: "%@%",
+                    pendingBans: [],
+                    pendingUnbans: []
+                };
+                if (out.database.titles && typeof out.database.titles === "object") {
+                    const missingT = Object.keys(dbTitlesDefaults).filter(k => !(k in out.database.titles));
+                    if (missingT.length > 0) {
+                        ensureRootMutable();
+                        const nextDb = (Object.isFrozen(out.database) || Object.isSealed(out.database)) ? { ...out.database } : out.database;
+                        const nextTitles = (Object.isSealed(nextDb.titles) || Object.isFrozen(nextDb.titles)) ? { ...nextDb.titles } : nextDb.titles;
+                        for (const k of missingT) nextTitles[k] = dbTitlesDefaults[k];
+                        nextDb.titles = nextTitles;
+                        out.database = nextDb;
+                    }
+                }
+                const dbMemDefaults = { associations: {}, duplicates: "%@%" };
+                if (out.database.memories && typeof out.database.memories === "object") {
+                    const missingM = Object.keys(dbMemDefaults).filter(k => !(k in out.database.memories));
+                    if (missingM.length > 0) {
+                        ensureRootMutable();
+                        const nextDb = (Object.isFrozen(out.database) || Object.isSealed(out.database)) ? { ...out.database } : out.database;
+                        const nextMem = (Object.isSealed(nextDb.memories) || Object.isFrozen(nextDb.memories)) ? { ...nextDb.memories } : nextDb.memories;
+                        for (const k of missingM) nextMem[k] = dbMemDefaults[k];
+                        nextDb.memories = nextMem;
+                        out.database = nextDb;
+                    }
+                }
+            }
+        } catch (_) {}
+        return out;
+    }
     // Container for the persistent state of AutoCards
     const AC = (function() {
         if (state.LSIv2) {
             // The Auto-Cards external API is also available from within the inner scope of LSIv2
             // Call with AutoCards().API.nameOfFunction(yourArguments);
+            state.LSIv2 = migrateACState(state.LSIv2);
             return state.LSIv2;
         } else if (state.AutoCards) {
             // state.AutoCards is prioritized for performance
+            state.AutoCards = migrateACState(state.AutoCards);
             return state.AutoCards;
         }
         const dataVariants = getDataVariants();
         data = getSingletonCard(false, O.f({...dataVariants.critical}), O.f({...dataVariants.debug}));
         // Deserialize the state of Auto-Cards from the data card
-        const ac = (function() {
+        const ac = migrateACState((function() {
             try {
                 return JSON.parse(data?.description);
             } catch {
                 return null;
             }
-        })();
-        if (ac?.config) {
-            ac.config.cleanPromptOnCardGen ??= false;
-            ac.config.progressDisplay ??= "story";
-        }
-        if (ac?.generation) {
-            ac.generation.lastConstructed ??= null;
-        }
+        })());
         // If the deserialized state fails to match the following structure, fallback to defaults
         if (validate(ac, O.f({
             config: [
@@ -8810,10 +8915,12 @@ description: {1 concise sentence narrative summary}
                             })()),
                             description: AC.generation.workpiece.description,
                         }), newCardIndex());
-                        AC.generation.lastConstructed = {
-                            title: AC.generation.workpiece.title,
-                            turn: getTurn()
-                        };
+                        try {
+                            AC.generation.lastConstructed = {
+                                title: AC.generation.workpiece.title,
+                                turn: getTurn()
+                            };
+                        } catch (_) {}
                     }
                     AC.generation.cooldown = AC.config.addCardCooldown;
                     AC.generation.completed = 0;
@@ -11144,7 +11251,7 @@ description: {1 concise sentence narrative summary}
     function constructCard(templateCard, insertionIndex = 0) {
         addStoryCard("%@%");
         for (const [index, card] of storyCards.entries()) {
-            if (card.title !== "%@%") {
+            if (card.title !== "%@%" && card.keys !== "%@%") {
                 continue;
             }
             card.type = templateCard.type;
